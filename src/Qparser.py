@@ -17,17 +17,24 @@
 # The global policy is to be permissive (it won't complain for missing closing
 # bracket) as long as it leads to no ambiguity.
 #
-# Known limitations:
-# L1: functions name have to start with a letter.
-# L2: parenthèse doit suivre immédiatement le nom de la fonction. Pas d'espace ou je ne sais quoi.
+# Rules:
+# - R1: functions name have to start with a letter.
+#       Rationale: TODO
+# - R2: parenthèse doit suivre immédiatement le nom de la fonction. Pas d'espace ou je ne sais quoi.
+#
+
 # L3: (TBC) functions can't have void argument ("myFun()"). 
 # Pour l'instant c'est plus une crainte qu'une limitation avérée.
 # L4: variables name can only start with a letter.
+# pourquoi 
 # L5: concatenation of variables/constants/functions names as implicit product is not allowed
 #
 # TODO:
 # - add support for scientific notation
 # - add support for thousands delimitation using "_"
+# - penser à détecter tout ce qui n'est ni alphanumérique, ni "_" (genre des "é", des "@")
+# - ajouter "|" pour la valeur absolue
+# - que faire de "--" ou de trucs du style "-+-" ?
 
 
 # =============================================================================
@@ -37,7 +44,7 @@
 
 # Settings for the parser
 constants = ["e", "pi"]
-functions = ["sin", "cos", "tan", "exp", "ln", "log10", "sqrt", "Q", "floor", "ceil", "round", "sinc"]
+functions = ["sin", "cos", "tan", "exp", "ln", "log10", "abs", "sqrt", "Q", "floor", "ceil", "round", "sinc"]
 infixOps  = ["+", "-", "*", "/", "^", "//", ":="]
 variables = []
 
@@ -106,11 +113,54 @@ def split(inputStr, n) :
 
 
 # -----------------------------------------------------------------------------
+# isValidInput(<string>)
+# -----------------------------------------------------------------------------
+def isValidInput(inputStr) :
+  """
+  Description:
+  Check the input string: make sure it contains valid characters only.
+  Valid characters:
+  - letters: "a" to "z" and "A" to "Z"
+  - digits: "0" to "9"
+  - minus sign: "-"
+  - dot: "."
+  - underscore "_"
+  - round brackets: "(" and ")"
+  - square brackets: "[" and "]"
+  - pipe: "|"
+
+  Examples:
+  > 
+  (See unit tests for more examples)
+  """
+  for (loc, char) in enumerate(inputStr) :
+    testAlpha   = ((ord(char) >= 65) and (ord(char) <= 90)) or ((ord(char) >= 97) and (ord(char) <= 122))
+    testNumber  = (ord(char) >= 48) and (ord(char) <= 57)
+    
+    infixOpsExt = []
+    for t in infixOps :
+      infixOpsExt += list(t)
+    testInfix   = (char in infixOpsExt)
+    testOthers  = (char in [" ", ".", "_", "(", ")", "[", "]", "|"])
+    
+    if not(testAlpha or testNumber or testInfix or testOthers) :
+      print(inputStr)
+      s = [" "] * len(inputStr)
+      s[loc] = "^"
+      print("".join(s))
+      print("ERROR: this character is not supported by the parser.")
+      return False
+
+  return True
+
+# -----------------------------------------------------------------------------
 # isNumber(<string>)
 # -----------------------------------------------------------------------------
 def isNumber(inputStr) :
   """
+  Description:
   Detect if a given string is a number.
+  
   Known limitations: 
   - scientific notation is not supported
   - spaces before, in-between or after are not supported.
@@ -175,7 +225,9 @@ def isNumber(inputStr) :
 # -----------------------------------------------------------------------------
 def isVariable(inputStr) :
   """
+  Description:
   Detect if a given string is a legal variable name.
+  
   Known limitations: 
   None.
   
@@ -214,7 +266,7 @@ def parseNumber(inputStr) :
   If <inputStr> does not start with a valid number-looking string, a tuple with 
   an empty string will be returned (this can also be a test to know whether 
   <inputStr> starts with a number or not)
-  If the parsing fails at some point (see examples), the function also returns
+  If the parsing fails at some point (see examples), the function returns
   an empty string.
   
   Notes: 
@@ -276,7 +328,7 @@ def parseFunc(inputStr) :
   as a processing. In that matter, the following rules apply; the function
   name must be:
   - followed by a parenthesis
-  - that parenthesis must come immediatly after the name of the function.
+  - that parenthesis must come immediatly after the name of the function (see R2)
   There is not point to accept things like "cos (3x+1)". It make things
   more complicated for expressions that aren't even readable.
   Not even talking about "cos 3x -5". How am I supposed to parse that?
@@ -599,8 +651,7 @@ def parse(inputStr, stack = []) :
     return parse(rem, newStack)
 
   if (head == ")") :
-    print("Unexpected closing parenthesis!")
-    return stack
+    raise ValueError('Unexpected closing parenthesis.')
 
   print("Not supposed to land here")
 
@@ -621,7 +672,7 @@ def parse(inputStr, stack = []) :
   #   print("Error: unexpected.")
 
 
-
+  # 
 
 # -----------------------------------------------------------------------------
 # Main
@@ -738,9 +789,21 @@ if (__name__ == '__main__') :
   assert(parseParenthesis("tan(alpha)-3x(1+z)") == ("", "tan(alpha)-3x(1+z)"))          # Error: does not start with "("
   print("- Passed: <parseParenthesis>")
 
+  # Function <isValidInput> (tested at the end to benefit from all the valid expressions above)
+  assert(isValidInput("pro_ut*cos(2x+pi") == True)
+  assert(isValidInput("input Str") == True)
+  assert(isValidInput("input Str2.1(a+b)|x|") == True)
+  assert(isValidInput("$inputStr") == False)
+  assert(isValidInput("µinputStr") == False)
+  assert(isValidInput("in#putStr") == False)
+  assert(isValidInput("inputStr%") == False)
+  assert(isValidInput("inpuétStr") == False)
+  assert(isValidInput("inpuàtStr") == False)
+  print("- Passed: <isValid>")
+
   print("Unit tests done.")
 
   # print(parse(" 3.14x+  12cos(pi)/4y"))
   # print(parse(" 3.14x+  12cos(pi/24)/4y"))
   # print(parse("((x^2)+(y^2))/((x+y)^2"))
-  print(parse("cos((2*x)+y^2"))
+  #print(parse("cos(2*x)+y^2("))
