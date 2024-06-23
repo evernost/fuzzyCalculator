@@ -25,33 +25,74 @@
 # - no complex string manipulation
 #
 #
-# Rules:
-# [R1] Constant/function/variable naming
+#
+# -----
+# Rules
+# -----
+# [R1] CASE SENSITIVE
+# Parser is case sensitive.
+#
+# [R2] CONSTANT/VARIABLE/FUNCTION NAME PREFIXING
 # The name of a function/variable/constant cannot start with a number.
 # It would be impossible to tell if it's a variable or an implicit
 # product between a number and a variable.
 #
-# [R2] Function call syntax
+# [R3] FUNCTION CALL SYNTAX
 # No space is accepted between the function name and the parenthesis.
-# It makes the parsing trickier, and does not add any value to it.
+# It makes the parsing trickier, and does not add any value.
+# "exp(-2t)" -> OK
+# "cos (3x)" -> rejected
 #
-# [R3] Void Arguments
-# Function cannot be called with empty arguments
+# [R4] VOID ARGUMENTS
+# Function cannot be called with empty arguments.
 #
-# Notes: 
+# [R5] IMPLICIT MULTIPLICATIONS RULES
+# The following priorities have been defined based on the most "natural"
+# interpretation. In case of ambiguity, a warning is raised.
+# [R5.1]  "1X"     -> 1*var("X")                 See R2.
+# [R5.2]  "1.0X"   -> 1.0*var("X")               See R2.
+# [R5.3]  "X2"     -> var("X2")                  Perfectly OK: typical case of variable suffixing.
+# [R5.4]  "X_2"    -> var("X_2")                 Same as R5.2
+# [R5.5]  "X2.0    -> var("X")*2.0               A bit odd, but the most plausible meaning.
+# [R5.6]  "X3Y"    -> var("X3")*var("Y")         Not natural, raises a warning.
+# [R5.7]  "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
+# [R5.8]  "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
+# [R5.9]  "pixel"  -> var("pixel")               The variable as a whole is more likely than a const product
+# [R5.10] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
+# [R5.11] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here
+# [R5.12] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
+#                                                See also [R5.9]
+# [R5.13] "ipi"    -> var("ipi")                 Same as [R5.12]
+#
+#
+#
+# -----
+# Notes
+# -----
 #  - pipe chars "|" cannot be used for abs value as they lead to ambiguity.
 #    Solution needs to be found for that.
 #    Example: |a + b|cos(x)|c + d|
+#  - constants cannot contain an underscore (see [R5.9])
 #
-# TODO:
+#
+#
+# ----
+# TODO
+# ----
 # - add support for scientific notation
 # - add support for thousands delimitation using "_"
+# - add support for complex numbers
+# - add support for special characters (pi?)
 # - add interactive mode where: 
 #   > the tree is built as the user types in the expression
-#   > pipes "|" are automatically translated to abs(
+#   > pipes "|" are automatically translated to "abs("
 #   > implicit multiplications are automatically expanded
 #
-# Misc: 
+#
+#
+# ----
+# Misc
+# ---- 
 # Python 3.10 is required for the pattern matching features.
 #
 
@@ -60,7 +101,7 @@
 # =============================================================================
 # External libs
 # =============================================================================
-import logging
+#import logging
 
 
 
@@ -80,6 +121,8 @@ import logging
 # =============================================================================
 class Token :
 
+  # Warning: 
+  #  - underscores in the constants are not allowed
   CONSTANTS = [
     {"name": "pi" , "value": 3.14159265358979},
     {"name": "inf", "value": 0.0},
@@ -303,6 +346,28 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
+  # METHOD: reservedWordsCheck
+  # -----------------------------------------------------------------------------
+  def reservedWordsCheck(self, input = "") :
+    """
+    Description:
+    Check if reserved words (like function names, constants) are used incorrectly.
+    """
+
+    if (len(input) > 0) :
+      inputStr = input
+    else :
+      inputStr = self.input
+
+    print("TODO")
+
+    return False
+
+
+
+
+
+  # -----------------------------------------------------------------------------
   # consumeConst(<string>)
   # -----------------------------------------------------------------------------
   def consumeConst(self, input = "") :
@@ -321,35 +386,49 @@ class QParser :
     in a larger name, the tuple ("", input) is returned.
  
     The list of available constants is fetched from Token.CONSTANTS.
-    
+
+    Examples:
+    (See unit tests)
     """
-    print("TODO!")
-    # if (len(input) > 0) :
-    #   inputStr = input
-    # else :
-    #   inputStr = self.input
 
-    # # Input guard
-    # assert isinstance(inputStr, str), "<parseConst> expects a string as an input."
+    if (len(input) > 0) :
+      inputStr = input
+    else :
+      inputStr = self.input
 
-    # functionsExt = [(f + "(") for f in functions]
+    # Input guard
+    assert isinstance(inputStr, str), "<consumeConst> expects a string as an input."
 
-    # # Start with the first character, then gradually take more characters from 
-    # # the input string, until eventually taking all of it.
-    # # The longest string that passed the <isFunction> test becomes the candidate
-    # # (if the test passed at all)
-    # # TODO: optimisation possible = s'arrêter dès que isFunction devient faux (aucune chance que ça redevienne vrai)
-    # lastValid = 0
-    # for n in range(1,len(inputStr)+1) :
-    #   (head,_) = split(inputStr,n)
-    #   if (head in functionsExt) :
-    #     lastValid = n
-    
-    # # Return the function without opening bracket 
-    # (tmpHead, tmpTail) = split(inputStr,lastValid)
-    # return (tmpHead[0:-1], tmpTail)
+    constList = [c["name"] for c in Token.CONSTANTS]
 
+    for n in range(1, len(inputStr)+1) :
+      (head, tail) = split(inputStr, n)
+      if (head in constList) :
+        
+        # Case 1: the whole string matches with a known constant
+        if (n == len(inputStr)) :
+          return (head, tail)
+        
+        # Case 2: there is a match, but something comes after
+        else :
+          nextChar = tail[0]
+          
+          # See [R5.10]: underscore forbids to treat as a constant
+          if (nextChar == "_") :
+            return ("", inputStr)
+          
+          # From that point: the only way to match is to have a bigger
+          # constant name, whose beginning matched with a known constant (see [R5.12])
+          # Can't conclude.
+          elif isAlpha(nextChar) :  
+            pass
 
+          else :
+            return (head, tail)
+          
+          
+    # Case 3: never matched
+    return ("", inputStr)
 
 
 
@@ -403,14 +482,17 @@ class QParser :
       return ("", inputStr)
 
     # Start from the first character and consume the remaining chars as long as it makes sense as a number.
-    # The longest string that passed the <isNumber> test becomes the candidate
-    lastValid = 0
-    for n in range(1,len(inputStr)+1) :
-      (head,_) = split(inputStr,n)
+    # The longest string that passed the <isNumber> test becomes the candidate.
+    nMax = 0
+    for n in range(1, len(inputStr)+1) :
+      (head, _) = split(inputStr, n)
       if isNumber(head) :
-        lastValid = n
+        nMax = n
+
+      else:
+        break
     
-    return split(inputStr, lastValid)
+    return split(inputStr, nMax)
 
 
 
@@ -458,25 +540,24 @@ class QParser :
     else :
       inputStr = self.input
 
-    functionsExt = [(f + "(") for f in Token.FUNCTIONS]
+    functionsExt = [(f["name"] + "(") for f in Token.FUNCTIONS]
 
-    # TODO: optimisation possible = s'arrêter dès que isFunction devient faux (aucune chance que ça redevienne vrai)
-    lastValid = 0
+    nMax = 0
     for n in range(1, len(inputStr)+1) :
-      (head, _) = split(inputStr,n)
+      (head, _) = split(inputStr, n)
       if (head in functionsExt) :
-        lastValid = n
+        nMax = n
     
     # Return the function without opening bracket 
-    (tmpHead, tmpTail) = split(inputStr, lastValid)
+    (tmpHead, tmpTail) = split(inputStr, nMax)
     return (tmpHead[0:-1], tmpTail)
 
 
 
 # -----------------------------------------------------------------------------
-# parseVar(<string>)
+# consumeVar(<string>)
 # -----------------------------------------------------------------------------
-def parseVar(inputStr) :
+def consumeVar(inputStr) :
   """
   Description:
   If <inputStr> is a string starting with a plausible variable name, the 
@@ -517,25 +598,27 @@ def parseVar(inputStr) :
   if not(inputStr[0].isalpha()) :
     return ("", inputStr)
 
-  # Start with the first character, then gradually take more characters from 
-  # the input string, until eventually taking all of it.
-  # The longest string that passed the <isVariable> test becomes the candidate
-  # (if the test passed at all)
-  # TODO: optimisation possible = s'arrêter dès que isFunction devient faux (aucune chance que ça redevienne vrai)
-  lastValid = 0
-  for n in range(1,len(inputStr)+1) :
-    (head,_) = split(inputStr,n)
-    if isVariable(head) :
-      lastValid = n
+  print("TODO!")
+
+  # # Start with the first character, then gradually take more characters from 
+  # # the input string, until eventually taking all of it.
+  # # The longest string that passed the <isVariable> test becomes the candidate
+  # # (if the test passed at all)
+  # # TODO: optimisation possible = s'arrêter dès que isFunction devient faux (aucune chance que ça redevienne vrai)
+  # lastValid = 0
+  # for n in range(1,len(inputStr)+1) :
+  #   (head,_) = split(inputStr,n)
+  #   if isVariable(head) :
+  #     lastValid = n
   
-  (tmpVar, tail) = split(inputStr,lastValid)
-  if not(tmpVar in variables) :
-    variables.append(tmpVar)
+  # (tmpVar, tail) = split(inputStr,lastValid)
+  # if not(tmpVar in variables) :
+  #   variables.append(tmpVar)
 
-  if tmpVar in functions :
-    print("ERROR: bad function call.")
+  # if tmpVar in functions :
+  #   print("ERROR: bad function call.")
 
-  return (tmpVar, tail)
+  # return (tmpVar, tail)
 
 
 
@@ -930,6 +1013,21 @@ if (__name__ == '__main__') :
   assert(qParser.firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
   print("- Passed: <firstOrderCheck>")
 
+  assert(qParser.consumeConst("pi") == ("pi", ""))
+  assert(qParser.consumeConst("inf") == ("inf", ""))
+  assert(qParser.consumeConst("eps*4") == ("eps", "*4"))
+  assert(qParser.consumeConst("pi3") == ("pi", "3"))
+  assert(qParser.consumeConst("pi_3") == ("", "pi_3"))
+  assert(qParser.consumeConst("pir") == ("", "pir"))
+  assert(qParser.consumeConst("api") == ("", "api"))
+  assert(qParser.consumeConst("pi*12") == ("pi", "*12"))
+  assert(qParser.consumeConst("pi 12") == ("pi", " 12"))
+  assert(qParser.consumeConst("pi(12+3") == ("pi", "(12+3"))
+  assert(qParser.consumeConst("pir*12") == ("", "pir*12"))
+  assert(qParser.consumeConst("pi*r*12") == ("pi", "*r*12"))
+  assert(qParser.consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
+  print("- Passed: <consumeConst>")
+
   assert(qParser.consumeNumber("42") == ("42", ""))
   assert(qParser.consumeNumber("4.2") == ("4.2", ""))
   assert(qParser.consumeNumber("4.2.") == ("4.2", "."))
@@ -946,3 +1044,8 @@ if (__name__ == '__main__') :
   assert(qParser.consumeFunc("sina") == ("", "sina"))
   assert(qParser.consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
   assert(qParser.consumeFunc("tan (x-pi)") == ("", "tan (x-pi)"))
+  assert(qParser.consumeFunc("floot(-2.4)") == ("", "floot(-2.4)"))
+  assert(qParser.consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
+  assert(qParser.consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
+  assert(qParser.consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
+  print("- Passed: <consumeFunc>")
