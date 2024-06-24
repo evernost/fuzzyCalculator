@@ -407,7 +407,7 @@ class QParser :
         
         # Case 1: the whole string matches with a known constant
         if (n == len(inputStr)) :
-          return (head, tail)
+          return (head, "")
         
         # Case 2: there is a match, but something comes after
         else :
@@ -593,24 +593,34 @@ class QParser :
 
     for n in range(1, len(inputStr)+1) :
       (head, tail) = split(inputStr, n)
-      if (head in self.variables) :
-        
-        # Case 1: the whole string matches with a known variable
-        if (n == len(inputStr)) :
-          return (head, tail)
-        
-        # Case 2: there is a match, but something comes after
-        else :
-          
-          # Detect anything that could stop treating it as a variable
-          # - a number with decimal point: rule [R5.5]
-          # - a decimal point
-          # ?
-          print("TODO")
-          
+      
+      if (n == len(inputStr)) :
+        return (head, "")
+      
+      else :
+        nextChar = tail[0]
 
-    # Case 3: never matched
-    return ("", inputStr)
+        if (isAlpha(nextChar) or (nextChar == "_")) :
+          pass
+
+        elif isDigit(nextChar) :
+          (nbr, _) = self.consumeNumber(tail)
+        
+          if ("." in nbr) :
+            return (head, tail)
+          
+          else :
+            pass
+
+        else :
+          return (head, tail)
+
+        # Detect anything that could stop treating it as a variable
+        # - a number with decimal point: rule [R5.5]
+        # - a decimal point
+        # ?
+
+        
 
 
 
@@ -1024,7 +1034,12 @@ if (__name__ == '__main__') :
   assert(qParser.consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
   print("- Passed: <consumeFunc>")
 
-
-
+  assert(qParser.consumeVar("3x") == ("", "3x"))
+  assert(qParser.consumeVar("x_2*3") == ("x_2", "*3"))          # "x_2" is now a variable
+  assert(qParser.consumeVar("x_23//4") == ("x_23", "//4"))      # "x_23" is now a variable
+  assert(qParser.consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
+  assert(qParser.consumeVar("x_23.0+1") == ("x_", "23.0+1"))    # Raises a warning (this input is seriously odd)
+  assert(qParser.consumeVar(".1") == ("", ".1"))
+  print("- Passed: <consumeVar>")
 
   
