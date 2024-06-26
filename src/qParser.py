@@ -594,35 +594,52 @@ class QParser :
     for n in range(1, len(inputStr)+1) :
       (head, tail) = split(inputStr, n)
       
+      # End of string reached, no interruption
       if (n == len(inputStr)) :
+        self.addVariable(head)
         return (head, "")
       
       else :
         nextChar = tail[0]
 
+        # Letter or '_': OK!
         if (isAlpha(nextChar) or (nextChar == "_")) :
           pass
 
+        # Detection for rule [R5.5]
         elif isDigit(nextChar) :
           (nbr, _) = self.consumeNumber(tail)
         
           if ("." in nbr) :
+            self.addVariable(head)
+            print("[WARNING] Detected a variable followed with odd fractionnal prefix. Please double check the interpretation!")
             return (head, tail)
           
           else :
             pass
 
         else :
+          self.addVariable(head)
           return (head, tail)
-
-        # Detect anything that could stop treating it as a variable
-        # - a number with decimal point: rule [R5.5]
-        # - a decimal point
-        # ?
 
         
 
+  # ---------------------------------------------------------------------------
+  # METHOD: addVariable(<string>)
+  # ---------------------------------------------------------------------------
+  def addVariable(self, input = "") :
+    """
+    Description:
+    TODO
 
+    Examples:
+    (See unit tests)
+    """
+    
+    if (len(input) > 0) :
+      if not(input in self.variables) :
+        print(f"[NOTE] New variable detected: '{input}'")
+        self.variables.append(input)
 
 
 
@@ -1034,6 +1051,8 @@ if (__name__ == '__main__') :
   assert(qParser.consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
   print("- Passed: <consumeFunc>")
 
+  assert(qParser.consumeVar("bonjour") == ("bonjour", ""))
+  assert(qParser.consumeVar("bonjour") == ("bonjour", ""))
   assert(qParser.consumeVar("3x") == ("", "3x"))
   assert(qParser.consumeVar("x_2*3") == ("x_2", "*3"))          # "x_2" is now a variable
   assert(qParser.consumeVar("x_23//4") == ("x_23", "//4"))      # "x_23" is now a variable
