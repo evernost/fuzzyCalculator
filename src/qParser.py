@@ -65,6 +65,26 @@
 #                                                See also [R5.9]
 # [R5.13] "ipi"    -> var("ipi")                 Same as [R5.12]
 #
+# [R6] INFIX OPERATOR NAME
+# The super common ones (+, -, /, *, ...) along with exotic ones ('//') are already included.
+#
+# Users are free to customise with their favorite infix if they really want to, 
+# but some restrictions apply:
+# - infix ops cannot be made of letters, digits, commas, dots: this would mess with the rest of the parsing.
+#   Special characters are recommended: @, !, \, $, #, ...
+#   Special characters can even be combined: '@*', '+!', ...
+# - the special character(s) for your custom infix need to be added to the 'white list' in <sanityCheck>
+# - the expected behaviour for this new infix operator needs to be defined.
+#
+# Infix operators that are not based on special characters will not be supported. 
+# There are no plans to accept inputs like 'x DONG y' or 'a SUPER+ b'.
+# Reasons for that:
+# - ruins the readability
+# - special characters already give some flexibility
+# - exotic infix operators are not that common. It is not worth the engineering.
+# - infix operators are 2 variables functions in disguise.
+#   Multiargs functions are already supported and should be the reasonable choice here.
+#
 #
 #
 # -----
@@ -77,17 +97,23 @@
 #
 #
 #
-# ----
-# TODO
-# ----
+# ------------
+# TODO / IDEAS
+# ------------
+# Sorted by increasing relative effort: 
 # - add support for scientific notation
-# - add support for thousands delimitation using "_"
-# - add support for complex numbers
+# - add support for thousands delimitation using "_": "3_141_592" vs "3141592"
 # - add support for special characters (pi?)
-# - add interactive mode where: 
-#   > the tree is built as the user types in the expression
+# - add support for infix like '.+'?
+# - add support for complex numbers
+# - add an interactive mode where: 
+#   > a command prompt appears
+#   > variables and their statistics can be typed in the CLI
+#   > the tree is built as the user types in the expression for immediate feedback
 #   > pipes "|" are automatically translated to "abs("
 #   > implicit multiplications are automatically expanded
+#   > possible warnings (ambiguities, ...), errors are shown as the user types
+#   > ...
 #
 #
 #
@@ -102,18 +128,8 @@
 # =============================================================================
 # External libs
 # =============================================================================
-#import logging
+# None.
 
-
-
-
-#logger = logging.getLogger(__name__)
-
-
-# class Tree :
-
-#   self.operator = Token("id")
-#   self.leaf = Tree("")
 
 
 
@@ -122,8 +138,7 @@
 # =============================================================================
 class Token :
 
-  # Warning: 
-  #  - underscores in the constants are not allowed
+  # Warning: underscores in the constant's name is not allowed (rule [R5.10])
   CONSTANTS = [
     {"name": "pi" , "value": 3.14159265358979},
     {"name": "i",   "value": 0.0},
@@ -376,8 +391,8 @@ class QParser :
 
     If <input> is a string starting with the name of a constant, the tuple (c, rem) is 
     returned, where:
-      - <c> is the matching constant name
-      - <rem> is the rest of the string.
+    - <c> is the matching constant name
+    - <rem> is the rest of the string.
     
     so that input = c || rem
 
@@ -441,8 +456,8 @@ class QParser :
 
     If <input> is a string starting with a number, the tuple (n, rem) is 
     returned, where:
-      - <n> is the matching number
-      - <rem> is the rest of the string.
+    - <n> is the matching number
+    - <rem> is the rest of the string.
     
     so that input = n || rem
 
@@ -505,8 +520,8 @@ class QParser :
 
     If <input> is a string starting with a function, the tuple (f, rem) is 
     returned, where:
-      - <f> is the matching function name
-      - <rem> is the rest of the string.
+    - <f> is the matching function name
+    - <rem> is the rest of the string.
     
     The opening parenthesis is omitted in <rem>, so input = f || "(" || rem
 
@@ -563,15 +578,24 @@ class QParser :
 
     If <input> is a string starting with a variable, the tuple (v, rem) is 
     returned, where:
-      - <v> is the matching variable name
-      - <rem> is the rest of the string.
+    - <v> is a potential variable name
+    - <rem> is the rest of the string.
     
     so that input = v || rem
 
     Several rules apply to the parsing strategy. 
-    In short, the function tries to match it with known or declared variables.
-    If it fails, it adds it to the variable list.
+    In short, the function tries to match the leading input with what could be
+    a plausible variable name based on the rest of the input string.
+    
+    The function filters out variables matching the name of a function or a constant.
+    In that case, the tuple ("", input) is returned.
 
+    This function is usually followed by the <addVariable> function, that adds 
+    the variable found by <consumeVar> to the list of variables (<variables> attribute).
+
+    The function itself does not alter the content of <variables>.
+    So it can be safely used to test whether an unknown string is a potential variable.
+    
     Refer to rules [5.X] for more details about the parsing strategy. 
 
     Examples:
@@ -586,43 +610,62 @@ class QParser :
     # Input guard
     assert isinstance(inputStr, str), "<consumeVar> expects a string as an input."
 
-    # Test the first character.
-    # If it is not a letter, don't bother (R2)
+    OUTPUT_FAILURE = ("", inputStr)
+    reservedNames = [x["name"] for x in Token.CONSTANTS] + [x["name"] for x in Token.FUNCTIONS]
+
+    # Rule [R2]: a variable must start with a letter
     if not(isAlpha(inputStr)) :
       return ("", inputStr)
+
+    
+    output = (-1, "")
 
     for n in range(1, len(inputStr)+1) :
       (head, tail) = split(inputStr, n)
       
-      # End of string reached, no interruption
+      # End of string reached
       if (n == len(inputStr)) :
-        self.addVariable(head)
-        return (head, "")
+        output = (head, "")
+        break
       
+      # There are remaining characters to process
       else :
         nextChar = tail[0]
 
-        # Letter or '_': OK!
+        # Coming next: letter or '_'
         if (isAlpha(nextChar) or (nextChar == "_")) :
           pass
 
-        # Detection for rule [R5.5]
+        # Coming next: digit
         elif isDigit(nextChar) :
           (nbr, _) = self.consumeNumber(tail)
         
+          # Number with decimal point: apply rule [R5.5]
           if ("." in nbr) :
-            self.addVariable(head)
-            print("[WARNING] Detected a variable followed with odd fractionnal prefix. Please double check the interpretation!")
-            return (head, tail)
-          
+            print("[WARNING] Odd syntax: variable prefixed with a fractional number. Please double check the interpretation.")
+            output = (head, tail)
+            break
+            
+          # Number without decimal point: apply rule [R5.3]
           else :
             pass
 
+        # Coming next: anything else
         else :
-          self.addVariable(head)
-          return (head, tail)
+          output = (head, tail)
+          break
 
-        
+    (var, _) = output
+    if not(var in reservedNames) :
+      return output
+    
+    elif (var == -1) :
+      print("[ERROR] Internal error.")
+
+    else :
+      return OUTPUT_FAILURE
+
+
 
   # ---------------------------------------------------------------------------
   # METHOD: addVariable(<string>)
@@ -644,7 +687,6 @@ class QParser :
 
 
 
-
   # ---------------------------------------------------------------------------
   # METHOD: consumeInfix(<string>)
   # ---------------------------------------------------------------------------
@@ -655,14 +697,17 @@ class QParser :
 
     If <input> is a string starting with an infix operator, the tuple (op, rem) is 
     returned, where:
-      - <op> is the matching infix operator name
-      - <rem> is the rest of the string.
+    - <op> is the matching infix operator name
+    - <rem> is the rest of the string.
     
     so that input = op || rem
 
     If <input> does not start with a known infix operator, the tuple ("", input) is returned.
  
     The list of available infix operators is fetched from Token.INFIX_OPS.
+
+    The infix operators is not really open to customisation.
+    If the user really wishes to do so, some rules need to be followed [R6]
 
     Examples:
     (See unit tests)
@@ -674,7 +719,7 @@ class QParser :
       inputStr = self.input
 
     # Input guard
-    assert isinstance(inputStr, str), "<consumeConst> expects a string as an input."
+    assert isinstance(inputStr, str), "<consumeInfix> expects a string as an input."
 
     constList = [c["name"] for c in Token.CONSTANTS]
 
@@ -707,39 +752,7 @@ class QParser :
     # Case 3: never matched
     return ("", inputStr)
 
-    #   Notes:
-    #   TODO: comment distinguer le "-" pour l'opposé et le "-" opérateur infixe ?
-    #   Mais au pire, est-ce vraiment grave de voir un infixe alors que c'est une 
-    #   négation ?
-    #   C'est juste que le premier argument de l'infixe peut être omis dans certains cas.
 
-
-    #   Known limitations:
-    #   None.
-
-    #   Examples:
-    #   > infixOps  = ["+", "-", "*", "/", "^", "//", ":="]
-    #   > parseInfix("+3x") = ("+", "3x")
-    #   > parseInfix("//(12cos(pi))") = ("//", "(12cos(pi))")
-    #   > parseInfix("-3.14*cos(12)") = ("", "-3.14*cos(12)") # Piège : ça ce n'est pas un infixe ou si ?
-    #   (See unit tests for more examples)
-    #   """
-      
-    #   # Input guard
-    #   assert isinstance(inputStr, str), "<parseInfix> expects a string as an input."
-
-    #   # Start with the first character, then gradually take more characters from 
-    #   # the input string, until eventually taking all of it.
-    #   # The longest string that passed the <isFunction> test becomes the candidate
-    #   # (if the test passed at all)
-    #   # TODO: optimisation possible = s'arrêter dès que isFunction devient faux (aucune chance que ça redevienne vrai)
-    #   lastValid = 0
-    #   for n in range(1,len(inputStr)+1) :
-    #     (head,_) = split(inputStr,n)
-    #     if (head in infixOps) :
-    #       lastValid = n
-      
-    #   return split(inputStr,lastValid)
 
 
 
@@ -1052,13 +1065,19 @@ if (__name__ == '__main__') :
   print("- Passed: <consumeFunc>")
 
   assert(qParser.consumeVar("bonjour") == ("bonjour", ""))
-  assert(qParser.consumeVar("bonjour") == ("bonjour", ""))
   assert(qParser.consumeVar("3x") == ("", "3x"))
   assert(qParser.consumeVar("x_2*3") == ("x_2", "*3"))          # "x_2" is now a variable
   assert(qParser.consumeVar("x_23//4") == ("x_23", "//4"))      # "x_23" is now a variable
   assert(qParser.consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
   assert(qParser.consumeVar("x_23.0+1") == ("x_", "23.0+1"))    # Raises a warning (this input is seriously odd)
   assert(qParser.consumeVar(".1") == ("", ".1"))
+  assert(qParser.consumeVar("pi*12x") == ("", "pi*12x"))
+  assert(qParser.consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
   print("- Passed: <consumeVar>")
+
+  assert(qParser.consumeInfix("*3x") == ("*", "3x"))
+  assert(qParser.consumeInfix("**2+1") == ("*", "*2+1"))
+  assert(qParser.consumeInfix("//2+1") == ("//", "*2+1"))
+  print("- Passed: <consumeInfix>")
 
   
