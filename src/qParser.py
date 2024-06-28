@@ -76,7 +76,7 @@
 # - the special character(s) for your custom infix need to be added to the 'white list' in <sanityCheck>
 # - the expected behaviour for this new infix operator needs to be defined.
 #
-# Infix operators that are not based on special characters will not be supported. 
+# Infix operators that are not based on special characters will not be supported.
 # There are no plans to accept inputs like 'x DONG y' or 'a SUPER+ b'.
 # Reasons for that:
 # - ruins the readability
@@ -84,6 +84,15 @@
 # - exotic infix operators are not that common. It is not worth the engineering.
 # - infix operators are 2 variables functions in disguise.
 #   Multiargs functions are already supported and should be the reasonable choice here.
+#
+# [R7] OMITTED TOKEN RULES
+# The infix operator "-" (minus sign) is the only operator that allows an implicit left operand.
+# In other words, expressions like "(-3x+..." are accepted.
+# That being said: 
+# [R7.1] "*-4" or "^-5" are not recommended to avoid ambiguity
+# [R7.2] "--4" is not accepted (chaining more than 1 minus sign)
+# [R7.3] "(+4" is not accepted (implicit left operand is for minus sign only)
+# [R7.4] "-*4" is not accepted
 #
 #
 #
@@ -173,9 +182,23 @@ class Token :
     {"name": "^",  "priority": 3}
   ]
 
+  # ---------------------------------------------------------------------------
   # Default constructor
+  # ---------------------------------------------------------------------------
   def __init__(self, name, value = 0) :
-    
+    """
+    Description:
+    Constructs a token.
+    Token type is inferred from the input
+
+    How to use it?
+
+
+    One or more white spaces " " will not create any token.
+
+    Examples:
+    (See unit tests below)
+    """
     self.constantsList = [x["name"] for x in Token.CONSTANTS]
     self.functionsList = [x["name"] for x in Token.FUNCTIONS]
     self.infixOpsList  = [x["name"] for x in Token.INFIX_OPS]
@@ -183,23 +206,68 @@ class Token :
     if (name in self.constantsList) :
       self._type = "CONSTANT"
       self._name = name
+      self.dispStr = f"const:'{name}'"
+
+    elif (name in self.functionsList) :
+      self._type = "FUNCTION"
+      self._name = name
+      self.dispStr = f"fct:'{name}'"
+
+    elif (name in self.infixOpsList) :
+      self._type = "INFIX"
+      self._name = name
+      self.dispStr = f"op:'{name}'"
+
+    # elif (isVariable(name)) :
+    #   self._type = "VAR"
+    #   self._name = name
+    #   self.dispStr = f"var:'{name}'"
+
+    elif (name == "(") :
+      self._type = "BRACKET"
+      self._name = name
+      self.dispStr = f"brkt:'('"
+
+    elif (name == ")") :
+      self._type = "BRACKET"
+      self._name = name
+      self.dispStr = f"brkt:')'"
+
+    elif (name == ".") :
+      self._type = "DOT"
+      self._name = name
+      self.dispStr = f"sep:'.'"
+
+    elif (name == ",") :
+      self._type = "COMMA"
+      self._name = name
+      self.dispStr = f"sep:','"
+
+    elif (isNumber(name)) :
+      self._type = "NUMBER"
+      self._name = name
+      self.dispStr = f"num:'{name}'"
+
+    elif (isBlank(name)) :
+      self._type = "SPACE"
+      self._name = name
+      self.dispStr = f"blk:'{name}'"
+
+    else :
+      self._type = "VARIABLE"
+      self._name = name      
 
 
 
-
-    # self.name = name
-    # self.value = value
-    # self.priority = 0
-    # self.nArgs = 0
-
-    # @name.setter
-    # def name(self, val)
+    # @value.setter
+    # def value(self, val) :
+    #   if self._type in 
 
 
 
-    @property
-    def type(self) :
-      return self._type
+    # @property
+    # def type(self) :
+    #   return self._type
     
 
 
@@ -207,10 +275,9 @@ class Token :
 
 
 
-  def __str__(self):
+  def __str__(self) :
     
-    if (self.type == "CONSTANT") :
-      return f"Token:{self.type}, value = {self.value}"
+    return self.dispStr
   
 
 
@@ -587,14 +654,14 @@ class QParser :
     In short, the function tries to match the leading input with what could be
     a plausible variable name based on the rest of the input string.
     
-    The function filters out variables matching the name of a function or a constant.
+    The function filters out variables when their name matches with a function or a constant.
     In that case, the tuple ("", input) is returned.
 
-    This function is usually followed by the <addVariable> function, that adds 
+    This function is usually followed by a call to <addVariable>, that adds 
     the variable found by <consumeVar> to the list of variables (<variables> attribute).
 
     The function itself does not alter the content of <variables>.
-    So it can be safely used to test whether an unknown string is a potential variable.
+    So it can be safely used to test whether an unknown string starts with a potential variable.
     
     Refer to rules [5.X] for more details about the parsing strategy. 
 
@@ -681,7 +748,7 @@ class QParser :
     
     if (len(input) > 0) :
       if not(input in self.variables) :
-        print(f"[NOTE] New variable detected: '{input}'")
+        print(f"[NOTE] New variable added: '{input}'")
         self.variables.append(input)
 
 
@@ -706,8 +773,8 @@ class QParser :
  
     The list of available infix operators is fetched from Token.INFIX_OPS.
 
-    The infix operators is not really open to customisation.
-    If the user really wishes to do so, some rules need to be followed [R6]
+    The list of infix operators can be extended with custom operators.
+    Please refer to [R6] to see the rules that apply for that.
 
     Examples:
     (See unit tests)
@@ -721,41 +788,17 @@ class QParser :
     # Input guard
     assert isinstance(inputStr, str), "<consumeInfix> expects a string as an input."
 
-    constList = [c["name"] for c in Token.CONSTANTS]
+    infixOpsList = [op["name"] for op in Token.INFIX_OPS]
 
+    nMax = 0
     for n in range(1, len(inputStr)+1) :
-      (head, tail) = split(inputStr, n)
-      if (head in constList) :
-        
-        # Case 1: the whole string matches with a known constant
-        if (n == len(inputStr)) :
-          return (head, tail)
-        
-        # Case 2: there is a match, but something comes after
-        else :
-          nextChar = tail[0]
-          
-          # See [R5.10]: underscore forbids to treat as a constant
-          if (nextChar == "_") :
-            return ("", inputStr)
-          
-          # From that point: the only way to match is to have a bigger
-          # constant name, whose beginning matched with a known constant (see [R5.12])
-          # Can't conclude.
-          elif isAlpha(nextChar) :  
-            pass
-
-          else :
-            return (head, tail)
-          
-          
-    # Case 3: never matched
-    return ("", inputStr)
-
-
-
-
-
+      (head, _) = split(inputStr, n)
+      
+      # Returns True only if the whole word matches
+      if (head in infixOpsList) :
+        nMax = n
+    
+    return split(inputStr, nMax)
 
 
 
@@ -780,7 +823,7 @@ class QParser :
 
     tokenList = []
 
-    while(len(inputStr) > 0):
+    while(len(inputStr) > 0) :
 
 
       # Try all possibilities
@@ -969,7 +1012,12 @@ def isDigit(inputStr) :
 
 
 
-
+def isBlank(inputStr) :
+  """
+  Description:
+  Returns True if the input string only contains whitespaces.
+  """
+  print("TODO")
 
 
 
@@ -1077,7 +1125,15 @@ if (__name__ == '__main__') :
 
   assert(qParser.consumeInfix("*3x") == ("*", "3x"))
   assert(qParser.consumeInfix("**2+1") == ("*", "*2+1"))
-  assert(qParser.consumeInfix("//2+1") == ("//", "*2+1"))
+  assert(qParser.consumeInfix("//2+1") == ("//", "2+1"))
+  assert(qParser.consumeInfix("x-y") == ("", "x-y"))
+  assert(qParser.consumeInfix("-2x+y") == ("-", "2x+y"))
   print("- Passed: <consumeInfix>")
 
-  
+
+  # T_c = Token("pi")
+  # T_f = Token("sqrt")
+  # T_n = Token("2.71")
+  # T_i = Token("*")
+
+
