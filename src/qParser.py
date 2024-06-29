@@ -94,6 +94,9 @@
 # [R7.3] "(+4" is not accepted (implicit left operand is for minus sign only)
 # [R7.4] "-*4" is not accepted
 #
+# [R8] VARIABLE NAMING
+# Variable cannot start with a number.
+#
 #
 #
 # -----
@@ -204,74 +207,58 @@ class Token :
     self.infixOpsList  = [x["name"] for x in Token.INFIX_OPS]
     
     if (name in self.constantsList) :
-      self._type = "CONSTANT"
-      self._name = name
+      self.type = "CONSTANT"
+      self.name = name
       self.dispStr = f"const:'{name}'"
 
     elif (name in self.functionsList) :
-      self._type = "FUNCTION"
-      self._name = name
+      self.type = "FUNCTION"
+      self.name = name
       self.dispStr = f"fct:'{name}'"
 
     elif (name in self.infixOpsList) :
-      self._type = "INFIX"
-      self._name = name
+      self.type = "INFIX"
+      self.name = name
       self.dispStr = f"op:'{name}'"
 
-    # elif (isVariable(name)) :
-    #   self._type = "VAR"
-    #   self._name = name
-    #   self.dispStr = f"var:'{name}'"
+    elif (checkVariableSyntax(name)) :
+      self._type = "VAR"
+      self._name = name
+      self.dispStr = f"var:'{name}'"
 
     elif (name == "(") :
-      self._type = "BRACKET"
-      self._name = name
+      self.type = "BRACKET"
+      self.name = name
       self.dispStr = f"brkt:'('"
 
     elif (name == ")") :
-      self._type = "BRACKET"
-      self._name = name
+      self.type = "BRACKET"
+      self.name = name
       self.dispStr = f"brkt:')'"
 
     elif (name == ".") :
-      self._type = "DOT"
-      self._name = name
+      self.type = "DOT"
+      self.name = name
       self.dispStr = f"sep:'.'"
 
     elif (name == ",") :
-      self._type = "COMMA"
-      self._name = name
+      self.type = "COMMA"
+      self.name = name
       self.dispStr = f"sep:','"
 
     elif (isNumber(name)) :
-      self._type = "NUMBER"
-      self._name = name
+      self.type = "NUMBER"
+      self.name = name
       self.dispStr = f"num:'{name}'"
 
     elif (isBlank(name)) :
-      self._type = "SPACE"
-      self._name = name
+      self.type = "SPACE"
+      self.name = name
       self.dispStr = f"blk:'{name}'"
 
     else :
-      self._type = "VARIABLE"
-      self._name = name      
-
-
-
-    # @value.setter
-    # def value(self, val) :
-    #   if self._type in 
-
-
-
-    # @property
-    # def type(self) :
-    #   return self._type
-    
-
-
-
+      self.type = "VARIABLE"
+      self.name = name      
 
 
 
@@ -419,10 +406,12 @@ class QParser :
           print("[ERROR] possible missing argument?")
           return False
 
+        # 
+        # TODO: this section needs to be completed.
+        # 
+
         case _:
           pass
-
-
 
     return True
 
@@ -680,13 +669,11 @@ class QParser :
     OUTPUT_FAILURE = ("", inputStr)
     reservedNames = [x["name"] for x in Token.CONSTANTS] + [x["name"] for x in Token.FUNCTIONS]
 
-    # Rule [R2]: a variable must start with a letter
-    if not(isAlpha(inputStr)) :
+    # Rule [R2]: a variable must start with a letter or an underscore
+    if not(isAlpha(inputStr[0]) or (inputStr[0] == "_")) :
       return ("", inputStr)
 
-    
     output = (-1, "")
-
     for n in range(1, len(inputStr)+1) :
       (head, tail) = split(inputStr, n)
       
@@ -864,9 +851,13 @@ class QParser :
 
 
 
-# -----------------------------------------------------------------------------
-# pop(<string>)
-# -----------------------------------------------------------------------------
+
+
+
+# =============================================================================
+# Utilities
+# =============================================================================
+
 def pop(inputStr) :
   """
   Description:
@@ -890,9 +881,6 @@ def pop(inputStr) :
 
 
 
-# -----------------------------------------------------------------------------
-# split(<string>)
-# -----------------------------------------------------------------------------
 def split(inputStr, n) :
   """
   Description:
@@ -923,65 +911,6 @@ def split(inputStr, n) :
     return ("", inputStr)
   else :
     return(inputStr[0:n], inputStr[n:])
-
-
-
-
-# -----------------------------------------------------------------------------
-# isNumber(<string>)
-# -----------------------------------------------------------------------------
-def isNumber(inputStr) :
-  """
-  Description:
-  Test if the input string is a valid number.
-  
-  Notes: 
-  - spaces before, in-between or after are not supported.
-
-  Upcoming features: 
-  - support for scientific notation
-  - underscores as thousands separator "123_456"
-  
-  
-  Examples:
-  > isNumber("4.2") = True
-  > isNumber("42") = True
-  > isNumber("41209.00000000000") = True
-  > isNumber(".41209") = True
-  > isNumber("4.2.") = False
-  > isNumber(" 12") = False
-  > isNumber("2 ") = False
-  > isNumber("120 302") = False
-  (See unit tests for more examples)
-  """
-  
-  # Input guard
-  assert isinstance(inputStr, str), "<isNumber> expects a string as an input."
-
-  gotDigit = False
-  gotSign = False
-
-  # None of these are valid numbers
-  if (inputStr in [".", "-", "-."]) :
-    return False
-
-  for (loc, char) in enumerate(inputStr) :
-    
-    # Handle dot
-    if (char == ".") :
-      
-      # Dot already seen: exit
-      if gotDigit :
-        return False
-      else :
-        gotDigit = True
-    
-    # Anything else than a dot or a digit is invalid
-    elif not(char.isdigit()) :
-      return False
-  
-  # If we made it up to here, it's a valid number.
-  return True
 
 
 
@@ -1021,6 +950,82 @@ def isBlank(inputStr) :
 
 
 
+def isNumber(inputStr) :
+  """
+  Description:
+  Test if the input is the string representation of a digit or a number (whole or fractional).
+  
+  The test fails if the string contains anything else than digits and more than
+  one dot. 
+
+  The test fails on a single dot.
+  The test fails on negative numbers (the minus sign is treated differently)
+
+  Examples:
+  (See unit tests)
+  """
+  
+  # Input guard
+  assert isinstance(inputStr, str), "<isNumber> expects a string as an input."
+
+  gotDigit = False
+
+  # A single dot is not a valid number
+  if (inputStr == ".") :
+    return False
+
+  for char in inputStr :
+    if (char == ".") :
+      if gotDigit :
+        return False
+      
+      else :
+        gotDigit = True
+    
+    # Anything else than a dot or a digit is invalid
+    elif not(isDigit(char)) :
+      return False
+  
+  # If we made it up to here, it's a valid number.
+  return True
+
+
+
+def checkVariableSyntax(inputStr) :
+  """
+  Description:
+  Test if the input string is a valid variable name.
+  
+  This test only checks the syntax. It does not indicate if this variable
+  has been declared.
+
+  Examples:
+  (See unit tests)
+  """
+  
+  # Input guard
+  assert isinstance(inputStr, str), "<isNumber> expects a string as an input."
+
+  # Filter out reserved names
+  if (inputStr in ([x["name"] for x in Token.CONSTANTS] + [x["name"] for x in Token.FUNCTIONS])) :
+    return False
+
+  # First character must start with a letter or an underscore (rule [R2])
+  if not(isAlpha(inputStr[0]) or inputStr[0] == "_") :
+    return False
+
+  # Look for forbidden characters:
+  for char in inputStr :
+    testAlpha = isAlpha(char)
+    testDigit = isDigit(char)
+    testUnder = (char == "_")
+    if not(testAlpha or testDigit or testUnder) :
+      return False
+
+  return True
+
+
+
 def showInStr(inputStr, loc) :
   """
   Description:
@@ -1039,11 +1044,6 @@ def showInStr(inputStr, loc) :
 
 
 
-
-
-
-
-
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
@@ -1052,6 +1052,35 @@ if (__name__ == '__main__') :
   print("[INFO] Standalone call: running unit tests...")
 
   qParser = QParser()
+
+  assert(isNumber("1") == True)
+  assert(isNumber("23") == True)
+  assert(isNumber("4.5") == True)
+  assert(isNumber("6.0") == True)
+  assert(isNumber("789.000000000") == True)
+  assert(isNumber(".123456") == True)
+  assert(isNumber(".1") == True)
+  assert(isNumber("4.2.") == False)
+  assert(isNumber(" 12") == False)
+  assert(isNumber("2 ") == False)
+  assert(isNumber("120 302") == False)
+  assert(isNumber(".0") == True)
+  assert(isNumber(".") == False)
+  assert(isNumber("-") == False)
+  assert(isNumber("-1") == False)
+  assert(isNumber("-0") == False)
+  assert(isNumber("-.") == False)
+  assert(isNumber("-.0") == False)
+
+  assert(checkVariableSyntax("x") == True)
+  assert(checkVariableSyntax("xyz") == True)
+  assert(checkVariableSyntax("1.2") == False)
+  assert(checkVariableSyntax("314") == False)
+  assert(checkVariableSyntax("314_x") == False)
+  assert(checkVariableSyntax("a_b_c_d_") == True)
+  assert(checkVariableSyntax("exp") == False)
+  assert(checkVariableSyntax("_u") == True)
+  assert(checkVariableSyntax("_sin") == True)
 
   assert(qParser.sanityCheck("pro_ut*cos(2x+pi") == True)
   assert(qParser.sanityCheck("input Str") == True)
@@ -1114,13 +1143,14 @@ if (__name__ == '__main__') :
 
   assert(qParser.consumeVar("bonjour") == ("bonjour", ""))
   assert(qParser.consumeVar("3x") == ("", "3x"))
-  assert(qParser.consumeVar("x_2*3") == ("x_2", "*3"))          # "x_2" is now a variable
-  assert(qParser.consumeVar("x_23//4") == ("x_23", "//4"))      # "x_23" is now a variable
+  assert(qParser.consumeVar("x_2*3") == ("x_2", "*3"))
+  assert(qParser.consumeVar("x_23//4") == ("x_23", "//4"))
   assert(qParser.consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
-  assert(qParser.consumeVar("x_23.0+1") == ("x_", "23.0+1"))    # Raises a warning (this input is seriously odd)
+  assert(qParser.consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
   assert(qParser.consumeVar(".1") == ("", ".1"))
   assert(qParser.consumeVar("pi*12x") == ("", "pi*12x"))
   assert(qParser.consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
+  assert(qParser.consumeVar("_a") == ("_a", ""))
   print("- Passed: <consumeVar>")
 
   assert(qParser.consumeInfix("*3x") == ("*", "3x"))
@@ -1128,12 +1158,7 @@ if (__name__ == '__main__') :
   assert(qParser.consumeInfix("//2+1") == ("//", "2+1"))
   assert(qParser.consumeInfix("x-y") == ("", "x-y"))
   assert(qParser.consumeInfix("-2x+y") == ("-", "2x+y"))
+  assert(qParser.consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
-
-
-  # T_c = Token("pi")
-  # T_f = Token("sqrt")
-  # T_n = Token("2.71")
-  # T_i = Token("*")
 
 
