@@ -89,10 +89,11 @@
 # The infix operator "-" (minus sign) is the only operator that allows an implicit left operand.
 # In other words, expressions like "(-3x+..." are accepted.
 # That being said: 
-# [R7.1] "*-4" or "^-5" are not recommended to avoid ambiguity
-# [R7.2] "--4" is not accepted (chaining more than 1 minus sign)
-# [R7.3] "(+4" is not accepted (implicit left operand is for minus sign only)
-# [R7.4] "-*4" is not accepted
+# [R7.1] "^-5" is not ideal but accepted (e.g. for '10^-4')
+# [R7.2] "*-4" are not recommended to avoid ambiguity
+# [R7.3] "--4" is not accepted (chaining more than 1 minus sign)
+# [R7.4] "(+4" is not accepted (implicit left operand is for minus sign only)
+# [R7.5] "-*4" is not accepted
 #
 # [R8] VARIABLE NAMING
 # Variable cannot start with a number.
@@ -236,11 +237,6 @@ class Token :
       self.name = name
       self.dispStr = f"brkt:')'"
 
-    elif (name == ".") :
-      self.type = "DOT"
-      self.name = name
-      self.dispStr = f"sep:'.'"
-
     elif (name == ",") :
       self.type = "COMMA"
       self.name = name
@@ -257,8 +253,7 @@ class Token :
       self.dispStr = f"blk:'{name}'"
 
     else :
-      self.type = "VARIABLE"
-      self.name = name      
+      print("[ERROR] Invalid token!")
 
 
 
@@ -436,6 +431,32 @@ class QParser :
     return False
 
 
+
+  # -----------------------------------------------------------------------------
+  # METHOD: consumeSpace(<string>)
+  # -----------------------------------------------------------------------------
+  def consumeSpace(self, input = "") :
+    """
+    Description:
+    Consume the leading whitespaces contained in the input string.
+
+    Examples:
+    (See unit tests)
+    """
+
+    if (len(input) > 0) :
+      inputStr = input
+    else :
+      inputStr = self.input
+
+    # Input guard
+    assert isinstance(inputStr, str), "<consumeConst> expects a string as an input."
+
+    for n in range(len(inputStr)) :
+      if (inputStr[n] != " ") :
+        return split(inputStr, n)
+        
+    
 
   # -----------------------------------------------------------------------------
   # METHOD: consumeConst(<string>)
@@ -812,28 +833,53 @@ class QParser :
 
     while(len(inputStr) > 0) :
 
+      (number, tailNumber)      = self.consumeNumber(inputStr)
+      (constant, tailConstant)  = self.consumeConst(inputStr)
+      (function, tailFunction)  = self.consumeFunc(inputStr)
+      (variable, tailVariable)  = self.consumeVar(inputStr)
+      (infix, tailInfix)        = self.consumeInfix(inputStr)
 
-      # Try all possibilities
-      # Only 1 test must pass!
-      (number, number_t) = self.consumeNumber(inputStr)
-      (constant, constant_t) = self.consumeConst(inputStr)
-      (function, function_t) = self.consumeFunction(inputStr)
-      (variable, variable_t) = self.consumeVariable(inputStr)
+      if (number != "") :
+        tokenList.append(Token(number))
+        inputStr = tailNumber
 
-
-      # Si l'un d'eux est différent de 0 :
-
-      # if ((len(number)*len(constant)*len(function)*len(variable)) == 0) :
-      #   error("internal_error")
-
-      # else : 
-      #   if testNumber :
-      #     (number, tail) = self.consumeNumber(inputStr)
-
-
-
-      # Sinon, ça peut être une parenthèse, une virgule, etc:
+      elif (constant != "") :
+        tokenList.append(Token(constant))
+        inputStr = tailConstant
       
+      elif (function != "") :
+        tokenList.append(Token(function))
+        tokenList.append(Token("("))
+        inputStr = tailFunction
+
+      elif (variable != "") :
+        tokenList.append(Token(variable))
+        inputStr = tailVariable
+        
+      elif (infix != "") :
+        tokenList.append(Token(infix))
+        inputStr = tailInfix
+
+      else :
+        # Remove spaces
+        (_, inputStr) = self.consumeSpace(inputStr)
+        
+        (head, tail) = pop(inputStr)
+
+        if (head == "(") :
+          tokenList.append(Token(head))
+          inputStr = tail
+
+        elif (head == ")") :
+          tokenList.append(Token(head))
+          inputStr = tail
+
+        elif (head == ",") :
+          tokenList.append(Token(head))
+          inputStr = tail
+
+
+
 
 
 
@@ -1104,6 +1150,11 @@ if (__name__ == '__main__') :
   assert(qParser.firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
   print("- Passed: <firstOrderCheck>")
 
+  assert(qParser.consumeSpace("pi") == ("", "pi"))
+  assert(qParser.consumeSpace(" pi") == (" ", "pi"))
+  assert(qParser.consumeSpace("   pi") == ("   ", "pi"))
+  print("- Passed: <consumeSpace>")
+
   assert(qParser.consumeConst("pi") == ("pi", ""))
   assert(qParser.consumeConst("inf") == ("inf", ""))
   assert(qParser.consumeConst("eps*4") == ("eps", "*4"))
@@ -1161,4 +1212,4 @@ if (__name__ == '__main__') :
   assert(qParser.consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
 
-
+  qParser.tokenize("2x*cos(3t-1)")
