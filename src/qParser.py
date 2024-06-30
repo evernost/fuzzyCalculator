@@ -213,47 +213,47 @@ class Token :
     if (name in self.constantsList) :
       self.type = "CONSTANT"
       self.name = name
-      self.dispStr = f"const:'{name}'"
+      self.dispStr = f"CONST:'{name}'"
 
     elif (name in self.functionsList) :
       self.type = "FUNCTION"
       self.name = name
-      self.dispStr = f"fct:'{name}'"
+      self.dispStr = f"FCT:'{name}'"
 
     elif (name in self.infixOpsList) :
       self.type = "INFIX"
       self.name = name
-      self.dispStr = f"op:'{name}'"
+      self.dispStr = f"OP:'{name}'"
 
     elif (checkVariableSyntax(name)) :
-      self._type = "VAR"
-      self._name = name
-      self.dispStr = f"var:'{name}'"
+      self.type = "VAR"
+      self.name = name
+      self.dispStr = f"VAR:'{name}'"
 
     elif (name == "(") :
-      self.type = "BRACKET"
+      self.type = "BRKT_OPEN"
       self.name = name
-      self.dispStr = f"brkt:'('"
+      self.dispStr = f"BRKT:'('"
 
     elif (name == ")") :
-      self.type = "BRACKET"
+      self.type = "BRKT_CLOSE"
       self.name = name
-      self.dispStr = f"brkt:')'"
+      self.dispStr = f"BRKT:')'"
 
     elif (name == ",") :
       self.type = "COMMA"
       self.name = name
-      self.dispStr = f"sep:','"
+      self.dispStr = f"SEP:','"
 
     elif (isNumber(name)) :
       self.type = "NUMBER"
       self.name = name
-      self.dispStr = f"num:'{name}'"
+      self.dispStr = f"NUM:'{name}'"
 
     elif (isBlank(name)) :
       self.type = "SPACE"
       self.name = name
-      self.dispStr = f"blk:'{name}'"
+      self.dispStr = f"BLK:'{name}'"
 
     else :
       print("[ERROR] Invalid token!")
@@ -895,16 +895,83 @@ class QParser :
   def expandMult(self, input = "") :
     """
     Description:
-    input = liste de tokens
-    output = liste de tokens, avec les multiplications cachées explicitées
-    
+    Detect the implicit multiplications in the list of tokens and return the 
+    same list with the multiplication tokens explicited at the right place.
+
     """
-    print("TODO")
+    
+    nTokens = len(input)
 
+    # Hidden multiplication needs at least 2 tokens
+    if (nTokens <= 1) :
+      return input
 
+    else :
+      output = []
+      for n in range(nTokens-1) :
+        tokA = input[n]; tokB = input[n+1]
 
+        output.append(tokA)
 
+        match (tokA.type, tokB.type) :
+          
+          # Example: "pi(x+4)"
+          case ("CONSTANT", "BRKT_OPEN") :
+            output.append(Token("*"))
 
+          # Example: "R1(R2+R3)"
+          case ("VAR", "BRKT_OPEN") :
+            output.append(Token("*"))
+
+          # Example: "x_2.1"
+          case ("VAR", "NUMBER") :
+            output.append(Token("*"))
+
+          # Example: "(x+1)pi"
+          case ("BRKT_CLOSE", "CONST") :
+            output.append(Token("*"))
+
+          # Example: "(x+1)cos(y)"
+          case ("BRKT_CLOSE", "FUNCTION") :
+            output.append(Token("*"))
+
+          # Example: "(R2+R3)R1"
+          case ("BRKT_CLOSE", "VAR") :
+            output.append(Token("*"))
+
+          # Example: "(x+y)(x-y)"
+          case ("BRKT_CLOSE", "BRKT_OPEN") :
+            output.append(Token("*"))
+
+          # Example: "(x+y)100"
+          case ("BRKT_CLOSE", "NUMBER") :
+            output.append(Token("*"))
+
+          # Example: "2pi"
+          case ("NUMBER", "CONST") :
+            output.append(Token("*"))
+
+          # Example: "2exp(-3t)"
+          case ("NUMBER", "FUNCTION") :
+            output.append(Token("*"))
+
+          # Example: "2x"
+          case ("NUMBER", "VAR") :
+            output.append(Token("*"))
+
+          # Example: "2(x+y)"
+          case ("NUMBER", "BRKT_OPEN") :
+            output.append(Token("*"))
+
+          case (_, _) :
+            pass
+      
+      if (n == (nTokens-2)) :
+        output.append(tokB)
+
+    return output
+  
+  
 
 # =============================================================================
 # Utilities
@@ -1218,7 +1285,19 @@ if (__name__ == '__main__') :
   assert(qParser.consumeInfix("-2x+y") == ("-", "2x+y"))
   assert(qParser.consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
+  print()
 
-  print(qParser.tokenize("2x*cos(3.1415t-1)"))
-  print(qParser.tokenize("-2x*cos(3.1415t-1//R2)"))
-  print(qParser.tokenize("-R3_2.0x*cos(3.1415t-1//R2)"))
+  expr = [
+    "2x*cos(3.1415t-1.)", 
+    "-2x*cos(pi*t-1//R2)", 
+    "-R3_2.0x*cos(3.1415t-1//R2)"
+  ]
+
+  for e in expr :
+    out = qParser.tokenize(e)
+    
+    print(f"- expression: '{e}'")
+    print(out)
+    print(qParser.expandMult(out))
+    print()
+  
