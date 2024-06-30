@@ -98,6 +98,9 @@
 # [R8] VARIABLE NAMING
 # Variable cannot start with a number.
 #
+# [R9] WHITE SPACES
+# White spaces are not part of the syntax and are simply ignored.
+#
 #
 #
 # -----
@@ -256,11 +259,12 @@ class Token :
       print("[ERROR] Invalid token!")
 
 
-
+  # Define the behaviour of print(tokenObj)
   def __str__(self) :
-    
     return self.dispStr
   
+  def __repr__(self):
+    return self.dispStr
 
 
 
@@ -816,7 +820,7 @@ class QParser :
   def tokenize(self, input = "") :
     """
     Description:
-    Convert a valid expression to an ordered list of Token objects.
+    Convert the input expression to an ordered list of Token objects.
 
     The input characters are read, grouped and classified as abstracted types
     (Token objects) while preserving their information.
@@ -832,6 +836,11 @@ class QParser :
     tokenList = []
 
     while(len(inputStr) > 0) :
+
+      # White spaces do not contribute to the parsing (rule [R9])
+      (_, inputStr) = self.consumeSpace(inputStr)
+      if (len(inputStr) == 0) :
+        break
 
       (number, tailNumber)      = self.consumeNumber(inputStr)
       (constant, tailConstant)  = self.consumeConst(inputStr)
@@ -861,9 +870,6 @@ class QParser :
         inputStr = tailInfix
 
       else :
-        # Remove spaces
-        (_, inputStr) = self.consumeSpace(inputStr)
-        
         (head, tail) = pop(inputStr)
 
         if (head == "(") :
@@ -880,7 +886,7 @@ class QParser :
 
 
 
-
+    return tokenList
 
 
   # ---------------------------------------------------------------------------
@@ -1016,8 +1022,8 @@ def isNumber(inputStr) :
 
   gotDigit = False
 
-  # A single dot is not a valid number
-  if (inputStr == ".") :
+  # Detect invalid inputs
+  if (inputStr in ["", "."]) :
     return False
 
   for char in inputStr :
@@ -1099,6 +1105,7 @@ if (__name__ == '__main__') :
 
   qParser = QParser()
 
+  assert(isNumber("") == False)
   assert(isNumber("1") == True)
   assert(isNumber("23") == True)
   assert(isNumber("4.5") == True)
@@ -1212,4 +1219,6 @@ if (__name__ == '__main__') :
   assert(qParser.consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
 
-  qParser.tokenize("2x*cos(3t-1)")
+  print(qParser.tokenize("2x*cos(3.1415t-1)"))
+  print(qParser.tokenize("-2x*cos(3.1415t-1//R2)"))
+  print(qParser.tokenize("-R3_2.0x*cos(3.1415t-1//R2)"))
