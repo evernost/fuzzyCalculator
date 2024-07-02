@@ -148,7 +148,6 @@
 
 
 
-
 # =============================================================================
 # TOKEN class
 # =============================================================================
@@ -357,48 +356,6 @@ class Macroleaf:
 
 
 
-
-
-
-  def binarise(self, tokenList, context = None) :
-    """
-    DESCRIPTION
-    todo
-
-    EXAMPLES
-    todo
-    """
-
-    (tok, tail) = pop(tokenList)
-
-    # Create 
-    if (tok.type in ["CONSTANT", "VAR", "NUMBER"]) :
-
-
-      if (context == None) :
-        ret = Binary()
-        ret.expr = [tok, binarise(tail)]
-
-      else :
-        context.expr = [context.expr binarise(tail)]
-
-      return Binary
-
-
-
-
-  def makeEvalTree(self) :  
-    """
-    DESCRIPTION
-    todo
-
-    EXAMPLES
-    todo
-    """
-
-
-
-
   # -----------------------------------------------------------------------------
   # METHOD: sanityCheck
   # -----------------------------------------------------------------------------
@@ -414,10 +371,6 @@ class Macroleaf:
       inputStr = input
     else :
       inputStr = self.input
-
-
-
-
 
 
 
@@ -1129,7 +1082,7 @@ class QParser :
   # ---------------------------------------------------------------------------
   # METHOD: binarize
   # ---------------------------------------------------------------------------
-  def binarize(self, input = "") :
+  def binarize(self, tokenList, context = None) :
     """
     DESCRIPTION
     Reduce a list of tokens to the general form:
@@ -1143,11 +1096,38 @@ class QParser :
     Refer to the <expandMult> function for that purpose.
 
     EXAMPLES
-    TODO
+    todo
     """
-    
-    print("TODO")
 
+    (tok, tail) = pop(tokenList)
+
+    # Create 
+    if (tok.type in ["CONSTANT", "VAR", "NUMBER"]) :
+
+
+      if (context == None) :
+        ret = Binary()
+        ret.expr = [tok, self.binarize(tail)]
+
+      else :
+        context.expr = [context.expr, self.binarize(tail)]
+
+      return Binary
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: makeEvalTree
+  # ---------------------------------------------------------------------------
+  def makeEvalTree(self) :  
+    """
+    DESCRIPTION
+    todo
+
+    EXAMPLES
+    todo
+    """
+    print("TODO")
 
 
 
