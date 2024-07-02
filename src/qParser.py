@@ -194,16 +194,11 @@ class Token :
   # ---------------------------------------------------------------------------
   def __init__(self, name, value = 0) :
     """
-    Description:
-    Constructs a token.
-    Token type is inferred from the input
+    DESCRIPTION
+    Construct a Token object whose properties are defined by the name 
+    given as argument.
 
-    How to use it?
-
-
-    One or more white spaces " " will not create any token.
-
-    Examples:
+    EXAMPLES
     (See unit tests below)
     """
     self.constantsList = [x["name"] for x in Token.CONSTANTS]
@@ -258,13 +253,169 @@ class Token :
     else :
       print("[ERROR] Invalid token!")
 
-
   # Define the behaviour of print(tokenObj)
   def __str__(self) :
     return self.dispStr
   
   def __repr__(self):
     return self.dispStr
+
+
+
+# =============================================================================
+# Binary class
+# =============================================================================
+class Binary:
+  
+  def __init__(self, list, context) :
+    """
+    DESCRIPTION
+    A 'Binary' object is an ordered list of infix operators and leaves
+    arranged in the following pattern: 
+
+    [L1 op1 L2 op2 ... Ln]
+    
+    where 
+    - <L1> ... <Ln> are leaves or Macroleaves
+    - <op1> ... <opn> are infix operators.
+
+    'Leaves' are meant here in a binary tree context and represent the last stage 
+    of an evaluation stack. 
+    In this context, a 'leaf' is a constant, a variable or a number.
+
+    A 'Macroleaf' is essentially a Binary object on which a function is applied, 
+    and which reduces to a leaf after evaluation.
+    Hence the recursive nature of a Binary object.
+
+    A Binary object comes with an <eval> method whose purpose is to reduce 
+    the list of (macro)leaves and infix to a single leaf.
+
+    For that, the <eval> method:
+    - reduces all the macroleaves to leaves by calling their own <eval> method
+    - builds an ordered evaluation tree based on the relative priorities of each infix
+    operators
+
+    'Binary' objects and 'Macroleaf' objects are tightly coupled:
+    please see the 'Macroleaf' object definition for more information.
+
+    """
+    print("TODO")
+
+
+    def eval(self) :
+      print("TODO")
+
+
+
+# =============================================================================
+# Macroleaf class
+# =============================================================================
+class Macroleaf:
+
+  def __init__(self, function, args) :
+    """
+    Description
+    A Macroleaf <M> is a recursive structure represented as follows:
+    
+    M = {F, [B1, B2, ..., Bn]]}
+    
+    where:
+    - <F> is a function
+    - <B1>, ..., <Bn> are Binary objects.
+
+    There are as many Binary objects <B1>, ..., <Bn> as arguments taken by the function.
+    
+    A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
+    that reduce to a leaf.
+    
+    The structure being recursive, it needs a terminal case.
+    The terminal case is usually a Macroleaf:
+
+    M = {Id, [L]}
+    
+    where <Id> is the Identity function and <L> is a 'leaf': a constant, a variable or a number.
+
+    
+    Claim: any valid expression can be associated to a Macroleaf representation.
+
+
+    Advantage: once the representation is built, the evaluation is straighforward.
+    - Evaluate (recursively) each binary object
+    - Apply the top function to the result.
+
+    Priority between operators is decided when the list of Tokens is evaluated.
+    Token list evaluation is beyond the scope of this class.
+
+    Examples:
+    - cos(2x) -> {F:cos, [NUM:2, OP:*, VAR:x]}
+
+
+    """
+    self.function = function
+    self.args = []
+    self.nArgs = 0
+
+
+
+
+
+
+  def binarise(self, tokenList, context = None) :
+    """
+    DESCRIPTION
+    todo
+
+    EXAMPLES
+    todo
+    """
+
+    (tok, tail) = pop(tokenList)
+
+    # Create 
+    if (tok.type in ["CONSTANT", "VAR", "NUMBER"]) :
+
+
+      if (context == None) :
+        ret = Binary()
+        ret.expr = [tok, binarise(tail)]
+
+      else :
+        context.expr = [context.expr binarise(tail)]
+
+      return Binary
+
+
+
+
+  def makeEvalTree(self) :  
+    """
+    DESCRIPTION
+    todo
+
+    EXAMPLES
+    todo
+    """
+
+
+
+
+  # -----------------------------------------------------------------------------
+  # METHOD: sanityCheck
+  # -----------------------------------------------------------------------------
+  def sanityCheck(self, input = "") :
+    """
+    DESCRIPTION
+    
+    EXAMPLES
+    
+    """
+
+    if (len(input) > 0) :
+      inputStr = input
+    else :
+      inputStr = self.input
+
+
 
 
 
@@ -290,7 +441,7 @@ class QParser :
   # -----------------------------------------------------------------------------
   def sanityCheck(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Check the input string: make sure it contains valid characters only.
     Valid characters:
     - letters: "a" to "z" and "A" to "Z"
@@ -305,7 +456,7 @@ class QParser :
 
     Returns True if the check passed, False otherwise.
 
-    Examples:
+    EXAMPLES
     (See unit tests below)
     """
 
@@ -338,13 +489,13 @@ class QParser :
   # -----------------------------------------------------------------------------
   def bracketBalanceCheck(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Checks if the parenthesis are valid.
     This function allows "lazy parenthesis": closing parenthesis are not required.
 
     Returns True if the check passed, False otherwise.
 
-    Examples:
+    EXAMPLES
     (See unit tests)
     """
 
@@ -374,7 +525,7 @@ class QParser :
   # -----------------------------------------------------------------------------
   def firstOrderCheck(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Take the chars 2 by 2 and detect any invalid combination.
     Detailed list can be found in 'firstOrderCheck.xslx'.
     """
@@ -421,7 +572,7 @@ class QParser :
   # -----------------------------------------------------------------------------
   def reservedWordsCheck(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Check if reserved words (like function names, constants) are used incorrectly.
     """
 
@@ -441,10 +592,10 @@ class QParser :
   # -----------------------------------------------------------------------------
   def consumeSpace(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Consume the leading whitespaces contained in the input string.
 
-    Examples:
+    EXAMPLES
     (See unit tests)
     """
 
@@ -467,7 +618,7 @@ class QParser :
   # -----------------------------------------------------------------------------
   def consumeConst(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Consume the leading constant in a string.
 
     If <input> is a string starting with the name of a constant, the tuple (c, rem) is 
@@ -483,7 +634,7 @@ class QParser :
  
     The list of available constants is fetched from 'Token.CONSTANTS'.
 
-    Examples:
+    EXAMPLES
     (See unit tests)
     """
 
@@ -532,7 +683,7 @@ class QParser :
   # -----------------------------------------------------------------------------
   def consumeNumber(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Consume the leading number in a string.
 
     If <input> is a string starting with a number, the tuple (n, rem) is 
@@ -557,7 +708,7 @@ class QParser :
     - minus sign "-" is not accepted
     - scientific notation will be supported in a later version.
 
-    Examples:
+    EXAMPLES
     > consumeNumber("42") = ("42", "")
     > consumeNumber("4.2") = ("4.2", "")
     > consumeNumber("4.2.") = ("4.2", ".")
@@ -596,7 +747,7 @@ class QParser :
   # -----------------------------------------------------------------------------
   def consumeFunc(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Consume the leading function in a string.
 
     If <input> is a string starting with a function, the tuple (f, rem) is 
@@ -623,7 +774,7 @@ class QParser :
     Known limitations:
     None.
 
-    Examples:
+    EXAMPLES
     > consumeFunc("sina") = ("", "sina")
     > consumeFunc("sinc(3x+12)") = ("sinc", "3x+12)")
     > consumeFunc("tan (x-pi)") = ("", "tan (x-pi)")
@@ -654,7 +805,7 @@ class QParser :
   # ---------------------------------------------------------------------------
   def consumeVar(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Consume the leading variable in a string.
 
     If <input> is a string starting with a variable, the tuple (v, rem) is 
@@ -679,7 +830,7 @@ class QParser :
     
     Refer to rules [5.X] for more details about the parsing strategy. 
 
-    Examples:
+    EXAMPLES
     (See unit tests)
     """
 
@@ -751,10 +902,10 @@ class QParser :
   # ---------------------------------------------------------------------------
   def addVariable(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     TODO
 
-    Examples:
+    EXAMPLES
     (See unit tests)
     """
     
@@ -771,7 +922,7 @@ class QParser :
   # ---------------------------------------------------------------------------
   def consumeInfix(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Consume the leading infix operator in a string.
 
     If <input> is a string starting with an infix operator, the tuple (op, rem) is 
@@ -788,7 +939,7 @@ class QParser :
     The list of infix operators can be extended with custom operators.
     Please refer to [R6] to see the rules that apply for that.
 
-    Examples:
+    EXAMPLES
     (See unit tests)
     """
 
@@ -819,13 +970,14 @@ class QParser :
   # ---------------------------------------------------------------------------
   def tokenize(self, input = "") :
     """
-    Description:
+    DESCRIPTION
     Convert the input expression to an ordered list of Token objects.
 
     The input characters are read, grouped and classified as abstracted types
     (Token objects) while preserving their information.
 
-    
+    EXAMPLES 
+    TODO
     """
 
     if (len(input) > 0) :
@@ -884,9 +1036,8 @@ class QParser :
           tokenList.append(Token(head))
           inputStr = tail
 
-
-
     return tokenList
+
 
 
   # ---------------------------------------------------------------------------
@@ -894,10 +1045,12 @@ class QParser :
   # ---------------------------------------------------------------------------
   def expandMult(self, input = "") :
     """
-    Description:
-    Detect the implicit multiplications in the list of tokens and return the 
-    same list with the multiplication tokens explicited at the right place.
+    DESCRIPTION
+    Detect the implicit multiplications in the list of tokens
+    Return the same list with the multiplication tokens explicited at the right place.
 
+    EXAMPLES
+    TODO
     """
     
     nTokens = len(input)
@@ -973,19 +1126,44 @@ class QParser :
   
   
 
+  # ---------------------------------------------------------------------------
+  # METHOD: binarize
+  # ---------------------------------------------------------------------------
+  def binarize(self, input = "") :
+    """
+    DESCRIPTION
+    Reduce a list of tokens to the general form:
+    fct: {M OP M OP M ... M}
+    where 
+    - OP is an infix operator
+    - M a macroleaf
+    - fct is a function that is applied to the result
+
+    The implicit multiplications must be expanded prior to calling the function.
+    Refer to the <expandMult> function for that purpose.
+
+    EXAMPLES
+    TODO
+    """
+    
+    print("TODO")
+
+
+
+
 # =============================================================================
 # Utilities
 # =============================================================================
 
 def pop(inputStr) :
   """
-  Description:
+  DESCRIPTION
   Return a tuple containing the first character of <inputStr> and its tail.
 
   Known limitations: 
   None.
   
-  Examples:
+  EXAMPLES
   - pop("abcde") = ("a", "bcde")
   - pop("a") = ("a", "")
   - pop("") = ("", "")
@@ -1002,13 +1180,13 @@ def pop(inputStr) :
 
 def split(inputStr, n) :
   """
-  Description:
+  DESCRIPTION
   Split a string <inputStr> in two at the breakpoint index <n>.
 
   Known limitations:
   None.
 
-  Examples:
+  EXAMPLES
   > split("pouet",-1)   = ("", "pouet")
   > split("pouet",0)    = ("", "pouet")
   > split("pouet",1)    = ("p", "ouet")
@@ -1035,7 +1213,7 @@ def split(inputStr, n) :
 
 def isAlpha(inputStr) :
   """
-  Description:
+  DESCRIPTION
   Returns True if the first char of inputStr is a letter.
   Capitalisation is ignored.
   """
@@ -1051,7 +1229,7 @@ def isAlpha(inputStr) :
 
 def isDigit(inputStr) :
   """
-  Description:
+  DESCRIPTION
   Returns True if the first char of inputStr is a digit.
   """
   char = inputStr[0]
@@ -1062,7 +1240,7 @@ def isDigit(inputStr) :
 
 def isBlank(inputStr) :
   """
-  Description:
+  DESCRIPTION
   Returns True if the input string only contains whitespaces.
   """
   print("TODO")
@@ -1071,7 +1249,7 @@ def isBlank(inputStr) :
 
 def isNumber(inputStr) :
   """
-  Description:
+  DESCRIPTION
   Test if the input is the string representation of a digit or a number (whole or fractional).
   
   The test fails if the string contains anything else than digits and more than
@@ -1080,7 +1258,7 @@ def isNumber(inputStr) :
   The test fails on a single dot.
   The test fails on negative numbers (the minus sign is treated differently)
 
-  Examples:
+  EXAMPLES
   (See unit tests)
   """
   
@@ -1112,13 +1290,13 @@ def isNumber(inputStr) :
 
 def checkVariableSyntax(inputStr) :
   """
-  Description:
+  DESCRIPTION
   Test if the input string is a valid variable name.
   
   This test only checks the syntax. It does not indicate if this variable
   has been declared.
 
-  Examples:
+  EXAMPLES
   (See unit tests)
   """
   
@@ -1147,7 +1325,7 @@ def checkVariableSyntax(inputStr) :
 
 def showInStr(inputStr, loc) :
   """
-  Description:
+  DESCRIPTION
   Prints <inputStr> with a "^" char right below the a location
   defined by <loc>.
   It helps to point out a specific char in the string.
