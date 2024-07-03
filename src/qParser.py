@@ -194,11 +194,17 @@ class Token :
   def __init__(self, name, value = 0) :
     """
     DESCRIPTION
-    Construct a Token object whose properties are defined by the name 
-    given as argument.
+    Takes an expression as argument, returns a Token object whose type matches
+    with the expression.
+
+    Tokens can be of type: 
+    - CONSTANT
+    - FUNCTION
+    - TODO
 
     EXAMPLES
-    (See unit tests below)
+    Token("4.5") -> creates a Token of type "NUMBER"
+
     """
     self.constantsList = [x["name"] for x in Token.CONSTANTS]
     self.functionsList = [x["name"] for x in Token.FUNCTIONS]
@@ -265,44 +271,53 @@ class Token :
 # Binary class
 # =============================================================================
 class Binary:
+  """
+  DESCRIPTION
+  A 'Binary' object is an ordered list of infix operators and leaves
+  arranged in the following pattern: 
+
+  [L1, op1, L2, op2, ... Ln]
   
-  def __init__(self, list, context) :
+  where 
+  - <L1> ... <Ln> are leaves or Macroleaves
+  - <op1> ... <opn> are infix operators.
+
+  'Leaves' are meant here in a binary tree context and represent the last stage 
+  of an evaluation stack. 
+  In this context, a 'leaf' is a constant, a variable or a number.
+
+  A 'Macroleaf' is essentially a Binary object on which a function is applied, 
+  and which reduces to a leaf after evaluation.
+  Hence the recursive nature of a Binary object.
+
+  A Binary object comes with an <eval> method whose purpose is to reduce 
+  the list of (macro)leaves and infix to a single leaf.
+
+  For that, the <eval> method:
+  - reduces all the macroleaves to leaves by calling their own <eval> method
+  - builds an ordered evaluation tree based on the relative priorities of each infix
+  operators
+
+  'Binary' objects and 'Macroleaf' objects are tightly coupled:
+  please see the 'Macroleaf' object definition for more information.
+
+  """
+  
+  def __init__(self, binExpr = []) :
     """
     DESCRIPTION
-    A 'Binary' object is an ordered list of infix operators and leaves
-    arranged in the following pattern: 
-
-    [L1 op1 L2 op2 ... Ln]
     
-    where 
-    - <L1> ... <Ln> are leaves or Macroleaves
-    - <op1> ... <opn> are infix operators.
-
-    'Leaves' are meant here in a binary tree context and represent the last stage 
-    of an evaluation stack. 
-    In this context, a 'leaf' is a constant, a variable or a number.
-
-    A 'Macroleaf' is essentially a Binary object on which a function is applied, 
-    and which reduces to a leaf after evaluation.
-    Hence the recursive nature of a Binary object.
-
-    A Binary object comes with an <eval> method whose purpose is to reduce 
-    the list of (macro)leaves and infix to a single leaf.
-
-    For that, the <eval> method:
-    - reduces all the macroleaves to leaves by calling their own <eval> method
-    - builds an ordered evaluation tree based on the relative priorities of each infix
-    operators
-
-    'Binary' objects and 'Macroleaf' objects are tightly coupled:
-    please see the 'Macroleaf' object definition for more information.
+    EXAMPLE
 
     """
+    self.binExpr = binExpr
     print("TODO")
 
 
-    def eval(self) :
-      print("TODO")
+
+
+  def eval(self) :
+    print("TODO")
 
 
 
@@ -999,7 +1014,7 @@ class QParser :
   def expandMult(self, input = "") :
     """
     DESCRIPTION
-    Detect the implicit multiplications in the list of tokens
+    Detect the implicit multiplications in the list of tokens.
     Return the same list with the multiplication tokens explicited at the right place.
 
     EXAMPLES
@@ -1082,16 +1097,12 @@ class QParser :
   # ---------------------------------------------------------------------------
   # METHOD: binarize
   # ---------------------------------------------------------------------------
-  def binarize(self, tokenList, context = None) :
+  def binarize(self, tokenList) :
     """
     DESCRIPTION
-    Reduce a list of tokens to the general form:
-    fct: {M OP M OP M ... M}
-    where 
-    - OP is an infix operator
-    - M a macroleaf
-    - fct is a function that is applied to the result
-
+    Takes a list of tokens as input, returns a recursive structure made of 
+    Binary Objects and/or Macroleaf.
+    
     The implicit multiplications must be expanded prior to calling the function.
     Refer to the <expandMult> function for that purpose.
 
@@ -1099,20 +1110,85 @@ class QParser :
     todo
     """
 
-    (tok, tail) = pop(tokenList)
+    if (len(tokenList) >= 2) :
+      (currToken, tail) = (tokenList[0], tokenList[1:])
 
-    # Create 
-    if (tok.type in ["CONSTANT", "VAR", "NUMBER"]) :
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+        return Binary(self._binarize(tail, stack = [currToken]))
+
+      elif (currToken.type == "FUNCTION") :
+        return Macroleaf(function = currToken.name, expr = [self._binarize(tail, stack = [currToken])])
+
+      elif (currToken.type == "BRKT_OPEN") :
+        return Macroleaf(function = "id", expr = [self._binarize(tail, stack = [currToken])])
+
+      elif (currToken.type in ["BRKT_CLOSE", "COMMA", "INFIX"]) :
+        # Note: this error is already caught by the secondOrderCheck
+        print("[ERROR] Invalid list of tokens.")
+        return None
+
+    elif (len(tokenList) == 1) :
+      print("TODO")
+
+    else :
+      return None
 
 
-      if (context == None) :
-        ret = Binary()
-        ret.expr = [tok, self.binarize(tail)]
+
+  # ---------------------------------------------------------------------------
+  # METHOD: _binarize (internal function)
+  # ---------------------------------------------------------------------------
+  def _binarize(self, tokenList, stack = []) :
+    """
+    DESCRIPTION
+    Takes a list of tokens as input, returns a list of leaves and/or Macroleaves
+
+    The <stack> list acts as a stack as the function is being called recursively.
+
+    EXAMPLES
+    todo
+    """
+
+    if (len(tokenList) >= 2) :
+      (currToken, tail) = (tokenList[0], tokenList[1:])
+
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+        stack.append(currToken)
+        self._binarize(tail, stack)
+
+      elif (currToken.type == "FUNCTION") :
+        # Skip the parenthesis
+        ...
+
+        # Create a Macroleaf
+        stack.append(Macroleaf(function = currToken.name, expr = [self._binarize(tail, stack = [currToken])]))
+
+      elif (currToken.type == "BRKT_OPEN") :
+        print("TODO")
+
+      elif (currToken.type == "BRKT_CLOSE") :
+        print("TODO")
+
+      elif (currToken.type == "COMMA") :
+        print("TODO")
 
       else :
-        context.expr = [context.expr, self.binarize(tail)]
+        print("TODO")
 
-      return Binary
+    elif (len(tokenList) == 1) :
+      print("TODO")
+
+
+
+
+    # Terminal case
+    else :
+      return stack
+
+
+
+
+
 
 
 
@@ -1458,4 +1534,7 @@ if (__name__ == '__main__') :
     print(out)
     print(qParser.expandMult(out))
     print()
+
+    out = qParser.expandMult(out)
+    qParser.binarize(out)
   
