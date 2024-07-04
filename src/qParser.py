@@ -188,8 +188,10 @@ class Token :
     {"name": "^",  "priority": 3}
   ]
 
+
+
   # ---------------------------------------------------------------------------
-  # Default constructor
+  # Default constructor: Token()
   # ---------------------------------------------------------------------------
   def __init__(self, name, value = 0) :
     """
@@ -213,31 +215,40 @@ class Token :
     if (name in self.constantsList) :
       self.type = "CONSTANT"
       self.name = name
+      self.nArgs = 0
       self.dispStr = f"CONST:'{name}'"
 
     elif (name in self.functionsList) :
       self.type = "FUNCTION"
       self.name = name
       self.dispStr = f"FCT:'{name}'"
+      
+      for f in Token.FUNCTIONS :
+        if (name == f["name"]) :
+          self.nArgs = f["nArgs"]
 
     elif (name in self.infixOpsList) :
       self.type = "INFIX"
       self.name = name
+      self.nArgs = 2
       self.dispStr = f"OP:'{name}'"
 
     elif (checkVariableSyntax(name)) :
       self.type = "VAR"
       self.name = name
+      self.nArgs = 0
       self.dispStr = f"VAR:'{name}'"
 
     elif (name == "(") :
       self.type = "BRKT_OPEN"
       self.name = name
+      self.nArgs = 0
       self.dispStr = f"BRKT:'('"
 
     elif (name == ")") :
       self.type = "BRKT_CLOSE"
       self.name = name
+      self.nArgs = 0
       self.dispStr = f"BRKT:')'"
 
     elif (name == ",") :
@@ -303,20 +314,111 @@ class Binary:
 
   """
   
-  def __init__(self, binExpr = []) :
+
+
+  # ---------------------------------------------------------------------------
+  # Default constructor
+  # ---------------------------------------------------------------------------
+  def __init__(self) :
     """
     DESCRIPTION
-    
+    Creates an initialize a Binary object.
+
     EXAMPLE
 
     """
-    self.binExpr = binExpr
-    print("TODO")
+    self.stack = []
+    self.remainder = []
 
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary.process
+  # ---------------------------------------------------------------------------
+  def process(self, tokenList) :
+    """
+    DESCRIPTION
+    Prend une liste de tokens et tente de compléter sa stack interne
+    avec ceux-ci autant que possible.
+
+    Retour : aucun. La stack et le remainder sont complétés.
+
+    Les tokens suivants sont intégrés à la stack :
+    - constantes
+    - variables
+    - nombres
+    - opérateurs infixes
+
+    Les fonctions/parenthèses insèrent une Macroleaf dans la stack.
+
+    Pour le reste :
+    - Parenthèse fermante ")" : impossible, elles sont traitées dans les Macroleafs.
+
+    EXAMPLES
+    todo
+    """
+    if (len(tokenList) >= 2) :
+      (currToken, tail) = (tokenList[0], tokenList[1:])
+
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+        self.stack.append(currToken)
+        self.process(tail)
+
+      elif (currToken.type == "FUNCTION") :
+        m = Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
+        
+        tmp = tail[1:]
+        for n in range(currToken.nArgs) :
+          m.args[n].process(tmp)
+          tmp = m.args[n].remainder
+        
+        self.stack.append(m)
+
+      elif (currToken.type == "BRKT_OPEN") :
+        m = Macroleaf(function = "id", nArgs = 1)
+        m.process(tail)
+        self.stack.append(m)
+        self.process(m.remainder)
+
+      elif (currToken.type == "COMMA") :
+        self.remainder = tail
+        return None
+
+      else :
+        print("[ERROR] Unexpected token.")
+
+    elif (len(tokenList) == 1) :
+      currToken = tokenList[0]
+
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+        self.stack.append(currToken)
+        self.process(tail)
+      
+      elif (currToken.type == "BRKT_CLOSE") :
+        self.remainder = []
+        return None
+
+      elif (currToken.type == "COMMA") :
+        self.remainder = []
+        return None
+
+      else :
+        print("[ERROR] Unexpected token.")
+
+    # Terminal case
+    else :
+      return None
 
 
 
   def eval(self) :
+    """
+    DESCRIPTION
+    todo
+
+    EXAMPLES
+    todo
+    """
     print("TODO")
 
 
@@ -326,7 +428,7 @@ class Binary:
 # =============================================================================
 class Macroleaf:
 
-  def __init__(self, function, args) :
+  def __init__(self, function, nArgs) :
     """
     Description
     A Macroleaf <M> is a recursive structure represented as follows:
@@ -366,8 +468,67 @@ class Macroleaf:
 
     """
     self.function = function
-    self.args = []
-    self.nArgs = 0
+    self.args = [Binary() for _ in range(nArgs)]
+    self.remainder = []
+    self.currArg = 0
+
+
+
+  def process(self, tokenList) :
+    """
+    DESCRIPTION
+    todo
+
+
+    EXAMPLES
+    todo
+    """
+    if (len(tokenList) >= 2) :
+      (currToken, tail) = (tokenList[0], tokenList[1:])
+
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+        print("TODO")
+
+      elif (currToken.type == "FUNCTION") :
+        print("TODO")
+
+      elif (currToken.type == "BRKT_OPEN") :
+        print("TODO")
+
+      else :
+        print("[ERROR] Unexpected token.")
+
+
+    elif (len(tokenList) == 1) :
+      currToken = tokenList[0]
+
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+        print("TODO")
+        
+      else :
+        print("[ERROR] Unexpected token.")
+
+    # Terminal case
+    else :
+      return stack
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -405,7 +566,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: sanityCheck
+  # METHOD: QParser.sanityCheck
   # -----------------------------------------------------------------------------
   def sanityCheck(self, input = "") :
     """
@@ -453,7 +614,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: bracketBalanceCheck
+  # METHOD: QParser.bracketBalanceCheck
   # -----------------------------------------------------------------------------
   def bracketBalanceCheck(self, input = "") :
     """
@@ -489,7 +650,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: firstOrderCheck
+  # METHOD: QParser.firstOrderCheck
   # -----------------------------------------------------------------------------
   def firstOrderCheck(self, input = "") :
     """
@@ -536,7 +697,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: reservedWordsCheck
+  # METHOD: QParser.reservedWordsCheck
   # -----------------------------------------------------------------------------
   def reservedWordsCheck(self, input = "") :
     """
@@ -556,7 +717,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: consumeSpace(<string>)
+  # METHOD: QParser.consumeSpace(<string>)
   # -----------------------------------------------------------------------------
   def consumeSpace(self, input = "") :
     """
@@ -582,7 +743,7 @@ class QParser :
     
 
   # -----------------------------------------------------------------------------
-  # METHOD: consumeConst(<string>)
+  # METHOD: QParser.consumeConst(<string>)
   # -----------------------------------------------------------------------------
   def consumeConst(self, input = "") :
     """
@@ -647,7 +808,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: consumeNumber(<string>)
+  # METHOD: QParser.consumeNumber(<string>)
   # -----------------------------------------------------------------------------
   def consumeNumber(self, input = "") :
     """
@@ -711,7 +872,7 @@ class QParser :
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: consumeFunc(<string>)
+  # METHOD: QParser.consumeFunc(<string>)
   # -----------------------------------------------------------------------------
   def consumeFunc(self, input = "") :
     """
@@ -769,7 +930,7 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: consumeVar(<string>)
+  # METHOD: QParser.consumeVar(<string>)
   # ---------------------------------------------------------------------------
   def consumeVar(self, input = "") :
     """
@@ -866,7 +1027,7 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: addVariable(<string>)
+  # METHOD: QParser.addVariable(<string>)
   # ---------------------------------------------------------------------------
   def addVariable(self, input = "") :
     """
@@ -886,7 +1047,7 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: consumeInfix(<string>)
+  # METHOD: QParser.consumeInfix(<string>)
   # ---------------------------------------------------------------------------
   def consumeInfix(self, input = "") :
     """
@@ -934,7 +1095,7 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: tokenize(<string>)
+  # METHOD: QParser.tokenize(<string>)
   # ---------------------------------------------------------------------------
   def tokenize(self, input = "") :
     """
@@ -1009,7 +1170,7 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: expandMult
+  # METHOD: QParser.expandMult
   # ---------------------------------------------------------------------------
   def expandMult(self, input = "") :
     """
@@ -1095,7 +1256,7 @@ class QParser :
   
 
   # ---------------------------------------------------------------------------
-  # METHOD: binarize
+  # METHOD: QParser.binarize
   # ---------------------------------------------------------------------------
   def binarize(self, tokenList) :
     """
@@ -1114,13 +1275,21 @@ class QParser :
       (currToken, tail) = (tokenList[0], tokenList[1:])
 
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
-        return Binary(self._binarize(tail, stack = [currToken]))
+        b = Binary()
+        b.process(tokenList)
+        return b
 
-      elif (currToken.type == "FUNCTION") :
-        return Macroleaf(function = currToken.name, expr = [self._binarize(tail, stack = [currToken])])
+      elif (currToken.type == "FUNCTION") :          
+        m = Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
+        m.process(tail[1:])
+        return m
 
       elif (currToken.type == "BRKT_OPEN") :
-        return Macroleaf(function = "id", expr = [self._binarize(tail, stack = [currToken])])
+        m = Macroleaf()
+        m.function = "id"
+        m.stack = [[currToken]]
+        m.process(tail)
+        return m
 
       elif (currToken.type in ["BRKT_CLOSE", "COMMA", "INFIX"]) :
         # Note: this error is already caught by the secondOrderCheck
@@ -1136,64 +1305,7 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: _binarize (internal function)
-  # ---------------------------------------------------------------------------
-  def _binarize(self, tokenList, stack = []) :
-    """
-    DESCRIPTION
-    Takes a list of tokens as input, returns a list of leaves and/or Macroleaves
-
-    The <stack> list acts as a stack as the function is being called recursively.
-
-    EXAMPLES
-    todo
-    """
-
-    if (len(tokenList) >= 2) :
-      (currToken, tail) = (tokenList[0], tokenList[1:])
-
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
-        stack.append(currToken)
-        self._binarize(tail, stack)
-
-      elif (currToken.type == "FUNCTION") :
-        # Skip the parenthesis
-        ...
-
-        # Create a Macroleaf
-        stack.append(Macroleaf(function = currToken.name, expr = [self._binarize(tail, stack = [currToken])]))
-
-      elif (currToken.type == "BRKT_OPEN") :
-        print("TODO")
-
-      elif (currToken.type == "BRKT_CLOSE") :
-        print("TODO")
-
-      elif (currToken.type == "COMMA") :
-        print("TODO")
-
-      else :
-        print("TODO")
-
-    elif (len(tokenList) == 1) :
-      print("TODO")
-
-
-
-
-    # Terminal case
-    else :
-      return stack
-
-
-
-
-
-
-
-
-  # ---------------------------------------------------------------------------
-  # METHOD: makeEvalTree
+  # METHOD: QParser.makeEvalTree
   # ---------------------------------------------------------------------------
   def makeEvalTree(self) :  
     """
