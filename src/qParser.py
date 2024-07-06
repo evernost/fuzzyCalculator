@@ -205,8 +205,10 @@ class Token :
     - TODO
 
     EXAMPLES
-    Token("4.5") -> creates a Token of type "NUMBER"
-
+    Token("4.5")  -> creates a Token of type "NUMBER"
+    Token("pi")   -> creates a Token of type "CONSTANT"
+    Token("exp")  -> creates a Token of type "FUNCTION"
+    Etc.
     """
     self.constantsList = [x["name"] for x in Token.CONSTANTS]
     self.functionsList = [x["name"] for x in Token.FUNCTIONS]
@@ -216,12 +218,12 @@ class Token :
       self.type = "CONSTANT"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"CONST:'{name}'"
+      self.dispStr = f"CONST:{name}"
 
     elif (name in self.functionsList) :
       self.type = "FUNCTION"
       self.name = name
-      self.dispStr = f"FCT:'{name}'"
+      self.dispStr = f"FCT:{name}"
       
       for f in Token.FUNCTIONS :
         if (name == f["name"]) :
@@ -231,35 +233,35 @@ class Token :
       self.type = "INFIX"
       self.name = name
       self.nArgs = 2
-      self.dispStr = f"OP:'{name}'"
+      self.dispStr = f"OP:{name}"
 
     elif (checkVariableSyntax(name)) :
       self.type = "VAR"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"VAR:'{name}'"
+      self.dispStr = f"VAR:{name}"
 
     elif (name == "(") :
       self.type = "BRKT_OPEN"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"BRKT:'('"
+      self.dispStr = f"BRKT:("
 
     elif (name == ")") :
       self.type = "BRKT_CLOSE"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"BRKT:')'"
+      self.dispStr = f"BRKT:)"
 
     elif (name == ",") :
       self.type = "COMMA"
       self.name = name
-      self.dispStr = f"SEP:','"
+      self.dispStr = f"SEP:,"
 
     elif (isNumber(name)) :
       self.type = "NUMBER"
       self.name = name
-      self.dispStr = f"NUM:'{name}'"
+      self.dispStr = f"NUM:{name}"
 
     elif (isBlank(name)) :
       self.type = "SPACE"
@@ -284,7 +286,7 @@ class Token :
 class Binary:
   """
   DESCRIPTION
-  A 'Binary' object is an ordered list of infix operators and leaves
+  A 'Binary' object is an ordered list of infix operators and (Macro)leaves
   arranged in the following pattern: 
 
   [L1, op1, L2, op2, ... Ln]
@@ -295,12 +297,17 @@ class Binary:
 
   'Leaves' are meant here in a binary tree context and represent the last stage 
   of an evaluation stack. 
-  In this context, a 'leaf' is a constant, a variable or a number.
+  In the context of this parser, a 'leaf' is a constant, a variable or a number.
 
-  A 'Macroleaf' is essentially a Binary object on which a function is applied, 
-  and which reduces to a leaf after evaluation.
-  Hence the recursive nature of a Binary object.
+  A 'Macroleaf' is essentially a leaf on which a function is applied.
+  Since a Binary object reduces to a leaf, the leaf of the Macroleaf 
+  structure can even be generalized to a Binary object.
+  Hence the recursive nature.
 
+  Any valid list of tokens can be associated with a unique Binary Object.
+  When the expression does not contain any function or parenthesis, 
+  the Binary Object simplifies to a list of leaves and infix operators.
+  
   A Binary object comes with an <eval> method whose purpose is to reduce 
   the list of (macro)leaves and infix to a single leaf.
 
@@ -310,12 +317,9 @@ class Binary:
   operators
 
   'Binary' objects and 'Macroleaf' objects are tightly coupled:
-  please see the 'Macroleaf' object definition for more information.
-
+  please refer to the 'Macroleaf' definition for more information.
   """
   
-
-
   # ---------------------------------------------------------------------------
   # Default constructor
   # ---------------------------------------------------------------------------
@@ -323,11 +327,12 @@ class Binary:
     """
     DESCRIPTION
     Creates an initialize a Binary object.
+    This constructor does not take any arguments.
 
     EXAMPLE
 
     """
-    self.stack = []
+    self.stack     = []
     self.remainder = []
 
 
@@ -338,74 +343,94 @@ class Binary:
   def process(self, tokenList) :
     """
     DESCRIPTION
-    Prend une liste de tokens et tente de compléter sa stack interne
-    avec ceux-ci autant que possible.
+    Takes a list of tokens as input and builds the Binary representation of it.
+    The list is available in the <stack> attribute. 
+    
+    Returns: None.
+    Only the internal attributes are affected.
 
-    Retour : aucun. La stack et le remainder sont complétés.
-
-    Les tokens suivants sont intégrés à la stack :
-    - constantes
-    - variables
-    - nombres
-    - opérateurs infixes
-
-    Les fonctions/parenthèses insèrent une Macroleaf dans la stack.
-
-    Pour le reste :
-    - Parenthèse fermante ")" : impossible, elles sont traitées dans les Macroleafs.
-
+    The function expects the list of token to be valid. 
+    Refer to functions:
+    - TBD 
+    - TBD 
+    for the common checks to be done prior to calling this method.
+    Only the syntax errors associated with this processing will be caught here.
+    
     EXAMPLES
     todo
     """
+    
     if (len(tokenList) >= 2) :
       (currToken, tail) = (tokenList[0], tokenList[1:])
-
+      
+      # Leaves/infix are simply pushed to the stack.
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
         self.stack.append(currToken)
         self.process(tail)
-
+      
+      # Function creates a Macroleaf and requires another call to <process> on its argument(s).
       elif (currToken.type == "FUNCTION") :
-        m = Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
+        M = Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
         
-        tmp = tail[1:]
-        for n in range(currToken.nArgs) :
-          m.args[n].process(tmp)
-          tmp = m.args[n].remainder
+        tailNoParenthesis = tail[1:]
+        M.process(tailNoParenthesis)
         
-        self.stack.append(m)
+        self.process(M.remainder)
 
+      # "(" creates a Macroleaf and requires another call to <process>.
       elif (currToken.type == "BRKT_OPEN") :
-        m = Macroleaf(function = "id", nArgs = 1)
-        m.process(tail)
-        self.stack.append(m)
-        self.process(m.remainder)
+        M = Macroleaf(function = "id", nArgs = 1)
+        
+        tailNoParenthesis = tail[1:]
+        M.process(tailNoParenthesis)
+        
+        self.process(M.remainder)
 
+      # A comma stops the binarisation, the Macroleaf must call <process> on the next argument.
       elif (currToken.type == "COMMA") :
         self.remainder = tail
         return None
 
-      else :
-        print("[ERROR] Unexpected token.")
+      # "(" stops the binarisation, the Macroleaf must call <process> on the next argument.
+      elif (currToken.type == "BRKT_CLOSE") :
+        self.remainder = tail
+        return None
 
+      
+      # Anything else is invalid.
+      else :
+        print(f"[ERROR] Unexpected token: <{currToken}>")
+
+
+
+    # Terminal case: 1 token left
     elif (len(tokenList) == 1) :
       currToken = tokenList[0]
 
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER"]) :
         self.stack.append(currToken)
-        self.process(tail)
+        self.remainder = []
+        return None
       
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = []
         return None
 
       elif (currToken.type == "COMMA") :
-        self.remainder = []
+        print("[ERROR] The list of tokens cannot end with a comma.")
+        return None
+
+      if (currToken.type == "INFIX") :
+        print("[ERROR] The list of tokens cannot end with an infix operator.")
         return None
 
       else :
         print("[ERROR] Unexpected token.")
+        return None
 
-    # Terminal case
+
+
+    # Terminal case: no token left
     else :
       return None
 
@@ -468,67 +493,34 @@ class Macroleaf:
 
     """
     self.function = function
+    self.nArgs = nArgs
     self.args = [Binary() for _ in range(nArgs)]
     self.remainder = []
-    self.currArg = 0
 
 
 
   def process(self, tokenList) :
     """
     DESCRIPTION
-    todo
+    The parenthesis token must be removed before calling this function.
 
 
     EXAMPLES
     todo
     """
-    if (len(tokenList) >= 2) :
-      (currToken, tail) = (tokenList[0], tokenList[1:])
-
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
-        print("TODO")
-
-      elif (currToken.type == "FUNCTION") :
-        print("TODO")
-
-      elif (currToken.type == "BRKT_OPEN") :
-        print("TODO")
-
-      else :
-        print("[ERROR] Unexpected token.")
-
-
-    elif (len(tokenList) == 1) :
-      currToken = tokenList[0]
-
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
-        print("TODO")
-        
-      else :
-        print("[ERROR] Unexpected token.")
-
-    # Terminal case
+    if (len(tokenList) >= 1) :
+      
+      stack = tokenList
+      for n in range(self.nArgs) :
+        self.args[n].process(stack)
+        stack = self.args[n].remainder
+      
+      self.remainder = stack
+      
+    # Terminal case: no token left
     else :
-      return stack
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      print("TODO")
+      return None
 
 
 
@@ -1271,36 +1263,14 @@ class QParser :
     todo
     """
 
-    if (len(tokenList) >= 2) :
-      (currToken, tail) = (tokenList[0], tokenList[1:])
-
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
-        b = Binary()
-        b.process(tokenList)
-        return b
-
-      elif (currToken.type == "FUNCTION") :          
-        m = Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
-        m.process(tail[1:])
-        return m
-
-      elif (currToken.type == "BRKT_OPEN") :
-        m = Macroleaf()
-        m.function = "id"
-        m.stack = [[currToken]]
-        m.process(tail)
-        return m
-
-      elif (currToken.type in ["BRKT_CLOSE", "COMMA", "INFIX"]) :
-        # Note: this error is already caught by the secondOrderCheck
-        print("[ERROR] Invalid list of tokens.")
-        return None
-
-    elif (len(tokenList) == 1) :
-      print("TODO")
+    if (len(tokenList) >= 1) :
+      B = Binary()
+      B.process(tokenList)
+      return B
 
     else :
-      return None
+      B = Binary()
+      return B
 
 
 
@@ -1634,9 +1604,11 @@ if (__name__ == '__main__') :
   print()
 
   expr = [
-    "2x*cos(3.1415t-1.)", 
+    "2x*cos(3.1415t-1.)^3",
+    "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
-    "-R3_2.0x*cos(3.1415t-1//R2)"
+    "-R3_2.0x*cos(3.1415t-1//R2)",
+    "(x+y)(x-2y)"
   ]
 
   for e in expr :
@@ -1648,5 +1620,5 @@ if (__name__ == '__main__') :
     print()
 
     out = qParser.expandMult(out)
-    qParser.binarize(out)
+    b = qParser.binarize(out)
   
