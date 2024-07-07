@@ -218,12 +218,12 @@ class Token :
       self.type = "CONSTANT"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"CONST:{name}"
+      self.dispStr = f"CONST:'{name}'"
 
     elif (name in self.functionsList) :
       self.type = "FUNCTION"
       self.name = name
-      self.dispStr = f"FCT:{name}"
+      self.dispStr = f"FCT:'{name}'"
       
       for f in Token.FUNCTIONS :
         if (name == f["name"]) :
@@ -233,35 +233,35 @@ class Token :
       self.type = "INFIX"
       self.name = name
       self.nArgs = 2
-      self.dispStr = f"OP:{name}"
+      self.dispStr = f"OP:'{name}'"
 
     elif (checkVariableSyntax(name)) :
       self.type = "VAR"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"VAR:{name}"
+      self.dispStr = f"VAR:'{name}'"
 
     elif (name == "(") :
       self.type = "BRKT_OPEN"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"BRKT:("
+      self.dispStr = f"BRKT:'('"
 
     elif (name == ")") :
       self.type = "BRKT_CLOSE"
       self.name = name
       self.nArgs = 0
-      self.dispStr = f"BRKT:)"
+      self.dispStr = f"BRKT:')'"
 
     elif (name == ",") :
       self.type = "COMMA"
       self.name = name
-      self.dispStr = f"SEP:,"
+      self.dispStr = f"SEP:','"
 
     elif (isNumber(name)) :
       self.type = "NUMBER"
       self.name = name
-      self.dispStr = f"NUM:{name}"
+      self.dispStr = f"NUM:'{name}'"
 
     elif (isBlank(name)) :
       self.type = "SPACE"
@@ -375,15 +375,16 @@ class Binary:
         tailNoParenthesis = tail[1:]
         M.process(tailNoParenthesis)
         
+        self.stack.append(M)
         self.process(M.remainder)
 
       # "(" creates a Macroleaf and requires another call to <process>.
       elif (currToken.type == "BRKT_OPEN") :
         M = Macroleaf(function = "id", nArgs = 1)
         
-        tailNoParenthesis = tail[1:]
-        M.process(tailNoParenthesis)
+        M.process(tail)
         
+        self.stack.append(M)
         self.process(M.remainder)
 
       # A comma stops the binarisation, the Macroleaf must call <process> on the next argument.
@@ -395,7 +396,6 @@ class Binary:
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = tail
         return None
-
       
       # Anything else is invalid.
       else :
