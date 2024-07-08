@@ -89,17 +89,25 @@
 # The infix operator "-" (minus sign) is the only operator that allows an implicit left operand.
 # In other words, expressions like "(-3x+..." are accepted.
 # That being said: 
-# [R7.1] "^-5" is not ideal but accepted (e.g. for '10^-4')
-# [R7.2] "*-4" are not recommended to avoid ambiguity
-# [R7.3] "--4" is not accepted (chaining more than 1 minus sign)
-# [R7.4] "(+4" is not accepted (implicit left operand is for minus sign only)
-# [R7.5] "-*4" is not accepted
+# [R7.1] "(-5..." is valid
+# [R7.2] "...^-5" is valid (e.g. for '10^-4')
+# [R7.3] "a^-3u" will be treated as "(a^(-3))*u"
+# [R7.4] "*-4" is not accepted: use parenthesis
+# [R7.5] "--4" is not accepted (chaining more than 1 minus sign)
+# [R7.6] "(+4" is not accepted (implicit left operand is for minus sign only)
+# [R7.7] "-*4" is not accepted
 #
 # [R8] VARIABLE NAMING
 # Variable cannot start with a number.
 #
 # [R9] WHITE SPACES
 # White spaces are not part of the syntax and are simply ignored.
+#
+# [R10] OPERATORS ASSOCIATIVITY
+# Consecutive operators of the same priority are treated differently.
+# [R10.1] a/b/c   -> a/(b/c)
+# [R10.2] a//b//c -> a//(b//c)      (though it does not matter as it is associative)
+# [R10.3] a^b^c^d -> a^(b^(c^d))    (no one will agree on the convention anyway)
 #
 #
 #
@@ -1162,13 +1170,13 @@ class QParser :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: QParser.expandMult
+  # METHOD: QParser.explicitMult
   # ---------------------------------------------------------------------------
-  def expandMult(self, input = "") :
+  def explicitMult(self, input = "") :
     """
     DESCRIPTION
-    Detect the implicit multiplications in the list of tokens.
-    Return the same list with the multiplication tokens explicited at the right place.
+    Detects the implicit multiplications in the list of tokens.
+    Returns the same list with the multiplication tokens explicited at the right place.
 
     EXAMPLES
     TODO
@@ -1245,7 +1253,7 @@ class QParser :
 
     return output
   
-  
+
 
   # ---------------------------------------------------------------------------
   # METHOD: QParser.binarize
@@ -1271,6 +1279,49 @@ class QParser :
     else :
       B = Binary()
       return B
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: QParser.balanceMinus
+  # ---------------------------------------------------------------------------
+  def explicitZeros(self, input = "") :
+    """
+    DESCRIPTION
+    Detects the minus signs used as a shortcut for the 'opposite' function.
+    Takes as input a binarized expression, returns a new binarized expression
+    with the minus infix replaced with a macroleaf calling the opposite function.
+
+    The shortcut can be used in very specific context only. Please refer to rules [R7.X]
+
+    EXAMPLES
+    "-3..."  -> "(0-3)..."
+    "...^-2" -> "...^(0-2)
+    """
+    
+    print("TODO")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: QParser.reduce
+  # ---------------------------------------------------------------------------
+  def reduce(self, binary) :
+    """
+    DESCRIPTION
+    Takes as input any Binary object, returns a Binary object containing a single
+    Macroleaf.
+
+    This function reduces the binary expression by grouping the operators based 
+    on their relative priority.
+    
+    It does not assume commutativity of the infix operators.
+
+    Associativity strategy are detailed in [R10].
+
+    EXAMPLES
+    todo
+    """
 
 
 
@@ -1604,6 +1655,7 @@ if (__name__ == '__main__') :
   print()
 
   expr = [
+    "a^-3cos(x+1)",
     "2x*cos(3.1415t-1.)^3",
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
@@ -1616,9 +1668,9 @@ if (__name__ == '__main__') :
     
     print(f"- expression: '{e}'")
     print(out)
-    print(qParser.expandMult(out))
+    print(qParser.explicitMult(out))
     print()
 
-    out = qParser.expandMult(out)
+    out = qParser.explicitMult(out)
     b = qParser.binarize(out)
   
