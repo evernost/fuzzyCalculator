@@ -20,11 +20,17 @@
 # It supports "natural" inputs (e.g. implicit multiplications) and lazy 
 # parenthesis.
 #
-# It does not require any specific library or obscure functions:
-# - no call to regex engine
+# It is based on native Python and does not require any specific library.
+# - no need for regex
 # - no complex string manipulation
 #
+# Parser grants the most classical math operators ('+', '-', '*', '/', '^') 
+# and more obscure ones ('//' for parallel resistor association)
+# Usual math functions are included (sin, cos, log, exp, abs, ...) 
 #
+# The parser preserves the order of the input, therefore does not 
+# assume commutativity of infix like '+', '*' etc. 
+# This could allow to extend the parser to other types, like matrices.
 #
 # -----
 # Rules
@@ -39,16 +45,17 @@
 #
 # [R3] FUNCTION CALL SYNTAX
 # No space is accepted between the function name and the parenthesis.
-# It makes the parsing trickier, and does not add any value.
+# It makes the parsing trickier, and there is no added value.
 # "exp(-2t)" -> OK
 # "cos (3x)" -> rejected
 #
 # [R4] VOID ARGUMENTS
 # Function cannot be called with empty arguments.
 #
-# [R5] IMPLICIT MULTIPLICATIONS RULES
+# [R5] IMPLICIT MULTIPLICATION RULES
 # The following priorities have been defined based on what feels the most "natural"
-# interpretation. In case of ambiguity, a warning is raised.
+# interpretation. 
+# In case of ambiguity, a warning is raised.
 # [R5.1]  "1X"     -> 1*var("X")                 See R2.
 # [R5.2]  "1.0X"   -> 1.0*var("X")               See R2.
 # [R5.3]  "X2"     -> var("X2")                  Perfectly OK: typical case of variable suffixing.
@@ -80,22 +87,55 @@
 # There are no plans to accept inputs like 'x DONG y' or 'a SUPER+ b'.
 # Reasons for that:
 # - ruins the readability
-# - special characters already give some flexibility
+# - special characters already give enough flexibility
 # - exotic infix operators are not that common. It is not worth the engineering.
 # - infix operators are 2 variables functions in disguise.
 #   Multiargs functions are already supported and should be the reasonable choice here.
 #
+# Also, be careful when defining the priority of your new operator (see rules [R7.X] and [R11])
+#
 # [R7] OMITTED TOKEN RULES
 # The infix operator "-" (minus sign) is the only operator that allows an implicit left operand.
 # In other words, expressions like "(-3x+..." are accepted.
-# That being said: 
-# [R7.1] "(-5..." is valid
-# [R7.2] "...^-5" is valid (e.g. for '10^-4')
-# [R7.3] "a^-3u" will be treated as "(a^(-3))*u"
-# [R7.4] "*-4" is not accepted: use parenthesis
-# [R7.5] "--4" is not accepted (chaining more than 1 minus sign)
-# [R7.6] "(+4" is not accepted (implicit left operand is for minus sign only)
-# [R7.7] "-*4" is not accepted
+#
+# There are not many cases where the implicit left operand is common and/or makes sense.
+# It is mostly used:
+# - to negate a number/constant/variable (rule [R7.1]) 
+# - for negative exponents               (rule [R7.2])
+#
+# Based on that, the parser's strategy is the following:
+# - "(-3*..."  -> add a leading 0: "(0-3*..."
+# - "10^-4..." -> create a macroleaf with the 'opp' function: "10^M..."
+#   with M : {f = opp, M = [Num:'4']}.
+#   This should not have side effect with the rest of the expression
+#   since '^' has the highest priority.
+#   Keep that in mind when you define custom infix.
+#
+# When the '-' appears at the beginning of an expression or subexpression
+# (like in a macroleaf) then rule [R7.1] applies.
+#
+# Otherwise, rule [R7.2] is applied.
+# 
+# [R7.2] is derived as rule [R7.3] when the infix is not '^' anymore. 
+# Behaviour is the same but a warning is raised because the priority between 
+# operations becomes ambiguous and the expression does not look 'natural'.
+# Use of parenthesis is strongly recommended for both clarity and correctness.
+#
+# Examples: 
+# - "(-5..." is valid                     (rule [7.1])
+# - "...^-5" is valid (e.g. for '10^-4')  (rule [7.2])
+# - "a^-3u" is be treated as "(a^(-3))*u" (rule [7.2])
+#
+# The following will raise a warning:
+# - "...--4..." becomes "...-M..." with M = {f = opp, M = [Num:'4']}   (rule [7.3])
+# - "...*-pi..." becomes "...*M..." with M = {f = opp, M = [Cst:'pi']} (rule [7.3])
+#
+# [R7.4] "(+4" is not accepted (implicit left operand is for minus sign only)
+# [R7.5] "-*4" is not accepted
+#
+# Note: rule [7.1] only adds a zero and does not add parenthesis.
+# This prevents "-x^2" to be turned into "(-x)^2", which is probably
+# never what is really meant.
 #
 # [R8] VARIABLE NAMING
 # Variable cannot start with a number.
@@ -104,10 +144,22 @@
 # White spaces are not part of the syntax and are simply ignored.
 #
 # [R10] OPERATORS ASSOCIATIVITY
-# Consecutive operators of the same priority are treated differently.
-# [R10.1] a/b/c   -> a/(b/c)
-# [R10.2] a//b//c -> a//(b//c)      (though it does not matter as it is associative)
-# [R10.3] a^b^c^d -> a^(b^(c^d))    (no one will agree on the convention anyway)
+# Consecutive operators with identical priority are all treated 
+# with increasing nesting level (i.e. the 'rightest the deepest'):
+# - a+b+c+d -> a+(b+(c+d))
+# - a/b/c   -> a/(b/c)
+# - a//b//c -> a//(b//c)      (note: '//' is associative, parenthesis do not matter)
+# - a^b^c^d -> a^(b^(c^d))    
+# In doubt, check the output interpretation, add parenthesis.
+#
+# [R11] OPERATORS PRECEDENCE
+# It is not recommended to change the relative priorities of basic infix
+# operators ('+', '-', '*' , '/', '^').
+# - there is no useful case 
+# - side effect will emerge due to the parsing strategy 
+#   (e.g. rule [R7.2]: '^' is assumed to have the highest precedence for proper operation)
+# Also, be careful when defining priority of custom infix and
+# think twice about how it interacts with other infix.
 #
 #
 #
@@ -125,6 +177,7 @@
 # TODO / IDEAS
 # ------------
 # Sorted by increasing relative effort: 
+# - add a pretty print for the 'binary tree' to check/debug the parser's interpretation
 # - add support for scientific notation
 # - add support for thousands delimitation using "_": "3_141_592" vs "3141592"
 # - add support for special characters (pi?)
@@ -145,6 +198,8 @@
 # Misc
 # ---- 
 # Python 3.10 is required for the pattern matching features.
+# Pattern matching is used for cleaner code, but does not participate to 
+# the actual parsing process.
 #
 
 
@@ -161,7 +216,7 @@
 # =============================================================================
 class Token :
 
-  # Warning: underscores in the constant's name is not allowed (rule [R5.10])
+  # Warning: underscores in the name are not allowed (rule [R5.10])
   CONSTANTS = [
     {"name": "pi" , "value": 3.14159265358979},
     {"name": "i",   "value": 0.0},
@@ -171,6 +226,7 @@ class Token :
   
   FUNCTIONS = [
     {"name": "id",    "nArgs": 1},
+    {"name": "opp",   "nArgs": 1},
     {"name": "sin",   "nArgs": 1},
     {"name": "cos",   "nArgs": 1},
     {"name": "tan",   "nArgs": 1},
@@ -283,6 +339,7 @@ class Token :
   def __str__(self) :
     return self.dispStr
   
+  # Define the behaviour of print([tokenObj1, tokenObj2])
   def __repr__(self):
     return self.dispStr
 
@@ -329,7 +386,7 @@ class Binary:
   """
   
   # ---------------------------------------------------------------------------
-  # Default constructor
+  # METHOD: Binary.__init__ (constructor)
   # ---------------------------------------------------------------------------
   def __init__(self) :
     """
@@ -355,7 +412,7 @@ class Binary:
     The list is available in the <stack> attribute. 
     
     Returns: None.
-    Only the internal attributes are affected.
+    Only the internal attributes are updated.
 
     The function expects the list of token to be valid. 
     Refer to functions:
@@ -444,6 +501,9 @@ class Binary:
 
 
 
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary.eval
+  # ---------------------------------------------------------------------------
   def eval(self) :
     """
     DESCRIPTION
@@ -453,9 +513,43 @@ class Binary:
     todo
     """
     print("TODO")
+    
+  
+  
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary.isolateHighestInfix
+  # ---------------------------------------------------------------------------
+  def isolateHighestInfix(self) :
+    """
+    DESCRIPTION
+    Breaks apart the stack to isolate the sequences of (macro)leaves and 
+    infix operator(s), keeping only the infix of highest priority.
+    
+    The function takes the internal stack as input.
+    It returns the stack broken apart as output, as a list of lists.
+    
+    If all infix have the same priority, the stack is returned as is.
 
-
-
+    EXAMPLES
+    B = Binary()
+    B.stack = [a * b + c / d ^ e + f]
+    B.isolateHighestInfix = [[a * b + c /] [d ^ e] [+ f]]
+    
+    (representation is simplified for the sake of the example)
+    """
+    print("TODO")
+  
+  
+  
+  # ---------------------------------------------------------------------------
+  # METHOD: print overloading
+  # ---------------------------------------------------------------------------
+  # Define the behaviour of print(binaryObj)
+  def __str__(self) :
+    return str(self.stack)
+  
+    
+    
 # =============================================================================
 # Macroleaf class
 # =============================================================================
@@ -469,16 +563,16 @@ class Macroleaf:
     M = {F, [B1, B2, ..., Bn]]}
     
     where:
-    - <F> is a function
+    - <F> is a function token
     - <B1>, ..., <Bn> are Binary objects.
 
     There are as many Binary objects <B1>, ..., <Bn> as arguments taken by the function.
     
     A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
-    that reduce to a leaf.
+    that reduces to a leaf.
     
     The structure being recursive, it needs a terminal case.
-    The terminal case is usually a Macroleaf:
+    The terminal case is usually:
 
     M = {Id, [L]}
     
@@ -510,8 +604,12 @@ class Macroleaf:
   def process(self, tokenList) :
     """
     DESCRIPTION
-    The parenthesis token must be removed before calling this function.
-
+    Takes a list of tokens as input, assigns them to each
+    argument of the function and binarizes them.
+    Returns: None.
+    Only the internal attributes are updated.
+    
+    Note: the parenthesis token must be removed before calling this function.
 
     EXAMPLES
     todo
@@ -1100,12 +1198,12 @@ class QParser :
   def tokenize(self, input = "") :
     """
     DESCRIPTION
-    Convert the input expression to an ordered list of Token objects.
+    Converts the input expression to an ordered list of Token objects.
 
-    The input characters are read, grouped and classified as abstracted types
+    The input characters are read, grouped and classified to abstracted types
     (Token objects) while preserving their information.
 
-    EXAMPLES 
+    EXAMPLES
     TODO
     """
 
@@ -1261,11 +1359,21 @@ class QParser :
   def binarize(self, tokenList) :
     """
     DESCRIPTION
-    Takes a list of tokens as input, returns a recursive structure made of 
-    Binary Objects and/or Macroleaf.
+    Takes a list of tokens as input, returns a Binary object.
     
-    The implicit multiplications must be expanded prior to calling the function.
-    Refer to the <expandMult> function for that purpose.
+    The Binary object stores the tokens as a hierarchical list (the 'stack')
+    looking like:
+    
+    [L, op, L, op, L, op, ...]
+    
+    where <op> is an infix and <L> is a constant/variable/number or a Macroleaf.
+    Please refer to the Binary object/Macroleaf object documentation for more information.
+    
+    Building this structure is the first step towards elaborating the full 
+    evaluation tree.
+    
+    Note: the implicit multiplications must be explicited prior to calling the function.
+    Refer to the <explicitMult> function for that purpose.
 
     EXAMPLES
     todo
@@ -1285,21 +1393,46 @@ class QParser :
   # ---------------------------------------------------------------------------
   # METHOD: QParser.balanceMinus
   # ---------------------------------------------------------------------------
-  def explicitZeros(self, input = "") :
+  def balanceMinus(self, binary) :
     """
     DESCRIPTION
     Detects the minus signs used as a shortcut for the 'opposite' function.
-    Takes as input a binarized expression, returns a new binarized expression
-    with the minus infix replaced with a macroleaf calling the opposite function.
+    Takes as input a Binary object, edits its stack so that it has full expansion
+    of the 'minus' infix operators.
+    
+    Returns: None.
+    
+    For that purpose, the function can:
+    - either explicit the hidden '0' to balance the infix '-' operator
+    - replace the infix operator and its operand with a macroleaf calling the 'opp'
+      function.
 
-    The shortcut can be used in very specific context only. Please refer to rules [R7.X]
+    Please refer to rules [R7.X]
 
     EXAMPLES
-    "-3..."  -> "(0-3)..."
+    "-3..."  -> "0-3..."
     "...^-2" -> "...^(0-2)
     """
     
-    print("TODO")
+    nTokens = len(binary.stack)
+    
+    if (nTokens >= 2) :
+    
+      # Detect a leading minus sign (rule [7.1])
+      tok = binary.stack[0]
+      if (tok.name == "-") :
+        binary.stack = [Token("0")] + binary.stack
+        nTokens += 1
+        
+      # Detect a minus sign after an infix (rules [7.2] and [7.3])
+      for n in range(nTokens-1) :
+        tokA = binary.stack[n]; tokB = binary.stack[n+1]
+
+        
+        
+        
+    else :
+      return None
 
 
 
@@ -1318,20 +1451,45 @@ class QParser :
     It does not assume commutativity of the infix operators.
 
     Associativity strategy are detailed in [R10].
+    
+    Note: minus signs '-' must have been balanced prior to calling this function.
 
     EXAMPLES
     todo
     """
+    
+    # Note: maybe there is a better name for the elements in binary.stack than <token>
+    
+    # 'Reduce' is required for 2 or more infix operators
+    print("TODO")
+    #if (len(binary.stack) >= 5)
+    
+
+    # 1. Chercher la plus haute priorité dans [L op L op L ...]
+    
+    # 2. Iloter les opérateurs les plus hauts : [L op L op], [L op L], [op L op L op L op L]
+
+    # 3. Créer des macros pour les îlots : [L op L op], M, [op L op L op L op L]
+    
+    # 4. Fusionner : [L op L op M op L op L op L op L]
+    
+    # 5. Recommencer jusqu'à ce que tous les opérateurs soient au même niveau
+    
+    # A la fin il ne reste plus que [L op L op L], tous de même priorité.
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: QParser.makeEvalTree
+  # METHOD: QParser.eval
   # ---------------------------------------------------------------------------
-  def makeEvalTree(self) :  
+  def eval(self, binary, point) :
     """
     DESCRIPTION
-    todo
+    Takes as input:
+    - <binary> : a reduced Binary object
+    - <point>  : a dictionary containing all variables and their value.
+    
+    Returns the evaluated expression.
 
     EXAMPLES
     todo
@@ -1340,10 +1498,10 @@ class QParser :
 
 
 
+
 # =============================================================================
 # Utilities
 # =============================================================================
-
 def pop(inputStr) :
   """
   DESCRIPTION
@@ -1652,6 +1810,14 @@ if (__name__ == '__main__') :
   assert(qParser.consumeInfix("-2x+y") == ("-", "2x+y"))
   assert(qParser.consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
+  
+  B = Binary()
+  B.stack = [Token("-"), Token("4")]
+  print(B)
+  qParser.balanceMinus(B)
+  print(B)
+  print("- Passed: <balanceMinus>")
+
   print()
 
   expr = [
@@ -1660,7 +1826,7 @@ if (__name__ == '__main__') :
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
     "-R3_2.0x*cos(3.1415t-1//R2)",
-    "(x+y)(x-2y)"
+    "(x+y)(x-2y"
   ]
 
   for e in expr :
