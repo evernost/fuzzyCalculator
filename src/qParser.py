@@ -15,10 +15,11 @@
 #
 # This parser is designed for:
 # - converting a mathematical expression to an evaluation tree
-# - running statistics from an evaluation tree
+# - running statistics on an evaluation tree
 #  
 # It supports "natural" inputs (e.g. implicit multiplications) and lazy 
 # parenthesis.
+# Expressions like "(a+b)(c-d)" or "sin(x+cox(y" are legal.
 #
 # It is based on native Python and does not require any specific library.
 # - no need for regex
@@ -150,7 +151,7 @@
 # - a/b/c   -> a/(b/c)
 # - a//b//c -> a//(b//c)      (note: '//' is associative, parenthesis do not matter)
 # - a^b^c^d -> a^(b^(c^d))    
-# In doubt, check the output interpretation, add parenthesis.
+# In doubt: check the output interpretation, add parenthesis.
 #
 # [R11] OPERATORS PRECEDENCE
 # It is not recommended to change the relative priorities of basic infix
@@ -255,7 +256,7 @@ class Token :
 
 
   # ---------------------------------------------------------------------------
-  # Default constructor: Token()
+  # METHOD: Token.__init__ (constructor)
   # ---------------------------------------------------------------------------
   def __init__(self, name, value = 0) :
     """
@@ -334,6 +335,12 @@ class Token :
 
     else :
       print("[ERROR] Invalid token!")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Token.__str__ (print overloading)
+  # ---------------------------------------------------------------------------
 
   # Define the behaviour of print(tokenObj)
   def __str__(self) :
@@ -452,12 +459,14 @@ class Binary:
         self.stack.append(M)
         self.process(M.remainder)
 
-      # A comma stops the binarisation, the Macroleaf must call <process> on the next argument.
+      # "," stops the binarisation.
+      # The Macroleaf must now process the next argument.
       elif (currToken.type == "COMMA") :
         self.remainder = tail
         return None
 
-      # "(" stops the binarisation, the Macroleaf must call <process> on the next argument.
+      # ")" stops the binarisation.
+      # The Macroleaf is now complete. 
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = tail
         return None
@@ -501,8 +510,70 @@ class Binary:
 
 
 
+
   # ---------------------------------------------------------------------------
-  # METHOD: Binary.eval
+  # METHOD: Binary.balanceMinus
+  # ---------------------------------------------------------------------------
+  def balanceMinus(self) :
+    """
+    DESCRIPTION
+    Detects the minus signs used as a shortcut for the 'opposite' function.
+    Takes as input a Binary object, edits its stack so that it has full expansion
+    of the 'minus' infix operators.
+    
+    Returns: None.
+    
+    For that purpose, the function can:
+    - either explicit the hidden '0' to balance the infix '-' operator
+    - replace the infix operator and its operand with a macroleaf calling the 'opp'
+      function.
+
+    Please refer to rules [R7.X]
+
+    EXAMPLES
+    todo
+    """
+    
+    self._explicitZeros(self)   # Add zeros when implicit (rule [7.1])
+    self._minusAsOpp(self)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+  
+  
+    
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._explicitZeros()
+  # ---------------------------------------------------------------------------
+  def _explicitZeros(self) :
+    
+    nElements = len(self.stack)
+    if (nElements >= 2) :
+      if (self.stack[0].type == "INFIX") :
+        if (self.stack[0].name == "-") :
+          binary.stack = [Token("0")] + binary.stack
+          
+      else :
+        for elt in binary.stack :
+          if (elt.type == "MACRO") :
+            elt._explicitZeros()
+    
+    # There can't be hidden "0" to explicit when the stack has 
+    # less than 2 elements.
+    else :
+      return None
+    
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._minusAsOpp()
+  # ---------------------------------------------------------------------------
+  def _minusAsOpp(self) :
+    
+    nElements = len(self.stack)
+    print("todo")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary.eval()
   # ---------------------------------------------------------------------------
   def eval(self) :
     """
@@ -542,7 +613,7 @@ class Binary:
   
   
   # ---------------------------------------------------------------------------
-  # METHOD: print overloading
+  # METHOD: Binary.__str__ (print overloading)
   # ---------------------------------------------------------------------------
   # Define the behaviour of print(binaryObj)
   def __str__(self) :
@@ -594,13 +665,17 @@ class Macroleaf:
 
 
     """
-    self.function = function
-    self.nArgs = nArgs
-    self.args = [Binary() for _ in range(nArgs)]
-    self.remainder = []
+    self.function   = function
+    self.nArgs      = nArgs
+    self.args       = [Binary() for _ in range(nArgs)]
+    self.remainder  = []
+    self.type       = "MACRO"
 
 
 
+  # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf.process
+  # ---------------------------------------------------------------------------
   def process(self, tokenList) :
     """
     DESCRIPTION
@@ -631,7 +706,7 @@ class Macroleaf:
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: sanityCheck
+  # METHOD: Macroleaf.sanityCheck
   # -----------------------------------------------------------------------------
   def sanityCheck(self, input = "") :
     """
@@ -656,7 +731,9 @@ class Macroleaf:
 # - <variables> : list of variables identified while parsing
 class QParser :
   
-  # Default constructor
+  # -----------------------------------------------------------------------------
+  # METHOD: QParser.__init__ (constructor)
+  # -----------------------------------------------------------------------------
   def __init__(self, input = "") :
     self.input     = input
     self.variables = []
@@ -1390,52 +1467,9 @@ class QParser :
 
 
 
-  # ---------------------------------------------------------------------------
-  # METHOD: QParser.balanceMinus
-  # ---------------------------------------------------------------------------
-  def balanceMinus(self, binary) :
-    """
-    DESCRIPTION
-    Detects the minus signs used as a shortcut for the 'opposite' function.
-    Takes as input a Binary object, edits its stack so that it has full expansion
-    of the 'minus' infix operators.
+
     
-    Returns: None.
     
-    For that purpose, the function can:
-    - either explicit the hidden '0' to balance the infix '-' operator
-    - replace the infix operator and its operand with a macroleaf calling the 'opp'
-      function.
-
-    Please refer to rules [R7.X]
-
-    EXAMPLES
-    "-3..."  -> "0-3..."
-    "...^-2" -> "...^(0-2)
-    """
-    
-    nTokens = len(binary.stack)
-    
-    if (nTokens >= 2) :
-    
-      # Detect a leading minus sign (rule [7.1])
-      tok = binary.stack[0]
-      if (tok.name == "-") :
-        binary.stack = [Token("0")] + binary.stack
-        nTokens += 1
-        
-      # Detect a minus sign after an infix (rules [7.2] and [7.3])
-      for n in range(nTokens-1) :
-        tokA = binary.stack[n]; tokB = binary.stack[n+1]
-
-        
-        
-        
-    else :
-      return None
-
-
-
   # ---------------------------------------------------------------------------
   # METHOD: QParser.reduce
   # ---------------------------------------------------------------------------
@@ -1811,12 +1845,12 @@ if (__name__ == '__main__') :
   assert(qParser.consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
   
-  B = Binary()
-  B.stack = [Token("-"), Token("4")]
-  print(B)
-  qParser.balanceMinus(B)
-  print(B)
-  print("- Passed: <balanceMinus>")
+  # B = Binary()
+  # B.stack = [Token("-"), Token("4")]
+  # print(B)
+  # qParser.balanceMinus(B)
+  # print(B)
+  # print("- Passed: <balanceMinus>")
 
   print()
 
@@ -1826,7 +1860,7 @@ if (__name__ == '__main__') :
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
     "-R3_2.0x*cos(3.1415t-1//R2)",
-    "(x+y)(x-2y"
+    "(x+y)(x-2y)"
   ]
 
   for e in expr :
@@ -1838,5 +1872,6 @@ if (__name__ == '__main__') :
     print()
 
     out = qParser.explicitMult(out)
-    b = qParser.binarize(out)
+    B = qParser.binarize(out)
+    B = qParser.balanceMinus(B)
   
