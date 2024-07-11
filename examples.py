@@ -32,7 +32,16 @@ import variable
 fcalc = fuzzyCalculator.Calc()
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 1
+# EXAMPLE 1: basic scalar operations
+# -----------------------------------------------------------------------------
+
+a = variable.scalar(3.14)
+fcalc.declare(a)
+fcalc.compile("a + cos(pi/2 + 0.01)")
+ret = fcalc.eval()
+
+# -----------------------------------------------------------------------------
+# EXAMPLE 2: resistors in parallel 
 # -----------------------------------------------------------------------------
 
 # 10 Ohms resistance with 5% tolerance (uniform)
@@ -65,16 +74,20 @@ fcalc.sim(nPts = 1000)
 
 # Gaussian variable
 z1 = variable.randn(mean = 2.0, std = 0.5)
-z2 = variable.randn(mean = )
+z2 = variable.randn(val = 10, tol95 = 0.5)
+z3 = variable.randn(val = 10, tol98 = 0.5)
 
 fcalc.declare(z1)
 fcalc.declare(z2)
-fcalc.compile("(z1^2)-(z2^2)")
+fcalc.declare(z3)
+fcalc.compile("(z1^2)-(z2^2) + z3^2")
 fcalc.sim(nPts = 1000)
 
 # -----------------------------------------------------------------------------
 # EXAMPLE 4 (syntax error)
 # -----------------------------------------------------------------------------
+
+z = variable.scalar(1.2)
 fcalc.declare(z)
 ret = fcalc.compile("-z^+2")
 

@@ -13,18 +13,21 @@
 # Description
 # =============================================================================
 # All the utilitary functions that haven't enough fame yet to get their 
-# own library.
+# own library :(
 # 
-# When called as a 'main', it runs the unit tests on the functions.
+# Note: when called as a 'main', it runs the unit tests on the functions.
 
 
 # =============================================================================
 # External libs
 # =============================================================================
-# None.
+import symbol
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: pop
+# -----------------------------------------------------------------------------
 def pop(inputStr) :
   """
   DESCRIPTION
@@ -48,6 +51,9 @@ def pop(inputStr) :
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: pop
+# -----------------------------------------------------------------------------
 def split(inputStr, n) :
   """
   DESCRIPTION
@@ -81,6 +87,9 @@ def split(inputStr, n) :
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: isAlpha
+# -----------------------------------------------------------------------------
 def isAlpha(inputStr) :
   """
   DESCRIPTION
@@ -97,6 +106,9 @@ def isAlpha(inputStr) :
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: isAlpha
+# -----------------------------------------------------------------------------
 def isDigit(inputStr) :
   """
   DESCRIPTION
@@ -108,6 +120,9 @@ def isDigit(inputStr) :
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: isBlank
+# -----------------------------------------------------------------------------
 def isBlank(inputStr) :
   """
   DESCRIPTION
@@ -117,6 +132,9 @@ def isBlank(inputStr) :
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: isNumber
+# -----------------------------------------------------------------------------
 def isNumber(inputStr) :
   """
   DESCRIPTION
@@ -158,7 +176,10 @@ def isNumber(inputStr) :
 
 
 
-def checkVariableSyntax(inputStr) :
+# -----------------------------------------------------------------------------
+# FUNCTION: isLegalVariableName
+# -----------------------------------------------------------------------------
+def isLegalVariableName(inputStr) :
   """
   DESCRIPTION
   Test if the input string is a valid variable name.
@@ -171,10 +192,10 @@ def checkVariableSyntax(inputStr) :
   """
   
   # Input guard
-  assert isinstance(inputStr, str), "<isNumber> expects a string as an input."
+  assert isinstance(inputStr, str), "<isLegalVariableName> expects a string as an input."
 
   # Filter out reserved names
-  if (inputStr in ([x["name"] for x in Token.CONSTANTS] + [x["name"] for x in Token.FUNCTIONS])) :
+  if (inputStr in ([x["name"] for x in symbol.CONSTANTS] + [x["name"] for x in symbol.FUNCTIONS])) :
     return False
 
   # First character must start with a letter or an underscore (rule [R2])
