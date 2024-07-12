@@ -21,7 +21,7 @@
 # =============================================================================
 # External libs
 # =============================================================================
-import symbol
+import atom
 
 
 
@@ -195,7 +195,7 @@ def isLegalVariableName(inputStr) :
   assert isinstance(inputStr, str), "<isLegalVariableName> expects a string as an input."
 
   # Filter out reserved names
-  if (inputStr in ([x["name"] for x in symbol.CONSTANTS] + [x["name"] for x in symbol.FUNCTIONS])) :
+  if (inputStr in ([x["name"] for x in atom.CONSTANTS] + [x["name"] for x in atom.FUNCTIONS])) :
     return False
 
   # First character must start with a letter or an underscore (rule [R2])
@@ -214,6 +214,9 @@ def isLegalVariableName(inputStr) :
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: showInStr
+# -----------------------------------------------------------------------------
 def showInStr(inputStr, loc) :
   """
   DESCRIPTION
@@ -229,10 +232,6 @@ def showInStr(inputStr, loc) :
     s = [" "] * len(inputStr)
     s[loc] = "^"
     print("".join(s))
-
-
-
-
 
 
 
@@ -263,12 +262,12 @@ if (__name__ == '__main__') :
   assert(isNumber("-.") == False)
   assert(isNumber("-.0") == False)
 
-  assert(checkVariableSyntax("x") == True)
-  assert(checkVariableSyntax("xyz") == True)
-  assert(checkVariableSyntax("1.2") == False)
-  assert(checkVariableSyntax("314") == False)
-  assert(checkVariableSyntax("314_x") == False)
-  assert(checkVariableSyntax("a_b_c_d_") == True)
-  assert(checkVariableSyntax("exp") == False)
-  assert(checkVariableSyntax("_u") == True)
-  assert(checkVariableSyntax("_sin") == True)
+  assert(isLegalVariableName("x") == True)
+  assert(isLegalVariableName("xyz") == True)
+  assert(isLegalVariableName("1.2") == False)
+  assert(isLegalVariableName("314") == False)
+  assert(isLegalVariableName("314_x") == False)
+  assert(isLegalVariableName("a_b_c_d_") == True)
+  assert(isLegalVariableName("exp") == False)
+  assert(isLegalVariableName("_u") == True)
+  assert(isLegalVariableName("_sin") == True)

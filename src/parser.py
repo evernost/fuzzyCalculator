@@ -251,20 +251,14 @@ def bracketBalanceCheck(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: QParser.firstOrderCheck
+# FUNCTION: firstOrderCheck
 # -----------------------------------------------------------------------------
-def firstOrderCheck(self, input = "") :
+def firstOrderCheck(inputStr) :
   """
   DESCRIPTION
   Take the chars 2 by 2 and detect any invalid combination.
   Detailed list can be found in 'firstOrderCheck.xslx'.
   """
-
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
-
 
   for i in (range(len(inputStr)-1)) :
     
@@ -272,17 +266,17 @@ def firstOrderCheck(self, input = "") :
 
     match (charA, charB) :
       case (".", ".") :
-        showInStr(inputStr, i+1)
+        utils.showInStr(inputStr, i+1)
         print("[ERROR] cannot make sense of 2 consecutive dots. Is it a typo?")
         return False
       
       case (",", ",") :
-        showInStr(inputStr, i+1)
+        utils.showInStr(inputStr, i+1)
         print("[ERROR] cannot make sense of 2 consecutive commas. Is it a typo?")
         return False
 
       case (",", ")") :
-        showInStr(inputStr, i+1)
+        utils.showInStr(inputStr, i+1)
         print("[ERROR] possible missing argument?")
         return False
 
@@ -298,18 +292,13 @@ def firstOrderCheck(self, input = "") :
 
 
 # -----------------------------------------------------------------------------
-# METHOD: QParser.reservedWordsCheck
+# FUNCTION: reservedWordsCheck
 # -----------------------------------------------------------------------------
-def reservedWordsCheck(self, input = "") :
+def reservedWordsCheck(inputStr) :
   """
   DESCRIPTION
   Check if reserved words (like function names, constants) are used incorrectly.
   """
-
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
 
   print("TODO")
 
@@ -318,9 +307,9 @@ def reservedWordsCheck(self, input = "") :
 
 
 # -----------------------------------------------------------------------------
-# METHOD: QParser.consumeSpace(<string>)
+# FUNCTION: splitSpace
 # -----------------------------------------------------------------------------
-def consumeSpace(input = "") :
+def splitSpace(inputStr) :
   """
   DESCRIPTION
   Consume the leading whitespaces contained in the input string.
@@ -329,17 +318,12 @@ def consumeSpace(input = "") :
   (See unit tests)
   """
 
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
-
   # Input guard
-  assert isinstance(inputStr, str), "<consumeConst> expects a string as an input."
+  assert isinstance(inputStr, str), "<splitSpace> expects a string as an input."
 
   for n in range(len(inputStr)) :
     if (inputStr[n] != " ") :
-      return split(inputStr, n)
+      return utils.split(inputStr, n)
       
   
 
@@ -989,10 +973,10 @@ if (__name__ == '__main__') :
   assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
   print("- Passed: <firstOrderCheck>")
 
-  assert(consumeSpace("pi") == ("", "pi"))
-  assert(consumeSpace(" pi") == (" ", "pi"))
-  assert(consumeSpace("   pi") == ("   ", "pi"))
-  print("- Passed: <consumeSpace>")
+  assert(splitSpace("pi") == ("", "pi"))
+  assert(splitSpace(" pi") == (" ", "pi"))
+  assert(splitSpace("   pi") == ("   ", "pi"))
+  print("- Passed: <splitSpace>")
 
   assert(consumeConst("pi") == ("pi", ""))
   assert(consumeConst("inf") == ("inf", ""))
@@ -1009,46 +993,46 @@ if (__name__ == '__main__') :
   assert(consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
   print("- Passed: <consumeConst>")
 
-  assert(qParser.consumeNumber("42") == ("42", ""))
-  assert(qParser.consumeNumber("4.2") == ("4.2", ""))
-  assert(qParser.consumeNumber("4.2.") == ("4.2", "."))
-  assert(qParser.consumeNumber(".") == ("", "."))
-  assert(qParser.consumeNumber("-.") == ("", "-."))
-  assert(qParser.consumeNumber("-12a") == ("", "-12a"))
-  assert(qParser.consumeNumber("-33.1") == ("", "-33.1"))
-  assert(qParser.consumeNumber("3.14cos(x)") == ("3.14", "cos(x)"))
-  assert(qParser.consumeNumber("6.280 sin(y") == ("6.280", " sin(y"))
-  assert(qParser.consumeNumber(" 64") == ("", " 64"))
-  assert(qParser.consumeNumber("x86") == ("", "x86"))
+  assert(consumeNumber("42") == ("42", ""))
+  assert(consumeNumber("4.2") == ("4.2", ""))
+  assert(consumeNumber("4.2.") == ("4.2", "."))
+  assert(consumeNumber(".") == ("", "."))
+  assert(consumeNumber("-.") == ("", "-."))
+  assert(consumeNumber("-12a") == ("", "-12a"))
+  assert(consumeNumber("-33.1") == ("", "-33.1"))
+  assert(consumeNumber("3.14cos(x)") == ("3.14", "cos(x)"))
+  assert(consumeNumber("6.280 sin(y") == ("6.280", " sin(y"))
+  assert(consumeNumber(" 64") == ("", " 64"))
+  assert(consumeNumber("x86") == ("", "x86"))
   print("- Passed: <consumeNumber>")
 
-  assert(qParser.consumeFunc("sina") == ("", "sina"))
-  assert(qParser.consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
-  assert(qParser.consumeFunc("tan (x-pi)") == ("", "tan (x-pi)"))
-  assert(qParser.consumeFunc("floot(-2.4)") == ("", "floot(-2.4)"))
-  assert(qParser.consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
-  assert(qParser.consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
-  assert(qParser.consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
+  assert(consumeFunc("sina") == ("", "sina"))
+  assert(consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
+  assert(consumeFunc("tan (x-pi)") == ("", "tan (x-pi)"))
+  assert(consumeFunc("floot(-2.4)") == ("", "floot(-2.4)"))
+  assert(consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
+  assert(consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
+  assert(consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
   print("- Passed: <consumeFunc>")
 
-  assert(qParser.consumeVar("bonjour") == ("bonjour", ""))
-  assert(qParser.consumeVar("3x") == ("", "3x"))
-  assert(qParser.consumeVar("x_2*3") == ("x_2", "*3"))
-  assert(qParser.consumeVar("x_23//4") == ("x_23", "//4"))
-  assert(qParser.consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
-  assert(qParser.consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
-  assert(qParser.consumeVar(".1") == ("", ".1"))
-  assert(qParser.consumeVar("pi*12x") == ("", "pi*12x"))
-  assert(qParser.consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
-  assert(qParser.consumeVar("_a") == ("_a", ""))
+  assert(consumeVar("bonjour") == ("bonjour", ""))
+  assert(consumeVar("3x") == ("", "3x"))
+  assert(consumeVar("x_2*3") == ("x_2", "*3"))
+  assert(consumeVar("x_23//4") == ("x_23", "//4"))
+  assert(consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
+  assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
+  assert(consumeVar(".1") == ("", ".1"))
+  assert(consumeVar("pi*12x") == ("", "pi*12x"))
+  assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
+  assert(consumeVar("_a") == ("_a", ""))
   print("- Passed: <consumeVar>")
 
-  assert(qParser.consumeInfix("*3x") == ("*", "3x"))
-  assert(qParser.consumeInfix("**2+1") == ("*", "*2+1"))
-  assert(qParser.consumeInfix("//2+1") == ("//", "2+1"))
-  assert(qParser.consumeInfix("x-y") == ("", "x-y"))
-  assert(qParser.consumeInfix("-2x+y") == ("-", "2x+y"))
-  assert(qParser.consumeInfix("^-3") == ("^", "-3"))
+  assert(consumeInfix("*3x") == ("*", "3x"))
+  assert(consumeInfix("**2+1") == ("*", "*2+1"))
+  assert(consumeInfix("//2+1") == ("//", "2+1"))
+  assert(consumeInfix("x-y") == ("", "x-y"))
+  assert(consumeInfix("-2x+y") == ("-", "2x+y"))
+  assert(consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
   
   # B = Binary()

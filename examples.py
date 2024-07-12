@@ -37,7 +37,9 @@ fcalc = fuzzyCalculator.Calc()
 
 a = variable.scalar(3.14)
 fcalc.declare(a)
+
 fcalc.compile("a + cos(pi/2 + 0.01)")
+
 ret = fcalc.eval()
 
 # -----------------------------------------------------------------------------
