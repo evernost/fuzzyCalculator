@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
 # Project         : Fuzzy Calculator
-# Module name     : atom
-# File name       : atom.py
+# Module name     : symbols
+# File name       : symbols.py
 # File type       : Python script (Python 3.10 or greater)
-# Purpose         : atom object
+# Purpose         : definition of the symbols accepted by the parser.
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
 # =============================================================================
@@ -26,7 +26,6 @@ import utils
 # =============================================================================
 # Constant pool
 # =============================================================================
-# Warning: underscores in the name are not allowed (rule [R5.10] of the parser)
 CONSTANTS = [
   {"name": "pi" , "value": 3.14159265358979},
   {"name": "i",   "value": 0.0},
@@ -53,7 +52,7 @@ FUNCTIONS = [
   {"name": "sinc",  "nArgs": 1}
 ]
 
-INFIX_OPS = [
+INFIX = [
   {"name": "+",  "priority": 1},
   {"name": "-",  "priority": 1},
   {"name": "*",  "priority": 2},
@@ -64,16 +63,17 @@ INFIX_OPS = [
 
 
 
-class Atom :
+class Token :
 
   # ---------------------------------------------------------------------------
-  # METHOD: Atom.__init__ (constructor)
+  # METHOD: Token.__init__ (constructor)
   # ---------------------------------------------------------------------------
-  def __init__(self, name, value = 0) :
+  def __init__(self, name, value = None) :
     """
     DESCRIPTION
-    Takes an expression as argument, returns an Atom whose type matches with 
-    the expression.
+    Takes an expression as argument, returns a Token object.
+    
+    The Token has a 'type' that is inferred from the value passed as argument.
 
     Tokens can be of type: 
     - CONSTANT
@@ -81,68 +81,69 @@ class Atom :
     - TODO
 
     EXAMPLES
-    Atom("4.5")  -> creates an Atom of type "NUMBER"
-    Atom("pi")   -> creates an Atom of type "CONSTANT"
-    Atom("exp")  -> creates an Atom of type "FUNCTION"
+    Token("4.5")  -> creates a Token of type "NUMBER"
+    Token("pi")   -> creates a Token of type "CONSTANT"
+    Token("exp")  -> creates a Token of type "FUNCTION"
     Etc.
     """
-    self.constantsList = [x["name"] for x in CONSTANTS]
-    self.functionsList = [x["name"] for x in FUNCTIONS]
-    self.infixOpsList  = [x["name"] for x in INFIX_OPS]
+    self.constantsList  = [x["name"] for x in CONSTANTS]
+    self.functionsList  = [x["name"] for x in FUNCTIONS]
+    self.infixList      = [x["name"] for x in INFIX]
     
     if (name in self.constantsList) :
-      self.type = "CONSTANT"
-      self.name = name
-      self.nArgs = 0
-      self.dispStr = f"CONST:'{name}'"
+      self.type     = "CONSTANT"
+      self.name     = name
+      self.nArgs    = 0
+      self.dispStr  = f"CONST:'{name}'"
 
     elif (name in self.functionsList) :
-      self.type = "FUNCTION"
-      self.name = name
-      self.dispStr = f"FCT:'{name}'"
+      self.type     = "FUNCTION"
+      self.name     = name
+      self.dispStr  = f"FCT:'{name}'"
       
       for f in FUNCTIONS :
         if (name == f["name"]) :
           self.nArgs = f["nArgs"]
 
-    elif (name in self.infixOpsList) :
-      self.type = "INFIX"
-      self.name = name
-      self.nArgs = 2
-      self.dispStr = f"OP:'{name}'"
+    elif (name in self.infixList) :
+      self.type     = "INFIX"
+      self.name     = name
+      self.nArgs    = 2
+      self.dispStr  = f"OP:'{name}'"
 
     elif (utils.isLegalVariableName(name)) :
-      self.type = "VAR"
-      self.name = name
-      self.nArgs = 0
-      self.dispStr = f"VAR:'{name}'"
+      self.type     = "VAR"
+      self.name     = name
+      self.nArgs    = 0
+      self.dispStr  = f"VAR:'{name}'"
+      self.value    = value
 
     elif (name == "(") :
-      self.type = "BRKT_OPEN"
-      self.name = name
-      self.nArgs = 0
-      self.dispStr = f"BRKT:'('"
+      self.type     = "BRKT_OPEN"
+      self.name     = name
+      self.nArgs    = 0
+      self.dispStr  = f"BRKT:'('"
 
     elif (name == ")") :
-      self.type = "BRKT_CLOSE"
-      self.name = name
-      self.nArgs = 0
-      self.dispStr = f"BRKT:')'"
+      self.type     = "BRKT_CLOSE"
+      self.name     = name
+      self.nArgs    = 0
+      self.dispStr  = f"BRKT:')'"
 
     elif (name == ",") :
-      self.type = "COMMA"
-      self.name = name
-      self.dispStr = f"SEP:','"
+      self.type     = "COMMA"
+      self.name     = name
+      self.dispStr  = f"SEP:','"
 
     elif (utils.isNumber(name)) :
-      self.type = "NUMBER"
-      self.name = name
-      self.dispStr = f"NUM:'{name}'"
+      self.type     = "NUMBER"
+      self.name     = name
+      self.dispStr  = f"NUM:'{name}'"
 
     elif (utils.isBlank(name)) :
-      self.type = "SPACE"
-      self.name = name
-      self.dispStr = f"BLK:'{name}'"
+      self.type     = "SPACE"
+      self.name     = name
+      self.dispStr  = f"BLK:'{name}'"
 
     else :
       print("[ERROR] Invalid token!")
@@ -152,12 +153,25 @@ class Atom :
   # ---------------------------------------------------------------------------
   # METHOD: Token.__str__ (print overloading)
   # ---------------------------------------------------------------------------
-
-  # Define the behaviour of print(tokenObj)
   def __str__(self) :
+    """
+    Defines the behaviour of print(tokenObj).
+    """
     return self.dispStr
   
-  # Define the behaviour of print([tokenObj1, tokenObj2])
-  def __repr__(self):
+  
+  
+  def __repr__(self) :
+    """
+    Defines the behaviour of print([tokenObj1, tokenObj2])
+    """
     return self.dispStr
 
+
+
+# -----------------------------------------------------------------------------
+# Main (unit tests)
+# -----------------------------------------------------------------------------
+if (__name__ == '__main__') :
+  
+  print("[INFO] No unit tests available for this library.")

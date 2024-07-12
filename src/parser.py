@@ -169,7 +169,7 @@
 # =============================================================================
 # External libs
 # =============================================================================
-import token
+import symbols
 import binary
 import macroleaf
 import utils
@@ -177,12 +177,12 @@ import utils
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: sanityCheck
+# FUNCTION: sanityCheck(string)
 # -----------------------------------------------------------------------------
 def sanityCheck(inputStr) :
   """
   DESCRIPTION
-  Check the input string: make sure it contains valid characters only.
+  Checks the input string, makes sure it contains valid characters only.
   Valid characters:
   - letters: "a" to "z" and "A" to "Z"
   - space: " "
@@ -196,18 +196,20 @@ def sanityCheck(inputStr) :
 
   Returns True if the check passed, False otherwise.
 
+  NOTE
+  In case you want to add custom infix operators, you need to add to the 
+  'white list' any special character you might be using.
+
   EXAMPLES
-  (See unit tests below)
+  (See unit tests in <main>)
   """
 
-  infixOpsExt = []
-  for t in token.INFIX_OPS :
-    infixOpsExt += list(t["name"])
-
+  infixList = [i["name"] for i in symbols.INFIX]
+  
   for (loc, char) in enumerate(inputStr) :
     alphaTest   = utils.isAlpha(char)
     digitTest   = utils.isDigit
-    infixTest   = (char in infixOpsExt)
+    infixTest   = (char in infixList)
     othersTest  = (char in [" ", ".", ",", "_", "(", ")"])
     
     if not(alphaTest or digitTest or infixTest or othersTest) :
@@ -220,7 +222,7 @@ def sanityCheck(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: bracketBalanceCheck
+# FUNCTION: bracketBalanceCheck(string)
 # -----------------------------------------------------------------------------
 def bracketBalanceCheck(inputStr) :
   """
@@ -231,7 +233,7 @@ def bracketBalanceCheck(inputStr) :
   Returns True if the check passed, False otherwise.
 
   EXAMPLES
-  (See unit tests)
+  (See unit tests in <main>)
   """
 
   level = 0
@@ -251,13 +253,16 @@ def bracketBalanceCheck(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: firstOrderCheck
+# FUNCTION: firstOrderCheck(string)
 # -----------------------------------------------------------------------------
 def firstOrderCheck(inputStr) :
   """
   DESCRIPTION
-  Take the chars 2 by 2 and detect any invalid combination.
+  Takes the chars 2 by 2 and detect any invalid combination.
   Detailed list can be found in 'firstOrderCheck.xslx'.
+  
+  EXAMPLES
+  (See unit tests in <main>)
   """
 
   for i in (range(len(inputStr)-1)) :
@@ -292,13 +297,19 @@ def firstOrderCheck(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: reservedWordsCheck
+# FUNCTION: reservedWordsCheck(string)
 # -----------------------------------------------------------------------------
 def reservedWordsCheck(inputStr) :
   """
   DESCRIPTION
   Check if reserved words (like function names, constants) are used incorrectly.
+  
+  EXAMPLES
+  (See unit tests in <main>)
   """
+  
+  # Input guard
+  assert isinstance(inputStr, str), "<splitSpace> expects a string as an input."
 
   print("TODO")
 
@@ -307,15 +318,18 @@ def reservedWordsCheck(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: splitSpace
+# FUNCTION: splitSpace(string)
 # -----------------------------------------------------------------------------
 def splitSpace(inputStr) :
   """
   DESCRIPTION
-  Consume the leading whitespaces contained in the input string.
+  Separates the leading whitespaces from the rest of the string.
 
+  Returns a couple (w, rem) such that inputStr = w || rem
+  and <w> being made of whitespaces only.
+  
   EXAMPLES
-  (See unit tests)
+  (See unit tests in <main>)
   """
 
   # Input guard
@@ -328,39 +342,34 @@ def splitSpace(inputStr) :
   
 
 # -----------------------------------------------------------------------------
-# METHOD: QParser.consumeConst(<string>)
+# FUNCTION: consumeConst(string)
 # -----------------------------------------------------------------------------
-def consumeConst(self, input = "") :
+def consumeConst(inputStr) :
   """
   DESCRIPTION
-  Consume the leading constant in a string.
+  Consumes the leading constant in a string.
 
-  If <input> is a string starting with the name of a constant, the tuple (c, rem) is 
+  If <inputStr> is a string starting with the name of a constant, the tuple (c, rem) is 
   returned, where:
   - <c> is the matching constant name
   - <rem> is the rest of the string.
   
-  so that input = c || rem
+  so that inputStr = c || rem
 
-  If <input> does not start with a known constant or the constant is embedded 
+  If <inputStr> does not start with a known constant or the constant is embedded 
   in a larger name, the tuple ("", input) is returned.
   Refer to rules [5.X] for more details about the parsing strategy.
 
-  The list of available constants is fetched from 'Token.CONSTANTS'.
+  The list of available constants is fetched from 'grammar.CONSTANTS'.
 
   EXAMPLES
-  (See unit tests)
+  (See unit tests in <main>)
   """
-
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
 
   # Input guard
   assert isinstance(inputStr, str), "<consumeConst> expects a string as an input."
 
-  constList = [c["name"] for c in Token.CONSTANTS]
+  constList = [c["name"] for c in symbols.CONSTANTS]
 
   for n in range(1, len(inputStr)+1) :
     (head, tail) = split(inputStr, n)
@@ -393,12 +402,12 @@ def consumeConst(self, input = "") :
 
 
 # -----------------------------------------------------------------------------
-# METHOD: QParser.consumeNumber(<string>)
+# FUNCTION: consumeNumber(string)
 # -----------------------------------------------------------------------------
-def consumeNumber(self, input = "") :
+def consumeNumber(inputStr) :
   """
   DESCRIPTION
-  Consume the leading number in a string.
+  Consumes the leading number in a string.
 
   If <input> is a string starting with a number, the tuple (n, rem) is 
   returned, where:
@@ -408,11 +417,13 @@ def consumeNumber(self, input = "") :
   so that input = n || rem
 
   The function does a 'greedy' read: as many chars as possible are stacked
-  to the number as long as it makes sense as a number.
+  to the output <n> as long as it makes sense as a number.
 
-  If <input> does not start with a digit or a dot, the tuple ("", input) is returned.
+  The function accepts fractional numbers ("3.14", "0.2", etc.)
+  Omitted leading zero is accepted: ".1", ".0001" etc.
 
   The function does not accept negative numbers.
+  If <input> does not start with a digit or a dot, the tuple ("", inputStr) is returned.
 
   Notes: 
   - the number is returned "as is" without interpretation. 
@@ -428,14 +439,12 @@ def consumeNumber(self, input = "") :
   > consumeNumber("4.2.") = ("4.2", ".")
   > consumeNumber("4.2cos(3x)") = ("4.2", "cos(3x)")
   > consumeNumber("-3.14") = ("", "-3.14")
-  (See unit tests for more examples)
+  (See unit tests in <main> for more)
   """
 
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
-
+  # Input guard
+  assert isinstance(inputStr, str), "<consumeNumber> expects a string as an input."
+ 
   # Test the first character.
   # A valid number can only start with a digit or a "."
   if not(inputStr[0].isdigit() or (inputStr[0] == ".")) :
@@ -457,24 +466,24 @@ def consumeNumber(self, input = "") :
 
 
 # -----------------------------------------------------------------------------
-# METHOD: QParser.consumeFunc(<string>)
+# FUNCTION: consumeFunc(string)
 # -----------------------------------------------------------------------------
-def consumeFunc(self, input = "") :
+def consumeFunc(inputStr) :
   """
   DESCRIPTION
-  Consume the leading function in a string.
+  Consumes the leading function in a string.
 
-  If <input> is a string starting with a function, the tuple (f, rem) is 
+  If <inputStr> is a string starting with a function, the tuple (f, rem) is 
   returned, where:
   - <f> is the matching function name
   - <rem> is the rest of the string.
   
-  The opening parenthesis is omitted in <rem>, so input = f || "(" || rem
+  The opening parenthesis is omitted in <rem>, so inputStr = f || "(" || rem
 
-  If <input> does not start with a known function, the tuple ("", input) is 
+  If <inputStr> does not start with a known function, the tuple ("", inputStr) is 
   returned.
 
-  The list of available functions is fetched from 'Token.FUNCTIONS'.
+  The list of available functions is fetched from 'symbols.FUNCTIONS'.
 
   Notes:
   - The function name must be immediatly followed by an opening parenthesis "(".
@@ -492,15 +501,10 @@ def consumeFunc(self, input = "") :
   > consumeFunc("sina") = ("", "sina")
   > consumeFunc("sinc(3x+12)") = ("sinc", "3x+12)")
   > consumeFunc("tan (x-pi)") = ("", "tan (x-pi)")
-  (See unit tests for more examples)
+  (See unit tests in <main> for more)
   """
   
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
-
-  functionsExt = [(f["name"] + "(") for f in Token.FUNCTIONS]
+  functionsExt = [(f["name"] + "(") for f in symbols.FUNCTIONS]
 
   nMax = 0
   for n in range(1, len(inputStr)+1) :
@@ -509,28 +513,31 @@ def consumeFunc(self, input = "") :
       nMax = n
   
   # Return the function without opening bracket 
-  (tmpHead, tmpTail) = split(inputStr, nMax)
+  (tmpHead, tmpTail) = utils.split(inputStr, nMax)
   return (tmpHead[0:-1], tmpTail)
 
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.consumeVar(<string>)
+# FUNCTION: consumeVar(string)
 # ---------------------------------------------------------------------------
-def consumeVar(self, input = "") :
+def consumeVar(inputStr) :
   """
   DESCRIPTION
-  Consume the leading variable in a string.
+  Consumes the leading variable name in a string.
+  
+  The parsing does not rely on prior variable declaration.
+  It only detects and returns a name that is a legal variable name.
 
-  If <input> is a string starting with a variable, the tuple (v, rem) is 
+  If <inputStr> is a string starting with a variable, the tuple (v, rem) is 
   returned, where:
-  - <v> is a potential variable name
+  - <v> is a legal variable name
   - <rem> is the rest of the string.
   
-  so that input = v || rem
+  so that inputStr = v || rem
 
   Several rules apply to the parsing strategy. 
-  In short, the function tries to match the leading input with what could be
+  In short, the function tries to match the head of the input with what could be
   a plausible variable name based on the rest of the input string.
   
   The function filters out variables when their name matches with a function or a constant.
@@ -544,23 +551,23 @@ def consumeVar(self, input = "") :
   
   Refer to rules [5.X] for more details about the parsing strategy. 
 
-  EXAMPLES
-  (See unit tests)
-  """
+  NOTES
+  Future releases might affect this function so that it takes into account the variables 
+  that have been declared for the detection.
+  This could give some more flexibility in the syntax (especially on rule [5.9])
 
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
+  EXAMPLES
+  (See unit tests in <main> for more)
+  """
 
   # Input guard
   assert isinstance(inputStr, str), "<consumeVar> expects a string as an input."
 
   OUTPUT_FAILURE = ("", inputStr)
-  reservedNames = [x["name"] for x in Token.CONSTANTS] + [x["name"] for x in Token.FUNCTIONS]
+  reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
 
   # Rule [R2]: a variable must start with a letter or an underscore
-  if not(isAlpha(inputStr[0]) or (inputStr[0] == "_")) :
+  if not(utils.isAlpha(inputStr[0]) or (inputStr[0] == "_")) :
     return ("", inputStr)
 
   output = (-1, "")
@@ -612,55 +619,50 @@ def consumeVar(self, input = "") :
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.addVariable(<string>)
+# FUNCTION: addVariable(string)
 # ---------------------------------------------------------------------------
-def addVariable(self, input = "") :
-  """
-  DESCRIPTION
-  TODO
+# def addVariable(self, input = "") :
+  # """
+  # DESCRIPTION
+  # TODO
 
-  EXAMPLES
-  (See unit tests)
-  """
+  # EXAMPLES
+  # (See unit tests in <main>)
+  # """
   
-  if (len(input) > 0) :
-    if not(input in self.variables) :
-      print(f"[NOTE] New variable added: '{input}'")
-      self.variables.append(input)
+  # if (len(input) > 0) :
+    # if not(input in self.variables) :
+      # print(f"[NOTE] New variable added: '{input}'")
+      # self.variables.append(input)
 
 
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.consumeInfix(<string>)
+# FUNCTION: consumeInfix(string)
 # ---------------------------------------------------------------------------
-def consumeInfix(self, input = "") :
+def consumeInfix(inputStr) :
   """
   DESCRIPTION
-  Consume the leading infix operator in a string.
+  Consumes the leading infix operator in a string.
 
-  If <input> is a string starting with an infix operator, the tuple (op, rem) is 
+  If <inputStr> is a string starting with an infix operator, the tuple (op, rem) is 
   returned, where:
   - <op> is the matching infix operator name
   - <rem> is the rest of the string.
   
-  so that input = op || rem
+  so that inputStr = op || rem
 
-  If <input> does not start with a known infix operator, the tuple ("", input) is returned.
+  If <inputStr> does not start with a known infix operator, the tuple ("", inputStr) is returned.
 
-  The list of available infix operators is fetched from Token.INFIX_OPS.
+  The list of available infix operators is fetched from 'symbols.INFIX'
 
   The list of infix operators can be extended with custom operators.
   Please refer to [R6] to see the rules that apply for that.
 
   EXAMPLES
-  (See unit tests)
+  (See unit tests in <main>)
   """
-
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
 
   # Input guard
   assert isinstance(inputStr, str), "<consumeInfix> expects a string as an input."
@@ -680,31 +682,29 @@ def consumeInfix(self, input = "") :
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.tokenize(<string>)
+# FUNCTION: tokenize(string)
 # ---------------------------------------------------------------------------
-def tokenize(self, input = "") :
+def tokenize(inputStr) :
   """
   DESCRIPTION
   Converts the input expression to an ordered list of Token objects.
 
   The input characters are read, grouped and classified to abstracted types
   (Token objects) while preserving their information.
+  
+  This function assumes that syntax checks have been run prior to the call.
+  Otherwise it will not be able to catch errors.
 
   EXAMPLES
-  TODO
+  todo
   """
-
-  if (len(input) > 0) :
-    inputStr = input
-  else :
-    inputStr = self.input
 
   tokenList = []
 
   while(len(inputStr) > 0) :
 
     # White spaces do not contribute to the parsing (rule [R9])
-    (_, inputStr) = self.consumeSpace(inputStr)
+    (_, inputStr) = self.splitSpace(inputStr)
     if (len(inputStr) == 0) :
       break
 
@@ -755,9 +755,9 @@ def tokenize(self, input = "") :
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.explicitMult
+# FUNCTION: explicitMult(tokenList)
 # ---------------------------------------------------------------------------
-def explicitMult(self, input = "") :
+def explicitMult(input) :
   """
   DESCRIPTION
   Detects the implicit multiplications in the list of tokens.
@@ -784,51 +784,51 @@ def explicitMult(self, input = "") :
         
         # Example: "pi(x+4)"
         case ("CONSTANT", "BRKT_OPEN") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "R1(R2+R3)"
         case ("VAR", "BRKT_OPEN") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "x_2.1"
         case ("VAR", "NUMBER") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "(x+1)pi"
         case ("BRKT_CLOSE", "CONST") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "(x+1)cos(y)"
         case ("BRKT_CLOSE", "FUNCTION") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "(R2+R3)R1"
         case ("BRKT_CLOSE", "VAR") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "(x+y)(x-y)"
         case ("BRKT_CLOSE", "BRKT_OPEN") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "(x+y)100"
         case ("BRKT_CLOSE", "NUMBER") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "2pi"
         case ("NUMBER", "CONST") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "2exp(-3t)"
         case ("NUMBER", "FUNCTION") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "2x"
         case ("NUMBER", "VAR") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         # Example: "2(x+y)"
         case ("NUMBER", "BRKT_OPEN") :
-          output.append(Token("*"))
+          output.append(symbols.Token("*"))
 
         case (_, _) :
           pass
@@ -841,7 +841,7 @@ def explicitMult(self, input = "") :
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.binarize
+# FUNCTION: binarize(tokenList)
 # ---------------------------------------------------------------------------
 def binarize(self, tokenList) :
   """
@@ -860,28 +860,25 @@ def binarize(self, tokenList) :
   evaluation tree.
   
   Note: the implicit multiplications must be explicited prior to calling the function.
-  Refer to the <explicitMult> function for that purpose.
+  Refer to <explicitMult> for that purpose.
 
   EXAMPLES
   todo
   """
 
   if (len(tokenList) >= 1) :
-    B = Binary()
+    B = binary.Binary()
     B.process(tokenList)
     return B
 
   else :
-    B = Binary()
+    B = binary.Binary()
     return B
 
 
 
-
-  
-  
 # ---------------------------------------------------------------------------
-# METHOD: QParser.reduce
+# FUNCTION: reduce(binaryObject)
 # ---------------------------------------------------------------------------
 def reduce(self, binary) :
   """
@@ -909,22 +906,22 @@ def reduce(self, binary) :
   #if (len(binary.stack) >= 5)
   
 
-  # 1. Chercher la plus haute priorité dans [L op L op L ...]
+  # 1. Look for the infix of highest priority in [L op L op L ...]
   
-  # 2. Iloter les opérateurs les plus hauts : [L op L op], [L op L], [op L op L op L op L]
+  # 2. Split apart the highest operator(s) and its (their) leaves: [L op L op], [L op L], [op L op L op L op L]
 
-  # 3. Créer des macros pour les îlots : [L op L op], M, [op L op L op L op L]
+  # 3. Create a macro: [L op L op], M, [op L op L op L op L]
   
-  # 4. Fusionner : [L op L op M op L op L op L op L]
+  # 4. Merge : [L op L op M op L op L op L op L]
   
-  # 5. Recommencer jusqu'à ce que tous les opérateurs soient au même niveau
+  # 5. Repeat until all operators are with the same priority
   
-  # A la fin il ne reste plus que [L op L op L], tous de même priorité.
+  # Ends up with [L op L op L], all with identical precedence
 
 
 
 # ---------------------------------------------------------------------------
-# METHOD: QParser.eval
+# FUNCTION: eval
 # ---------------------------------------------------------------------------
 def eval(self, binary, point) :
   """

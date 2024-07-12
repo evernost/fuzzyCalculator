@@ -21,7 +21,7 @@
 # =============================================================================
 # External libs
 # =============================================================================
-import atom
+import symbols
 
 
 
@@ -121,18 +121,6 @@ def isDigit(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: isBlank
-# -----------------------------------------------------------------------------
-def isBlank(inputStr) :
-  """
-  DESCRIPTION
-  Returns True if the input string only contains whitespaces.
-  """
-  print("TODO")
-
-
-
-# -----------------------------------------------------------------------------
 # FUNCTION: isNumber
 # -----------------------------------------------------------------------------
 def isNumber(inputStr) :
@@ -143,7 +131,7 @@ def isNumber(inputStr) :
   The test fails if the string contains anything else than digits and more than
   one dot. 
 
-  The test fails on a single dot.
+  The test fails on a single dot "."
   The test fails on negative numbers (the minus sign is treated differently)
 
   EXAMPLES
@@ -195,7 +183,7 @@ def isLegalVariableName(inputStr) :
   assert isinstance(inputStr, str), "<isLegalVariableName> expects a string as an input."
 
   # Filter out reserved names
-  if (inputStr in ([x["name"] for x in atom.CONSTANTS] + [x["name"] for x in atom.FUNCTIONS])) :
+  if (inputStr in ([x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS])) :
     return False
 
   # First character must start with a letter or an underscore (rule [R2])
@@ -261,7 +249,18 @@ if (__name__ == '__main__') :
   assert(isNumber("-0") == False)
   assert(isNumber("-.") == False)
   assert(isNumber("-.0") == False)
+  print("- Passed: <isNumber>")
 
+  assert(split("onigiri", -1) == ("", "onigiri"))
+  assert(split("onigiri",  0) == ("", "onigiri"))
+  assert(split("onigiri",  1) == ("o", "nigiri"))
+  assert(split("onigiri",  2) == ("on", "igiri"))
+  assert(split("onigiri",  5) == ("onigi", "ri"))
+  assert(split("onigiri",  7) == ("onigiri", ""))
+  assert(split("onigiri",  8) == ("onigiri", ""))
+  assert(split("onigiri", 15) == ("onigiri", ""))
+  print("- Passed: <split>")
+  
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
   assert(isLegalVariableName("1.2") == False)
@@ -271,3 +270,4 @@ if (__name__ == '__main__') :
   assert(isLegalVariableName("exp") == False)
   assert(isLegalVariableName("_u") == True)
   assert(isLegalVariableName("_sin") == True)
+  print("- Passed: <isLegalVariableName>")

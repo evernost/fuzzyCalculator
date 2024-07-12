@@ -4,7 +4,7 @@
 # Module name     : macroleaf
 # File name       : macroleaf.py
 # File type       : Python script (Python 3.10 or greater)
-# Purpose         : 
+# Purpose         : Macroleaf object definition
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
 # =============================================================================
