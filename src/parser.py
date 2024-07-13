@@ -204,12 +204,15 @@ def sanityCheck(inputStr) :
   (See unit tests in <main>)
   """
 
-  infixList = [i["name"] for i in symbols.INFIX]
+  # List the individual characters the infix are made of
+  infixListExp = []
+  for t in symbols.INFIX :
+    infixListExp += list(t["name"])
   
   for (loc, char) in enumerate(inputStr) :
     alphaTest   = utils.isAlpha(char)
-    digitTest   = utils.isDigit
-    infixTest   = (char in infixList)
+    digitTest   = utils.isDigit(char)
+    infixTest   = (char in infixListExp)
     othersTest  = (char in [" ", ".", ",", "_", "(", ")"])
     
     if not(alphaTest or digitTest or infixTest or othersTest) :
@@ -372,7 +375,7 @@ def consumeConst(inputStr) :
   constList = [c["name"] for c in symbols.CONSTANTS]
 
   for n in range(1, len(inputStr)+1) :
-    (head, tail) = split(inputStr, n)
+    (head, tail) = utils.split(inputStr, n)
     if (head in constList) :
       
       # Case 1: the whole string matches with a known constant
@@ -390,7 +393,7 @@ def consumeConst(inputStr) :
         # From that point: the only way to match is to have a bigger
         # constant name, whose beginning matched with a known constant (see [R5.12])
         # Can't conclude.
-        elif isAlpha(nextChar) :  
+        elif utils.isAlpha(nextChar) :  
           pass
 
         else :
@@ -454,14 +457,14 @@ def consumeNumber(inputStr) :
   # The longest string that passed the <isNumber> test becomes the candidate.
   nMax = 0
   for n in range(1, len(inputStr)+1) :
-    (head, _) = split(inputStr, n)
-    if isNumber(head) :
+    (head, _) = utils.split(inputStr, n)
+    if utils.isNumber(head) :
       nMax = n
 
     else:
       break
   
-  return split(inputStr, nMax)
+  return utils.split(inputStr, nMax)
 
 
 
@@ -508,7 +511,7 @@ def consumeFunc(inputStr) :
 
   nMax = 0
   for n in range(1, len(inputStr)+1) :
-    (head, _) = split(inputStr, n)
+    (head, _) = utils.split(inputStr, n)
     if (head in functionsExt) :
       nMax = n
   
@@ -572,7 +575,7 @@ def consumeVar(inputStr) :
 
   output = (-1, "")
   for n in range(1, len(inputStr)+1) :
-    (head, tail) = split(inputStr, n)
+    (head, tail) = utils.split(inputStr, n)
     
     # End of string reached
     if (n == len(inputStr)) :
@@ -584,12 +587,12 @@ def consumeVar(inputStr) :
       nextChar = tail[0]
 
       # Coming next: letter or '_'
-      if (isAlpha(nextChar) or (nextChar == "_")) :
+      if (utils.isAlpha(nextChar) or (nextChar == "_")) :
         pass
 
       # Coming next: digit
-      elif isDigit(nextChar) :
-        (nbr, _) = self.consumeNumber(tail)
+      elif utils.isDigit(nextChar) :
+        (nbr, _) = consumeNumber(tail)
       
         # Number with decimal point: apply rule [R5.5]
         if ("." in nbr) :
@@ -667,17 +670,17 @@ def consumeInfix(inputStr) :
   # Input guard
   assert isinstance(inputStr, str), "<consumeInfix> expects a string as an input."
 
-  infixOpsList = [op["name"] for op in Token.INFIX_OPS]
+  infixList = [op["name"] for op in symbols.INFIX]
 
   nMax = 0
   for n in range(1, len(inputStr)+1) :
-    (head, _) = split(inputStr, n)
+    (head, _) = utils.split(inputStr, n)
     
     # Returns True only if the whole word matches
-    if (head in infixOpsList) :
+    if (head in infixList) :
       nMax = n
   
-  return split(inputStr, nMax)
+  return utils.split(inputStr, nMax)
 
 
 
@@ -704,50 +707,50 @@ def tokenize(inputStr) :
   while(len(inputStr) > 0) :
 
     # White spaces do not contribute to the parsing (rule [R9])
-    (_, inputStr) = self.splitSpace(inputStr)
+    (_, inputStr) = splitSpace(inputStr)
     if (len(inputStr) == 0) :
       break
 
-    (number, tailNumber)      = self.consumeNumber(inputStr)
-    (constant, tailConstant)  = self.consumeConst(inputStr)
-    (function, tailFunction)  = self.consumeFunc(inputStr)
-    (variable, tailVariable)  = self.consumeVar(inputStr)
-    (infix, tailInfix)        = self.consumeInfix(inputStr)
+    (number, tailNumber)      = consumeNumber(inputStr)
+    (constant, tailConstant)  = consumeConst(inputStr)
+    (function, tailFunction)  = consumeFunc(inputStr)
+    (variable, tailVariable)  = consumeVar(inputStr)
+    (infix, tailInfix)        = consumeInfix(inputStr)
 
     if (number != "") :
-      tokenList.append(Token(number))
+      tokenList.append(symbols.Token(number))
       inputStr = tailNumber
 
     elif (constant != "") :
-      tokenList.append(Token(constant))
+      tokenList.append(symbols.Token(constant))
       inputStr = tailConstant
     
     elif (function != "") :
-      tokenList.append(Token(function))
-      tokenList.append(Token("("))
+      tokenList.append(symbols.Token(function))
+      tokenList.append(symbols.Token("("))
       inputStr = tailFunction
 
     elif (variable != "") :
-      tokenList.append(Token(variable))
+      tokenList.append(symbols.Token(variable))
       inputStr = tailVariable
       
     elif (infix != "") :
-      tokenList.append(Token(infix))
+      tokenList.append(symbols.Token(infix))
       inputStr = tailInfix
 
     else :
-      (head, tail) = pop(inputStr)
+      (head, tail) = utils.pop(inputStr)
 
       if (head == "(") :
-        tokenList.append(Token(head))
+        tokenList.append(symbols.Token(head))
         inputStr = tail
 
       elif (head == ")") :
-        tokenList.append(Token(head))
+        tokenList.append(symbols.Token(head))
         inputStr = tail
 
       elif (head == ",") :
-        tokenList.append(Token(head))
+        tokenList.append(symbols.Token(head))
         inputStr = tail
 
   return tokenList
@@ -1051,14 +1054,14 @@ if (__name__ == '__main__') :
   ]
 
   for e in expr :
-    out = qParser.tokenize(e)
+    out = tokenize(e)
     
     print(f"- expression: '{e}'")
     print(out)
-    print(qParser.explicitMult(out))
+    print(explicitMult(out))
     print()
 
-    out = qParser.explicitMult(out)
-    B = qParser.binarize(out)
-    B = qParser.balanceMinus(B)
+    out = explicitMult(out)
+    B = binarize(out)
+    B.balanceMinus()
   

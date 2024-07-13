@@ -69,8 +69,10 @@ class Binary:
     Creates an initialize a Binary object.
     This constructor does not take any arguments.
 
-    EXAMPLE
+    todo
 
+    EXAMPLE
+    todo
     """
     self.stack     = []
     self.remainder = []
