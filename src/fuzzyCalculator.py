@@ -102,6 +102,7 @@
 # TODO / IDEAS
 # ------------
 # Sorted by increasing effort: 
+# - delete the 'match' function to support even lower versions of Python
 # - add a pretty print for the 'binary tree' to check/debug the parser's interpretation
 # - add support for scientific notation
 # - parser: allow more flexibility to the rule [5.9] considering that variables are 

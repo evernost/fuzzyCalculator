@@ -63,6 +63,26 @@ INFIX = [
 
 
 
+# -----------------------------------------------------------------------------
+# FUNCTION: nArgsFromFunctionName
+# -----------------------------------------------------------------------------
+def nArgsFromFunctionName(inputStr) :
+  """
+  Returns the number of arguments taken by the function whose name is given as 
+  argument.
+
+  If no function is found, returns -1.
+  """
+  
+  for f in FUNCTIONS :
+    if (inputStr == f["name"]) :
+      return f["nArgs"]
+  
+  print(f"[WARNING] The function {inputStr} could not be found.")
+  return -1
+
+
+
 class Token :
 
   # ---------------------------------------------------------------------------

@@ -312,37 +312,13 @@ def reservedWordsCheck(inputStr) :
   """
   
   # Input guard
-  assert isinstance(inputStr, str), "<splitSpace> expects a string as an input."
+  assert isinstance(inputStr, str), "<reservedWordsCheck> expects a string as an input."
 
   print("TODO")
 
   return False
 
 
-
-# -----------------------------------------------------------------------------
-# FUNCTION: splitSpace(string)
-# -----------------------------------------------------------------------------
-def splitSpace(inputStr) :
-  """
-  DESCRIPTION
-  Separates the leading whitespaces from the rest of the string.
-
-  Returns a couple (w, rem) such that inputStr = w || rem
-  and <w> being made of whitespaces only.
-  
-  EXAMPLES
-  (See unit tests in <main>)
-  """
-
-  # Input guard
-  assert isinstance(inputStr, str), "<splitSpace> expects a string as an input."
-
-  for n in range(len(inputStr)) :
-    if (inputStr[n] != " ") :
-      return utils.split(inputStr, n)
-      
-  
 
 # -----------------------------------------------------------------------------
 # FUNCTION: consumeConst(string)
@@ -707,7 +683,7 @@ def tokenize(inputStr) :
   while(len(inputStr) > 0) :
 
     # White spaces do not contribute to the parsing (rule [R9])
-    (_, inputStr) = splitSpace(inputStr)
+    (_, inputStr) = utils.splitSpace(inputStr)
     if (len(inputStr) == 0) :
       break
 
@@ -760,7 +736,7 @@ def tokenize(inputStr) :
 # ---------------------------------------------------------------------------
 # FUNCTION: explicitMult(tokenList)
 # ---------------------------------------------------------------------------
-def explicitMult(input) :
+def explicitMult(tokenList) :
   """
   DESCRIPTION
   Detects the implicit multiplications in the list of tokens.
@@ -770,16 +746,16 @@ def explicitMult(input) :
   TODO
   """
   
-  nTokens = len(input)
+  nTokens = len(tokenList)
 
   # Hidden multiplication needs at least 2 tokens
   if (nTokens <= 1) :
-    return input
+    return tokenList
 
   else :
     output = []
     for n in range(nTokens-1) :
-      tokA = input[n]; tokB = input[n+1]
+      tokA = tokenList[n]; tokB = tokenList[n+1]
 
       output.append(tokA)
 
@@ -840,43 +816,6 @@ def explicitMult(input) :
       output.append(tokB)
 
   return output
-
-
-
-# ---------------------------------------------------------------------------
-# FUNCTION: binarize(tokenList)
-# ---------------------------------------------------------------------------
-def binarize(self, tokenList) :
-  """
-  DESCRIPTION
-  Takes a list of tokens as input, returns a Binary object.
-  
-  The Binary object stores the tokens as a hierarchical list (the 'stack')
-  looking like:
-  
-  [L, op, L, op, L, op, ...]
-  
-  where <op> is an infix and <L> is a constant/variable/number or a Macroleaf.
-  Please refer to the Binary object/Macroleaf object documentation for more information.
-  
-  Building this structure is the first step towards elaborating the full 
-  evaluation tree.
-  
-  Note: the implicit multiplications must be explicited prior to calling the function.
-  Refer to <explicitMult> for that purpose.
-
-  EXAMPLES
-  todo
-  """
-
-  if (len(tokenList) >= 1) :
-    B = binary.Binary()
-    B.process(tokenList)
-    return B
-
-  else :
-    B = binary.Binary()
-    return B
 
 
 
@@ -973,11 +912,6 @@ if (__name__ == '__main__') :
   assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
   print("- Passed: <firstOrderCheck>")
 
-  assert(splitSpace("pi") == ("", "pi"))
-  assert(splitSpace(" pi") == (" ", "pi"))
-  assert(splitSpace("   pi") == ("   ", "pi"))
-  print("- Passed: <splitSpace>")
-
   assert(consumeConst("pi") == ("pi", ""))
   assert(consumeConst("inf") == ("inf", ""))
   assert(consumeConst("eps*4") == ("eps", "*4"))
@@ -1044,8 +978,8 @@ if (__name__ == '__main__') :
 
   print()
 
-  expr = [
-    "a^-3cos(x+1)",
+  testVect = [
+    "-u^-3cos(2*pi*v + 1)",
     "2x*cos(3.1415t-1.)^3",
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
@@ -1053,15 +987,23 @@ if (__name__ == '__main__') :
     "(x+y)(x-2y)"
   ]
 
-  for e in expr :
-    out = tokenize(e)
+  for expr in testVect :
     
-    print(f"- expression: '{e}'")
-    print(out)
-    print(explicitMult(out))
-    print()
+    # STEP 1: rewrite the expression as a list of tokens
+    tokenList = tokenize(expr)
+    
+    # STEP 2: detect and add the implicit multiplications
+    tokenListExp = explicitMult(tokenList)
+    
+    # STEP 3: create a binary object from the list of tokens
+    B = binary.Binary(tokenListExp)
 
-    out = explicitMult(out)
-    B = binarize(out)
+    # STEP 4: balance the minus signs
     B.balanceMinus()
   
+    print(f"- expression: '{expr}'")
+    print(f"Tokens          : {tokenList}")
+    print(f"Tokens with mult: {tokenListExp}")
+    print()
+
+

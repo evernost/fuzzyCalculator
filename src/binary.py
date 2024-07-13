@@ -19,11 +19,12 @@
 # =============================================================================
 # External libs
 # =============================================================================
-# None.
+import symbols
+import macroleaf
 
 
 
-class Binary:
+class Binary :
   """
   DESCRIPTION
   A 'Binary' object is an ordered list of infix operators and (Macro)leaves
@@ -39,9 +40,9 @@ class Binary:
   of an evaluation stack. 
   In the context of this parser, a 'leaf' is a constant, a variable or a number.
 
-  A 'Macroleaf' is essentially a leaf on which a function is applied.
-  Since a Binary object reduces to a leaf, the leaf of the Macroleaf 
-  structure can even be generalized to a Binary object.
+  A 'Macroleaf' is essentially a function and a leaf; the function is applied to the leaf.
+  Since a Binary object ultimately reduces to a leaf, a Macroleaf can also be made
+  of a function and a Macroleaf.
   Hence the recursive nature.
 
   Any valid list of tokens can be associated with a unique Binary Object.
@@ -60,16 +61,20 @@ class Binary:
   please refer to the 'Macroleaf' definition for more information.
   """
   
+
+
   # ---------------------------------------------------------------------------
   # METHOD: Binary.__init__ (constructor)
   # ---------------------------------------------------------------------------
-  def __init__(self) :
+  def __init__(self, tokenList = []) :
     """
     DESCRIPTION
-    Creates an initialize a Binary object.
-    This constructor does not take any arguments.
+    Creates and initializes a Binary object from a list of Tokens.
+    Takes a list of Tokens as input, returns a Binary object as output.
 
-    todo
+    NOTES
+    The implicit multiplications must be explicited prior to calling the function.
+    Refer to <explicitMult> for that purpose.
 
     EXAMPLE
     todo
@@ -77,10 +82,13 @@ class Binary:
     self.stack     = []
     self.remainder = []
 
+    if (len(tokenList) >= 1) :
+      self.process(tokenList)
+
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary.process
+  # METHOD: Binary.process(tokenList)
   # ---------------------------------------------------------------------------
   def process(self, tokenList) :
     """
@@ -112,7 +120,7 @@ class Binary:
       
       # Function creates a Macroleaf and requires another call to <process> on its argument(s).
       elif (currToken.type == "FUNCTION") :
-        M = Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
+        M = macroleaf.Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
         
         tailNoParenthesis = tail[1:]
         M.process(tailNoParenthesis)
@@ -122,7 +130,7 @@ class Binary:
 
       # "(" creates a Macroleaf and requires another call to <process>.
       elif (currToken.type == "BRKT_OPEN") :
-        M = Macroleaf(function = "id", nArgs = 1)
+        M = macroleaf.Macroleaf(function = "id", nArgs = 1)
         
         M.process(tail)
         
@@ -194,18 +202,18 @@ class Binary:
     Returns: None.
     
     For that purpose, the function can:
-    - either explicit the hidden '0' to balance the infix '-' operator
+    - explicit the hidden '0' to balance the infix '-' operator
     - replace the infix operator and its operand with a macroleaf calling the 'opp'
       function.
 
-    Please refer to rules [R7.X]
+    Please refer to rules [R7.X] in <parser.py>
 
     EXAMPLES
     todo
     """
     
-    self._explicitZeros(self)   # Add zeros when implicit (rule [7.1])
-    self._minusAsOpp(self)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+    self._explicitZeros()   # Add zeros when implicit (rule [7.1])
+    self._minusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
   
   
@@ -215,18 +223,24 @@ class Binary:
   def _explicitZeros(self) :
     
     nElements = len(self.stack)
+    
+    # Using the "-" in the context of rule [7.1] requires at least 2 elements.
+    # Example: "-x"
     if (nElements >= 2) :
+      
+      # STEP 1: apply the processing to the own stack
       if (self.stack[0].type == "INFIX") :
         if (self.stack[0].name == "-") :
-          binary.stack = [Token("0")] + binary.stack
-          
+          self.stack = [symbols.Token("0")] + self.stack
+
+      # STEP 2: apply the processing recursively to the stacks in the macroleaves.
       else :
-        for elt in binary.stack :
+        for elt in self.stack :
           if (elt.type == "MACRO") :
             elt._explicitZeros()
     
-    # There can't be hidden "0" to explicit when the stack has 
-    # less than 2 elements.
+      return None
+
     else :
       return None
     
@@ -238,7 +252,39 @@ class Binary:
   def _minusAsOpp(self) :
     
     nElements = len(self.stack)
-    print("todo")
+    
+    # Using the "-" in the context of rule [7.2]/[7.3] requires at least 4 elements
+    # Example: "2^-4"
+    if (nElements >= 4) :
+      newStack = []
+      
+      for n in range(nElements-1) :
+        eltA = self.stack[n]; eltB = self.stack[n+1]
+
+        # Detect the "^-" combination
+        if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
+          if ((eltA.name == "^") and (eltB.type == "-")) :
+            newStack.append(eltA)
+            
+            M = macroleaf.Macroleaf(symbols.Token("opp"), 1)
+
+            newStack.append()
+
+        # Detect any other combination of an infix and "-"
+        if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
+          if (eltB.type == "-") :
+            print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
+            newStack.append(eltA)
+
+            
+
+        if (n == (nElements-2)) :
+          newStack.append(eltB)
+
+      return None
+
+    else :
+      return None
 
 
 
@@ -253,7 +299,7 @@ class Binary:
     EXAMPLES
     todo
     """
-    print("TODO")
+    print("<binary.eval> is todo!")
     
   
   
@@ -278,7 +324,7 @@ class Binary:
     
     (representation is simplified for the sake of the example)
     """
-    print("TODO")
+    print("<binary.isolateHighestInfix> is todo!")
   
   
   
@@ -289,4 +335,13 @@ class Binary:
   def __str__(self) :
     return str(self.stack)
   
-    
+  
+  
+# -----------------------------------------------------------------------------
+# Main (unit tests)
+# -----------------------------------------------------------------------------
+if (__name__ == '__main__') :
+  
+  print("[INFO] No unit tests available for this library.")
+
+

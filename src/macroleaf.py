@@ -19,63 +19,78 @@
 # =============================================================================
 # External libs
 # =============================================================================
-# None.
+import binary
+import symbols
 
 
 
-class Macroleaf:
+class Macroleaf :
+  """
+  Description
+  A Macroleaf <M> is a recursive structure represented as follows:
+  
+  M = {F, [B1, B2, ..., Bn]]}
+  
+  where:
+  - <F> is a function token
+  - <B1>, ..., <Bn> are Binary objects.
 
-  def __init__(self, function, nArgs) :
+  There are as many Binary objects <B1>, ..., <Bn> as arguments taken by the function.
+  
+  A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
+  that reduces to a leaf.
+  
+  The structure being recursive, it needs a terminal case.
+  The terminal case is usually:
+
+  M = {Id, [L]}
+  
+  where <Id> is the Identity function and <L> is a 'leaf': a constant, a variable or a number.
+
+  
+  Claim: any valid expression can be associated to a Macroleaf representation.
+
+
+  Advantage: once the representation is built, the evaluation is straighforward.
+  - Evaluate (recursively) each binary object
+  - Apply the top function to the result.
+
+  Priority between operators is decided when the list of Tokens is evaluated.
+  Token list evaluation is beyond the scope of this class.
+
+  Examples:
+  - cos(2x) -> {F:cos, [NUM:2, OP:*, VAR:x]}
+  """
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf.__init__ (constructor)
+  # ---------------------------------------------------------------------------
+  def __init__(self, function, tokenList) :
     """
-    Description
-    A Macroleaf <M> is a recursive structure represented as follows:
-    
-    M = {F, [B1, B2, ..., Bn]]}
-    
-    where:
-    - <F> is a function token
-    - <B1>, ..., <Bn> are Binary objects.
+    DESCRIPTION
+    Creates and initializes a Macroleaf object from a function and a list of Tokens.
+    Takes a list of Tokens as input, returns a Macroleaf object as output.
 
-    There are as many Binary objects <B1>, ..., <Bn> as arguments taken by the function.
-    
-    A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
-    that reduces to a leaf.
-    
-    The structure being recursive, it needs a terminal case.
-    The terminal case is usually:
+    Only the name of the function as a string is required to declare the function you want to use. 
+    No need to create a Token.
 
-    M = {Id, [L]}
-    
-    where <Id> is the Identity function and <L> is a 'leaf': a constant, a variable or a number.
-
-    
-    Claim: any valid expression can be associated to a Macroleaf representation.
-
-
-    Advantage: once the representation is built, the evaluation is straighforward.
-    - Evaluate (recursively) each binary object
-    - Apply the top function to the result.
-
-    Priority between operators is decided when the list of Tokens is evaluated.
-    Token list evaluation is beyond the scope of this class.
-
-    Examples:
-    - cos(2x) -> {F:cos, [NUM:2, OP:*, VAR:x]}
-
-
-    """
+    EXAMPLE
+    M = Macroleaf("exp", myListOfTokens)
+    """    
     self.function   = function
-    self.nArgs      = nArgs
-    self.args       = [Binary() for _ in range(nArgs)]
+    self.nArgs      = symbols.nArgsFromFunctionName(function)
+    self.args       = [binary.Binary() for _ in range(self.nArgs)]
     self.remainder  = []
     self.type       = "MACRO"
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf.process
+  # METHOD: Macroleaf.process(tokenList)
   # ---------------------------------------------------------------------------
-  def process(self, tokenList) :
+  def _process(self, tokenList) :
     """
     DESCRIPTION
     Takes a list of tokens as input, assigns them to each
@@ -99,7 +114,7 @@ class Macroleaf:
       
     # Terminal case: no token left
     else :
-      print("TODO")
+      print("<macroleaf.process> is todo!")
       return None
 
 
@@ -107,17 +122,36 @@ class Macroleaf:
   # -----------------------------------------------------------------------------
   # METHOD: Macroleaf.sanityCheck
   # -----------------------------------------------------------------------------
-  def sanityCheck(self, input = "") :
+  def sanityCheck(self) :
     """
     DESCRIPTION
-    
+    todo
+
     EXAMPLES
-    
+    todo
     """
 
-    if (len(input) > 0) :
-      inputStr = input
-    else :
-      inputStr = self.input
+    print("<macroleaf.sanityCheck> is todo!")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf._explicitZeros()
+  # ---------------------------------------------------------------------------
+  def _explicitZeros(self) :
+    
+    for n in range(self.nArgs) :
+      self.args[n]._explicitZeros()
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf.__str__ (print overloading)
+  # ---------------------------------------------------------------------------
+  # Define the behaviour of print(macroleafObj)
+  def __str__(self) :
+    argsStr = [str(a) for a in self.args]
+    return "{" + f"fct = {self.function}, args = {argsStr}" + "}"
+
 
 

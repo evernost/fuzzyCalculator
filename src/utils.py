@@ -165,6 +165,30 @@ def isNumber(inputStr) :
 
 
 # -----------------------------------------------------------------------------
+# FUNCTION: splitSpace(string)
+# -----------------------------------------------------------------------------
+def splitSpace(inputStr) :
+  """
+  DESCRIPTION
+  Separates the leading whitespaces from the rest of the string.
+
+  Returns a couple (w, rem) such that inputStr = w || rem
+  and <w> being made of whitespaces only.
+  
+  EXAMPLES
+  (See unit tests in <main>)
+  """
+
+  # Input guard
+  assert isinstance(inputStr, str), "<splitSpace> expects a string as an input."
+
+  for n in range(len(inputStr)) :
+    if (inputStr[n] != " ") :
+      return split(inputStr, n)
+
+
+
+# -----------------------------------------------------------------------------
 # FUNCTION: isLegalVariableName(string)
 # -----------------------------------------------------------------------------
 def isLegalVariableName(inputStr) :
@@ -260,6 +284,11 @@ if (__name__ == '__main__') :
   assert(split("onigiri",  8) == ("onigiri", ""))
   assert(split("onigiri", 15) == ("onigiri", ""))
   print("- Passed: <split>")
+  
+  assert(splitSpace("pi") == ("", "pi"))
+  assert(splitSpace(" pi") == (" ", "pi"))
+  assert(splitSpace("   pi") == ("   ", "pi"))
+  print("- Passed: <splitSpace>")
   
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
