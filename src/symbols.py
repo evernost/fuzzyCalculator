@@ -64,7 +64,7 @@ INFIX = [
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: nArgsFromFunctionName
+# FUNCTION: nArgsFromFunctionName(string)
 # -----------------------------------------------------------------------------
 def nArgsFromFunctionName(inputStr) :
   """

@@ -83,21 +83,24 @@ class Binary :
     self.remainder = []
 
     if (len(tokenList) >= 1) :
-      self.process(tokenList)
+      self._process(tokenList)
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Binary.process(tokenList)
   # ---------------------------------------------------------------------------
-  def process(self, tokenList) :
+  def _process(self, tokenList) :
     """
     DESCRIPTION
     Takes a list of tokens as input and builds the Binary representation of it.
-    The list is available in the <stack> attribute. 
+    The binary list is available in the <stack> attribute. 
     
     Returns: None.
     Only the internal attributes are updated.
+
+    The tokens that did not get binarized stay in the <remainder> attribute.
+    It usually concerns the tokens that are not at the same level.
 
     The function expects the list of token to be valid. 
     Refer to functions:
@@ -116,26 +119,22 @@ class Binary :
       # Leaves/infix are simply pushed to the stack.
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
         self.stack.append(currToken)
-        self.process(tail)
+        self._process(tail)
       
       # Function creates a Macroleaf and requires another call to <process> on its argument(s).
       elif (currToken.type == "FUNCTION") :
-        M = macroleaf.Macroleaf(function = currToken.name, nArgs = currToken.nArgs)
-        
         tailNoParenthesis = tail[1:]
-        M.process(tailNoParenthesis)
-        
+        M = macroleaf.Macroleaf(function = currToken.name, tokenList = tailNoParenthesis)
+
         self.stack.append(M)
-        self.process(M.remainder)
+        self._process(M.remainder)
 
       # "(" creates a Macroleaf and requires another call to <process>.
       elif (currToken.type == "BRKT_OPEN") :
-        M = macroleaf.Macroleaf(function = "id", nArgs = 1)
-        
-        M.process(tail)
+        M = macroleaf.Macroleaf(function = "id", tokenList = tail)
         
         self.stack.append(M)
-        self.process(M.remainder)
+        self._process(M.remainder)
 
       # "," stops the binarisation.
       # The Macroleaf must now process the next argument.
@@ -162,23 +161,20 @@ class Binary :
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER"]) :
         self.stack.append(currToken)
         self.remainder = []
-        return None
       
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = []
-        return None
 
       elif (currToken.type == "COMMA") :
         print("[ERROR] The list of tokens cannot end with a comma.")
-        return None
 
       if (currToken.type == "INFIX") :
         print("[ERROR] The list of tokens cannot end with an infix operator.")
-        return None
 
       else :
         print("[ERROR] Unexpected token.")
-        return None
+
+      return None
 
 
 
@@ -258,28 +254,35 @@ class Binary :
     if (nElements >= 4) :
       newStack = []
       
+      # TODO: replace with a while. Step is actually nonlinear and this cannot work
       for n in range(nElements-1) :
         eltA = self.stack[n]; eltB = self.stack[n+1]
 
         # Detect the "^-" combination
         if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
-          if ((eltA.name == "^") and (eltB.type == "-")) :
-            newStack.append(eltA)
-            
-            M = macroleaf.Macroleaf(symbols.Token("opp"), 1)
+          if ((eltA.name == "^") and (eltB.name == "-")) :
+            if ((n+2) == (nElements-1)) :
+              print("[ERROR] Something went wrong.")
+            else :
+              M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
 
-            newStack.append()
+            newStack.append(eltA)
+            newStack.append(M)
 
         # Detect any other combination of an infix and "-"
-        if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
+        elif ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
           if (eltB.type == "-") :
             print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
             newStack.append(eltA)
 
-            
+        
 
-        if (n == (nElements-2)) :
+        elif (n == (nElements-2)) :
           newStack.append(eltB)
+
+
+        else :
+          newStack.append(eltA)
 
       return None
 

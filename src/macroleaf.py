@@ -73,7 +73,8 @@ class Macroleaf :
     Creates and initializes a Macroleaf object from a function and a list of Tokens.
     Takes a list of Tokens as input, returns a Macroleaf object as output.
 
-    Only the name of the function as a string is required to declare the function you want to use. 
+    The function to be used is identified by its name; just pass the name as a string
+    in the argument.
     No need to create a Token.
 
     EXAMPLE
@@ -84,6 +85,9 @@ class Macroleaf :
     self.args       = [binary.Binary() for _ in range(self.nArgs)]
     self.remainder  = []
     self.type       = "MACRO"
+
+    if (len(tokenList) >= 1) :
+      self._process(tokenList)
 
 
 
@@ -107,7 +111,7 @@ class Macroleaf :
       
       stack = tokenList
       for n in range(self.nArgs) :
-        self.args[n].process(stack)
+        self.args[n]._process(stack)
         stack = self.args[n].remainder
       
       self.remainder = stack
