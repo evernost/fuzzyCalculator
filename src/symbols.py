@@ -131,6 +131,10 @@ class Token :
       self.nArgs    = 2
       self.dispStr  = f"OP:'{name}'"
 
+      for i in INFIX :
+        if (name == i["name"]) :
+          self.priority = i["priority"]
+
     elif (utils.isLegalVariableName(name)) :
       self.type     = "VAR"
       self.name     = name

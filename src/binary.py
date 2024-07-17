@@ -318,6 +318,160 @@ class Binary :
 
 
   # ---------------------------------------------------------------------------
+  # METHOD: Binary.reduce()
+  # ---------------------------------------------------------------------------
+  def reduce(self) :
+    """
+    DESCRIPTION
+    Reduces the stack to a single Macroleaf.
+
+    This function reduces the binary expression by grouping the operators based 
+    on their relative priority.
+    
+    It does not assume commutativity of the infix operators.
+
+    Associativity strategy are detailed in [R10].
+    
+    Note: minus signs '-' must have been balanced prior to calling this function
+    (function <balanceMinus>)
+
+    EXAMPLES
+    todo
+    """
+    
+    nElements = len(self.stack)
+
+    # -------------------------------------------
+    # CHECKS
+    # -------------------------------------------
+    # The stack MUST be like [L op L op ...]
+    
+    # CHECK 1: is the number of elements odd?
+    if ((nElements % 2) == 1) :
+      print(f"[DEBUG] nElements (= {nElements}) is odd: OK")
+
+    # CHECK 2: is it a pattern of alternating (macro)leaf and operators?
+    for (n, element) in enumerate(self.stack) :        
+      if ((n % 2) == 0) :
+        if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
+          print("oops")
+      else :
+        if (element.type != "INFIX") :
+          print("oops")
+
+
+    # 'Reduce' is required for 2 or more infix i.e. 5 elements
+    if (len(self.stack) >= 5) :
+      
+      # 1. Look for the infix of highest priority in [L op L op L ...]
+      maxPriority = self._getHighestPriority(self.stack)
+      print(f"[DEBUG] Max priority found = {maxPriority}")
+      
+      # 2. Split apart the highest operator(s) and its (their) leaves: [L op L op], [L op L], [op L op L op L op L]
+      (chunks, needMacro) = self._splitStrongestOp(self.stack, maxPriority)
+
+      # 3. Create a macro: [L op L op], M, [op L op L op L op L]
+      newStack = []
+      for i in range(len(chunks)) :
+        if needMacro[i] :
+          M = macroleaf.Macroleaf(function = "id", tokenList = chunks[i])
+          newStack.append(M)
+        
+        else :
+          newStack.append(chunks[i])
+            
+
+      # 4. Merge : [L op L op M op L op L op L op L]
+      
+      # 5. Repeat until all operators are with the same priority
+      
+      # Ends up with [L op L op L], all with identical precedence
+
+
+    # Only 1 infix: nothing to do
+    else :
+      pass
+
+
+
+    # Reduce recursively
+    # TODO
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._getHighestPriority()
+  # ---------------------------------------------------------------------------
+  def _getHighestPriority(self, elementList) :
+    """
+    DESCRIPTION
+    todo
+
+    EXAMPLES
+    todo
+    """
+    maxPriority = -1
+    for (n, element) in enumerate(elementList) :
+      if (element.type == "INFIX") :
+        #print(f"{element.type} (prior = {element.priority})")
+        if (element.priority > maxPriority) :
+          maxPriority = element.priority
+
+    return maxPriority
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._splitStrongestOp()
+  # ---------------------------------------------------------------------------
+  def _splitStrongestOp(self, tokenList, priority) :
+
+    nElements = len(tokenList)
+    isTopElement = [False for _ in range(nElements)]
+
+    # STEP 1: create a 'side array' indicating where the split must be done.
+    for (n, element) in enumerate(tokenList) :
+      if (element.type == "INFIX") :
+        if (element.priority > priority) :
+          print("[DEBUG] This is not supposed to happen")
+
+        elif (element.priority == priority) :
+          isTopElement[n-1] = True
+          isTopElement[n]   = True
+          isTopElement[n+1] = True
+
+    # STEP 2: do the actual split
+    chunksOut = []; chunkIsTop = []
+    for (n, element) in enumerate(tokenList) :
+      if (n == 0) :
+        tmp = [tokenList[0]]
+
+      else :
+        if (isTopElement[n-1] != isTopElement[n]) :
+          if (n == (nElements-1)) :
+            chunksOut.append(tmp)
+            chunkIsTop.append(isTopElement[n-1])
+
+            chunksOut.append([tokenList[n]])
+            chunkIsTop.append(isTopElement[n])
+          else :
+            chunksOut.append(tmp)
+            chunkIsTop.append(isTopElement[n-1])
+
+            tmp = [tokenList[n]]
+
+        else :
+          if (n == (nElements-1)) :
+            tmp.append(tokenList[n])
+            chunksOut.append(tmp)
+            chunkIsTop.append(isTopElement[n])
+          else :
+            tmp.append(tokenList[n])
+
+    return (chunksOut, chunkIsTop)
+
+
+
+  # ---------------------------------------------------------------------------
   # METHOD: Binary.eval()
   # ---------------------------------------------------------------------------
   def eval(self) :

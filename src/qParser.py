@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
 # Project         : Fuzzy Calculator
-# Module name     : parser
-# File name       : parser.py
+# Module name     : qParser
+# File name       : qParser.py
 # File type       : Python script (Python 3.10 or greater)
 # Purpose         : built-in parser for the Fuzzy Calculator
 # Author          : QuBi (nitrogenium@outlook.fr)
@@ -820,49 +820,6 @@ def explicitMult(tokenList) :
 
 
 # ---------------------------------------------------------------------------
-# FUNCTION: reduce(binaryObject)
-# ---------------------------------------------------------------------------
-def reduce(self, binary) :
-  """
-  DESCRIPTION
-  Takes as input any Binary object, returns a Binary object containing a single
-  Macroleaf.
-
-  This function reduces the binary expression by grouping the operators based 
-  on their relative priority.
-  
-  It does not assume commutativity of the infix operators.
-
-  Associativity strategy are detailed in [R10].
-  
-  Note: minus signs '-' must have been balanced prior to calling this function.
-
-  EXAMPLES
-  todo
-  """
-  
-  # Note: maybe there is a better name for the elements in binary.stack than <token>
-  
-  # 'Reduce' is required for 2 or more infix operators
-  print("TODO")
-  #if (len(binary.stack) >= 5)
-  
-
-  # 1. Look for the infix of highest priority in [L op L op L ...]
-  
-  # 2. Split apart the highest operator(s) and its (their) leaves: [L op L op], [L op L], [op L op L op L op L]
-
-  # 3. Create a macro: [L op L op], M, [op L op L op L op L]
-  
-  # 4. Merge : [L op L op M op L op L op L op L]
-  
-  # 5. Repeat until all operators are with the same priority
-  
-  # Ends up with [L op L op L], all with identical precedence
-
-
-
-# ---------------------------------------------------------------------------
 # FUNCTION: eval
 # ---------------------------------------------------------------------------
 def eval(self, binary, point) :
@@ -979,7 +936,7 @@ if (__name__ == '__main__') :
   print()
 
   testVect = [
-    "-u^-3cos(2*pi*v + 1)",
+    "-u^-3cos(2*pi*v + 1) + 2^0.1x",
     "2x*cos(3.1415t-1.)^3",
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
@@ -1003,6 +960,9 @@ if (__name__ == '__main__') :
     # STEP 4: balance the minus signs
     B.balanceMinus()
   
+    # STEP 5: reduce to a single leaf
+    B.reduce()
+
     print(f"----- expression = '{expr}' -----")
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListExp}")
