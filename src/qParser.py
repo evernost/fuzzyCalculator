@@ -984,7 +984,9 @@ if (__name__ == '__main__') :
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
     "-R3_2.0x*cos(3.1415t-1//R2)",
-    "(x+y)(x-2y)"
+    "(x+y)(x-2y)",
+    "(-3(x+4))",
+    "-x^2"
   ]
 
   for expr in testVect :
@@ -1001,9 +1003,10 @@ if (__name__ == '__main__') :
     # STEP 4: balance the minus signs
     B.balanceMinus()
   
-    print(f"- expression: '{expr}'")
+    print(f"----- expression = '{expr}' -----")
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListExp}")
+    print(f"Binary          : {B}")
     print()
 
 

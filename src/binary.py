@@ -150,7 +150,7 @@ class Binary :
       
       # Anything else is invalid.
       else :
-        print(f"[ERROR] Unexpected token: <{currToken}>")
+        print(f"[ERROR] Unexpected token: {currToken}")
 
 
 
@@ -168,11 +168,11 @@ class Binary :
       elif (currToken.type == "COMMA") :
         print("[ERROR] The list of tokens cannot end with a comma.")
 
-      if (currToken.type == "INFIX") :
+      elif (currToken.type == "INFIX") :
         print("[ERROR] The list of tokens cannot end with an infix operator.")
 
       else :
-        print("[ERROR] Unexpected token.")
+        print(f"[ERROR] Unexpected token: {currToken}")
 
       return None
 
@@ -258,34 +258,58 @@ class Binary :
       while (n <= (nElements-2)) :
         eltA = self.stack[n]; eltB = self.stack[n+1]
 
+        # ---------------------------
         # Detect the "^-" combination
+        # ---------------------------
         if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
           if ((eltA.name == "^") and (eltB.name == "-")) :
-            if ((n+2) == (nElements-1)) :
-              print("[ERROR] Something went wrong.")
-            else :
-              M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
-
+            
+            # Guard
+            if ((n+2) > (nElements-1)) :
+              print("[ERROR] Premature end; it should have been caught before calling <_minusAsOpp>!")
+            
+            M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
             newStack.append(eltA)
             newStack.append(M)
+            n += 3
 
-            n += 2
-
+        # ------------------------------------------------
         # Detect any other combination of an infix and "-"
+        # ------------------------------------------------
         elif ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
           if (eltB.type == "-") :
             print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
+
+            # Guard
+            if ((n+2) > (nElements-1)) :
+              print("[ERROR] Premature end; it should have been caught before calling <_minusAsOpp>!")
+              exit()
+
+            M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
             newStack.append(eltA)
+            newStack.append(M)
+            n += 3
 
-            n += 2
+          else :
+            print("[ERROR] Invalid combination of infixes; it should have been caught before calling <_minusAsOpp>!")
+            exit()
 
+        # ---------------
+        # Last 2 elements
+        # ---------------
         elif (n == (nElements-2)) :
+          newStack.append(eltA)
           newStack.append(eltB)
+          n += 1
 
-
+        # ------------------------
+        # Nothing special detected
+        # ------------------------
         else :
           newStack.append(eltA)
+          n += 1
 
+      self.stack = newStack
       return None
 
     else :
