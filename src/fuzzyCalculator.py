@@ -135,7 +135,7 @@
 # =============================================================================
 # External libs
 # =============================================================================
-import parser
+import qParser
 import variable
 
 
@@ -167,9 +167,9 @@ class Calc :
   
     self.expr = expr
   
-    ret = parser.sanityCheck(expr)
-    ret = parser.bracketBalanceCheck(expr)
-    ret = parser.firstOrderCheck(expr)
+    ret = qParser.sanityCheck(expr)
+    ret = qParser.bracketBalanceCheck(expr)
+    ret = qParser.firstOrderCheck(expr)
     
   
   

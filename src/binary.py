@@ -254,8 +254,8 @@ class Binary :
     if (nElements >= 4) :
       newStack = []
       
-      # TODO: replace with a while. Step is actually nonlinear and this cannot work
-      for n in range(nElements-1) :
+      n = 0
+      while (n <= (nElements-2)) :
         eltA = self.stack[n]; eltB = self.stack[n+1]
 
         # Detect the "^-" combination
@@ -269,13 +269,15 @@ class Binary :
             newStack.append(eltA)
             newStack.append(M)
 
+            n += 2
+
         # Detect any other combination of an infix and "-"
         elif ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
           if (eltB.type == "-") :
             print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
             newStack.append(eltA)
 
-        
+            n += 2
 
         elif (n == (nElements-2)) :
           newStack.append(eltB)
