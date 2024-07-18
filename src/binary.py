@@ -158,7 +158,7 @@ class Binary :
     elif (len(tokenList) == 1) :
       currToken = tokenList[0]
 
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER"]) :
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
         self.stack.append(currToken)
         self.remainder = []
       
@@ -363,29 +363,38 @@ class Binary :
     # 'Reduce' is required for 2 or more infix i.e. 5 elements
     if (len(self.stack) >= 5) :
       
-      # 1. Look for the infix of highest priority in [L op L op L ...]
-      maxPriority = self._getHighestPriority(self.stack)
-      print(f"[DEBUG] Max priority found = {maxPriority}")
+      # STEP 1: look for the infix of highest priority in [L op L op L ...]
+      (minPriority, maxPriority) = self._getPriorityRange(self.stack)
+      print(f"[DEBUG] Priority range = ({minPriority}, {maxPriority})")
       
-      # 2. Split apart the highest operator(s) and its (their) leaves: [L op L op], [L op L], [op L op L op L op L]
-      (chunks, needMacro) = self._splitStrongestOp(self.stack, maxPriority)
+      # <reduce> is necessary if there are more than 2 levels of priority
+      while (maxPriority != minPriority) :
 
-      # 3. Create a macro: [L op L op], M, [op L op L op L op L]
-      newStack = []
-      for i in range(len(chunks)) :
-        if needMacro[i] :
-          M = macroleaf.Macroleaf(function = "id", tokenList = chunks[i])
-          newStack.append(M)
-        
-        else :
-          newStack.append(chunks[i])
+        # STEP 2: split apart the highest operator and its adjacent leaves
+        # from the rest: [L op L op], [L op L], [op L op L op L op L]
+        (chunks, chunkNeedsMacro) = self._splitOp(self.stack, maxPriority)
+
+        # STEP 3: create a macro: [L op L op], M, [op L op L op L op L]
+        # and merge
+        if (len(chunks) > 1) :
+          newStack = []
+          for i in range(len(chunks)) :
+            if chunkNeedsMacro[i] :
+              M = macroleaf.Macroleaf(function = "id", tokenList = chunks[i])
+              newStack.append(M)
             
+            else :
+              newStack += chunks[i]
 
-      # 4. Merge : [L op L op M op L op L op L op L]
-      
-      # 5. Repeat until all operators are with the same priority
-      
+          self.stack = newStack  
+        
+        # STEP 4: repeat until the stack is 'flat' 
+        # (all operators have the same priority)
+        (minPriority, maxPriority) = self._getPriorityRange(self.stack)
+
       # Ends up with [L op L op L], all with identical precedence
+      print("Done")
+
 
 
     # Only 1 infix: nothing to do
@@ -399,9 +408,9 @@ class Binary :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary._getHighestPriority()
+  # METHOD: Binary._getPriorityRange()
   # ---------------------------------------------------------------------------
-  def _getHighestPriority(self, elementList) :
+  def _getPriorityRange(self, elementList) :
     """
     DESCRIPTION
     todo
@@ -409,21 +418,23 @@ class Binary :
     EXAMPLES
     todo
     """
-    maxPriority = -1
-    for (n, element) in enumerate(elementList) :
+    minPriority = 100; maxPriority = -1
+    for element in elementList :
       if (element.type == "INFIX") :
-        #print(f"{element.type} (prior = {element.priority})")
         if (element.priority > maxPriority) :
           maxPriority = element.priority
 
-    return maxPriority
+        if (element.priority < minPriority) :
+          minPriority = element.priority
+
+    return (minPriority, maxPriority)
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary._splitStrongestOp()
+  # METHOD: Binary._splitOp()
   # ---------------------------------------------------------------------------
-  def _splitStrongestOp(self, tokenList, priority) :
+  def _splitOp(self, tokenList, priority) :
 
     nElements = len(tokenList)
     isTopElement = [False for _ in range(nElements)]
