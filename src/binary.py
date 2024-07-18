@@ -117,7 +117,7 @@ class Binary :
       (currToken, tail) = (tokenList[0], tokenList[1:])
       
       # Leaves/infix are simply pushed to the stack.
-      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
         self.stack.append(currToken)
         self._process(tail)
       
@@ -374,8 +374,9 @@ class Binary :
         # from the rest: [L op L op], [L op L], [op L op L op L op L]
         (chunks, chunkNeedsMacro) = self._splitOp(self.stack, maxPriority)
 
-        # STEP 3: create a macro: [L op L op], M, [op L op L op L op L]
-        # and merge
+        # STEP 3: create a macro for the highest operators 
+        # Result = [L op L op], M, [op L op L op L op L]
+        # Then merge into a new stack.
         if (len(chunks) > 1) :
           newStack = []
           for i in range(len(chunks)) :
