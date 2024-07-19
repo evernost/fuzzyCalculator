@@ -154,13 +154,14 @@
 # In doubt: check the output interpretation, add parenthesis.
 #
 # [R11] OPERATORS PRECEDENCE
-# It is not recommended to change the relative priorities of basic infix
-# operators ('+', '-', '*' , '/', '^').
+# It is not recommended to change the relative priorities of the basic infix
+# operators: '+', '-', '*' , '/', '^'.
 # - there is no useful case 
 # - side effect will emerge due to the parsing strategy 
 #   (e.g. rule [R7.2]: '^' is assumed to have the highest precedence for proper operation)
 # Also, be careful when defining priority of custom infix and
 # think twice about how it interacts with other infix.
+# Priority level is limited to 100 (arbitrary limit)
 #
 
 
@@ -171,7 +172,6 @@
 # =============================================================================
 import symbols
 import binary
-import macroleaf
 import utils
 
 
@@ -846,6 +846,7 @@ def eval(self, binary, point) :
 if (__name__ == '__main__') :
   
   print("[INFO] Standalone call: running unit tests...")
+  print()
 
   assert(sanityCheck("pro_ut*cos(2x+pi") == True)
   assert(sanityCheck("input Str") == True)
@@ -925,14 +926,6 @@ if (__name__ == '__main__') :
   assert(consumeInfix("-2x+y") == ("-", "2x+y"))
   assert(consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
-  
-  # B = Binary()
-  # B.stack = [Token("-"), Token("4")]
-  # print(B)
-  # qParser.balanceMinus(B)
-  # print(B)
-  # print("- Passed: <balanceMinus>")
-
   print()
 
   testVect = [
@@ -948,6 +941,8 @@ if (__name__ == '__main__') :
 
   for expr in testVect :
     
+    print(f"----- expression = '{expr}' -----")
+
     # STEP 1: rewrite the expression as a list of tokens
     tokenList = tokenize(expr)
     
@@ -961,9 +956,8 @@ if (__name__ == '__main__') :
     B.balanceMinus()
   
     # STEP 5: reduce to a single leaf
-    B.reduce()
+    B.flatten()
 
-    print(f"----- expression = '{expr}' -----")
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListExp}")
     print(f"Binary          : {B}")

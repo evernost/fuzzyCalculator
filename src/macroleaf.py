@@ -150,6 +150,16 @@ class Macroleaf :
 
 
   # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf._explicitZeros()
+  # ---------------------------------------------------------------------------
+  def flatten(self) :
+    
+    for n in range(self.nArgs) :
+      self.args[n].flatten()
+
+
+
+  # ---------------------------------------------------------------------------
   # METHOD: Macroleaf.__str__ (print overloading)
   # ---------------------------------------------------------------------------
   # Define the behaviour of print(macroleafObj)

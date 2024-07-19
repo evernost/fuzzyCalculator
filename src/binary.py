@@ -318,15 +318,14 @@ class Binary :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary.reduce()
+  # METHOD: Binary.flatten()
   # ---------------------------------------------------------------------------
-  def reduce(self) :
+  def flatten(self) :
     """
     DESCRIPTION
-    Reduces the stack to a single Macroleaf.
-
-    This function reduces the binary expression by grouping the operators based 
-    on their relative priority.
+    Simplifies the stack to an expression involving operators with lowest priority
+    only.
+    Operators with high priority are stored in a Macroleaf
     
     It does not assume commutativity of the infix operators.
 
@@ -351,23 +350,36 @@ class Binary :
       print(f"[DEBUG] nElements (= {nElements}) is odd: OK")
 
     # CHECK 2: is it a pattern of alternating (macro)leaf and operators?
+    nInfix = 0
     for (n, element) in enumerate(self.stack) :        
       if ((n % 2) == 0) :
         if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
           print("oops")
+          exit()
+
       else :
         if (element.type != "INFIX") :
           print("oops")
+          exit()
+
+        else :
+          nInfix += 1
 
 
-    # 'Reduce' is required for 2 or more infix i.e. 5 elements
-    if (len(self.stack) >= 5) :
+    # Process recursively the stacks in the macroleaves
+    for element in self.stack :
+      if (element.type == "MACRO") :
+        element.flatten()
+
+
+    # 'Flatten' is required for 2 or more infix i.e. 5 elements
+    if (nInfix >= 2) :
       
       # STEP 1: look for the infix of highest priority in [L op L op L ...]
       (minPriority, maxPriority) = self._getPriorityRange(self.stack)
       print(f"[DEBUG] Priority range = ({minPriority}, {maxPriority})")
       
-      # <reduce> is necessary if there are more than 2 levels of priority
+      # <Flatten> is necessary if there are 2 different levels of priority
       while (maxPriority != minPriority) :
 
         # STEP 2: split apart the highest operator and its adjacent leaves
@@ -394,18 +406,13 @@ class Binary :
         (minPriority, maxPriority) = self._getPriorityRange(self.stack)
 
       # Ends up with [L op L op L], all with identical precedence
-      print("Done")
 
 
 
-    # Only 1 infix: nothing to do
+    # Only 1 infix operator: nothing to do, leave the stack as it is.
     else :
       pass
 
-
-
-    # Reduce recursively
-    # TODO
 
 
   # ---------------------------------------------------------------------------
@@ -436,6 +443,23 @@ class Binary :
   # METHOD: Binary._splitOp()
   # ---------------------------------------------------------------------------
   def _splitOp(self, tokenList, priority) :
+    """
+    DESCRIPTION
+    Breaks apart the stack to isolate the sequences of (macro)leaves and 
+    infix operator(s), keeping only the infix(es) of highest priority.
+    
+    The function takes the internal stack as input.
+    It returns the stack broken apart as output, as a list of lists.
+    
+    If all infix have the same priority, the stack is returned as is.
+
+    EXAMPLES
+    B = Binary()
+    B.stack = [a * b + c / d ^ e + f]
+    B._splitOp = [[a * b + c /] [d ^ e] [+ f]]
+    
+    (representation is simplified for the sake of the example)
+    """
 
     nElements = len(tokenList)
     isTopElement = [False for _ in range(nElements)]
@@ -496,31 +520,6 @@ class Binary :
     """
     print("<binary.eval> is todo!")
     
-  
-  
-  # ---------------------------------------------------------------------------
-  # METHOD: Binary.isolateHighestInfix
-  # ---------------------------------------------------------------------------
-  def isolateHighestInfix(self) :
-    """
-    DESCRIPTION
-    Breaks apart the stack to isolate the sequences of (macro)leaves and 
-    infix operator(s), keeping only the infix of highest priority.
-    
-    The function takes the internal stack as input.
-    It returns the stack broken apart as output, as a list of lists.
-    
-    If all infix have the same priority, the stack is returned as is.
-
-    EXAMPLES
-    B = Binary()
-    B.stack = [a * b + c / d ^ e + f]
-    B.isolateHighestInfix = [[a * b + c /] [d ^ e] [+ f]]
-    
-    (representation is simplified for the sake of the example)
-    """
-    print("<binary.isolateHighestInfix> is todo!")
-  
   
   
   # ---------------------------------------------------------------------------
