@@ -150,7 +150,17 @@ class Macroleaf :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf._explicitZeros()
+  # METHOD: Macroleaf._minusAsOpp()
+  # ---------------------------------------------------------------------------
+  def _minusAsOpp(self) :
+    
+    for n in range(self.nArgs) :
+      self.args[n]._minusAsOpp()
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf.flatten()
   # ---------------------------------------------------------------------------
   def flatten(self) :
     

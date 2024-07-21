@@ -204,6 +204,9 @@ class Binary :
 
     Please refer to rules [R7.X] in <parser.py>
 
+    The process is done recursively on the Binary objects integrated within 
+    macroleaves.
+
     EXAMPLES
     todo
     """
@@ -220,26 +223,23 @@ class Binary :
     
     nElements = len(self.stack)
     
+    # Detect a "-..." pattern.
+    # STEP 1: detect on the own stack
     # Using the "-" in the context of rule [7.1] requires at least 2 elements.
     # Example: "-x"
-    if (nElements >= 2) :
-      
-      # STEP 1: apply the processing to the own stack
+    if (nElements >= 2) : 
       if (self.stack[0].type == "INFIX") :
         if (self.stack[0].name == "-") :
           self.stack = [symbols.Token("0")] + self.stack
+          print("[DEBUG] Added an implicit zero.")
 
-      # STEP 2: apply the processing recursively to the stacks in the macroleaves.
-      else :
-        for elt in self.stack :
-          if (elt.type == "MACRO") :
-            elt._explicitZeros()
-    
-      return None
+    # STEP 2: detect recursively on the macroleaves
+    for elt in self.stack :
+      if (elt.type == "MACRO") :
+        elt._explicitZeros()
 
-    else :
-      return None
-    
+    return None
+
 
 
   # ---------------------------------------------------------------------------
@@ -310,10 +310,17 @@ class Binary :
           n += 1
 
       self.stack = newStack
-      return None
 
+    # Less than 4 elements
+    # There is nothing to be expanded in the stack, but there might in the macroleaves.
     else :
-      return None
+      for elt in self.stack :
+        if (elt.type == "MACRO") :
+          elt._minusAsOpp()
+      
+      
+      
+    return None
 
 
 
@@ -346,20 +353,20 @@ class Binary :
     # The stack MUST be like [L op L op ...]
     
     # CHECK 1: is the number of elements odd?
-    if ((nElements % 2) == 1) :
-      print(f"[DEBUG] nElements (= {nElements}) is odd: OK")
+    if ((nElements % 2) == 0) :
+      print(f"[ERROR] nElements should be odd at that point!")
 
     # CHECK 2: is it a pattern of alternating (macro)leaf and operators?
     nInfix = 0
     for (n, element) in enumerate(self.stack) :        
       if ((n % 2) == 0) :
         if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
-          print("oops")
+          print("[ERROR] The expression to flatten must follow the pattern [L op L op ...]")
           exit()
 
       else :
         if (element.type != "INFIX") :
-          print("oops")
+          print("[ERROR] The expression to flatten must follow the pattern [L op L op ...]")
           exit()
 
         else :

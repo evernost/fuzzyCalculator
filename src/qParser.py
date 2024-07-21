@@ -939,6 +939,8 @@ if (__name__ == '__main__') :
     "-x^2"
   ]
 
+  # testVect = ["(-3(x+4))"]
+
   for expr in testVect :
     
     print(f"----- expression = '{expr}' -----")
@@ -947,10 +949,10 @@ if (__name__ == '__main__') :
     tokenList = tokenize(expr)
     
     # STEP 2: detect and add the implicit multiplications
-    tokenListExp = explicitMult(tokenList)
+    tokenListFull = explicitMult(tokenList)
     
     # STEP 3: create a binary object from the list of tokens
-    B = binary.Binary(tokenListExp)
+    B = binary.Binary(tokenListFull)
 
     # STEP 4: balance the minus signs
     B.balanceMinus()
@@ -959,7 +961,7 @@ if (__name__ == '__main__') :
     B.flatten()
 
     print(f"Tokens          : {tokenList}")
-    print(f"Tokens with mult: {tokenListExp}")
+    print(f"Tokens with mult: {tokenListFull}")
     print(f"Binary          : {B}")
     print()
 
