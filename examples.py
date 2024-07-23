@@ -7,6 +7,8 @@
 # Purpose         : example usage of the Fuzzy Calculator.
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
+# -----------------------------------------------------------------------------
+# Best viewed with space indentation (2 spaces)
 # =============================================================================
 
 # =============================================================================

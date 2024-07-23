@@ -7,6 +7,8 @@
 # Purpose         : Macroleaf object definition
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
+# -----------------------------------------------------------------------------
+# Best viewed with space indentation (2 spaces)
 # =============================================================================
 
 # =============================================================================
@@ -21,7 +23,7 @@
 # =============================================================================
 import binary
 import symbols
-
+import math
 
 
 class Macroleaf :
@@ -73,12 +75,13 @@ class Macroleaf :
     Creates and initializes a Macroleaf object from a function and a list of Tokens.
     Takes a list of Tokens as input, returns a Macroleaf object as output.
 
-    The function to be used is identified by its name; just pass the name as a string
-    in the argument.
+    The <function> argument only requires the name of the function as a string.
     No need to create a Token.
 
     EXAMPLE
     M = Macroleaf("exp", myListOfTokens)
+    M = Macroleaf("cos", myListOfTokens)
+    etc.
     """    
     self.function   = function
     self.nArgs      = symbols.nArgsFromFunctionName(function)
@@ -166,6 +169,89 @@ class Macroleaf :
     
     for n in range(self.nArgs) :
       self.args[n].flatten()
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf.eval()
+  # ---------------------------------------------------------------------------
+  def eval(self) :
+    """
+    TODO
+    - use function pointers instead, and write all the definitions in 'symbols.py'
+    - use a cache to avoid all the tests
+    """
+    # if (self.functionCache != None) :
+      # print("TODO!")
+    
+    if (self.function == "id") :
+      arg = self.args[0].eval()
+      return arg
+    
+    elif (self.function == "opp") :
+      arg = self.args[0].eval()
+      return -arg
+      
+    elif (self.function == "sin") :
+      arg = self.args[0].eval()
+      return math.sin(arg)
+      
+    elif (self.function == "cos") :
+      arg = self.args[0].eval()
+      return math.cos(arg)
+      
+    elif (self.function == "tan") :
+      arg = self.args[0].eval()
+      return math.tan(arg)
+      
+    elif (self.function == "exp") :
+      arg = self.args[0].eval()
+      return math.exp(arg)
+      
+    elif (self.function == "ln") :
+      arg = self.args[0].eval()
+      return math.log(arg)
+      
+    elif (self.function == "log10") :
+      arg = self.args[0].eval()
+      return math.log(arg, 10)
+      
+    elif (self.function == "logN") :
+      arg1 = self.args[0].eval()
+      arg2 = self.args[1].eval()
+      return math.log(arg1, arg2)
+  
+    elif (self.function == "abs") :
+      arg = self.args[0].eval()
+      return math.fabs(arg)
+      
+    elif (self.function == "sqrt") :
+      arg = self.args[0].eval()
+      return math.sqrt(arg)
+      
+    elif (self.function == "floor") :
+      arg = self.args[0].eval()
+      return math.floor(arg)
+      
+    elif (self.function == "ceil") :
+      print("[INTERNAL ERROR] <ceil> function is todo!")
+      return 0.0
+      
+    elif (self.function == "round") :
+      print("[INTERNAL ERROR] <round> function is todo!")
+      return 0.0
+      
+    elif (self.function == "Q") :
+      print("[INTERNAL ERROR] <Q> function is todo!")
+      return 0.0
+      
+    elif (self.function == "sinc") :
+      print("[INTERNAL ERROR] <sinc> function is todo!")
+      return 0.0
+  
+    else :
+      print(f"[INTERNAL ERROR] Unknown function in Macroleaf.eval: '{self.function}'. This is not supposed to happen!")
+      exit()
 
 
 

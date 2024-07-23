@@ -7,6 +7,8 @@
 # Purpose         : built-in parser for the Fuzzy Calculator
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
+# -----------------------------------------------------------------------------
+# Best viewed with space indentation (2 spaces)
 # =============================================================================
 
 # =============================================================================
@@ -21,6 +23,13 @@
 # It is based on native Python and does not require any specific library.
 # - no need for regex
 # - no complex string manipulation
+# 
+# Nonetheless, if transcription to another programming language is needed, 
+# the following will be required:
+# - objects 
+# - string to float conversion
+# - math functions (sin, cos, exp, etc.)
+# - random number generation
 #
 # Parser grants the most classical math operators ('+', '-', '*', '/', '^') 
 # and more obscure ones ('//' for parallel resistor association)
@@ -231,7 +240,8 @@ def bracketBalanceCheck(inputStr) :
   """
   DESCRIPTION
   Checks if the parenthesis are valid.
-  This function allows "lazy parenthesis": closing parenthesis are not required.
+  This function allows "lazy parenthesis": matching closing parenthesis 
+  are not required.
 
   Returns True if the check passed, False otherwise.
 
@@ -928,18 +938,18 @@ if (__name__ == '__main__') :
   print("- Passed: <consumeInfix>")
   print()
 
-  testVect = [
-    "-u^-3cos(2*pi*v + 1) + 2^0.1x",
-    "2x*cos(3.1415t-1.)^3",
-    "Q(-3t,0.1)+1",
-    "-2x*cos(pi*t-1//R2)", 
-    "-R3_2.0x*cos(3.1415t-1//R2)",
-    "(x+y)(x-2y)",
-    "(-3(x+4))",
-    "-x^2"
-  ]
+  # testVect = [
+  #   "-u^-3cos(2*pi*v + 1) + 2^0.1x",
+  #   "2x*cos(3.1415t-1.)^3",
+  #   "Q(-3t,0.1)+1",
+  #   "-2x*cos(pi*t-1//R2)", 
+  #   "-R3_2.0x*cos(3.1415t-1//R2)",
+  #   "(x+y)(x-2y)",
+  #   "(-3(x+4))",
+  #   "-x^2"
+  # ]
 
-  # testVect = ["(-3(x+4))"]
+  testVect = ["2.1+4(2-6)"]
 
   for expr in testVect :
     
@@ -959,6 +969,9 @@ if (__name__ == '__main__') :
   
     # STEP 5: reduce to a single leaf
     B.flatten()
+
+    # STEP 6: evaluate!
+    B.eval()
 
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListFull}")

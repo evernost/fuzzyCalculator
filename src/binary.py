@@ -7,6 +7,8 @@
 # Purpose         : Binary object definition
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
+# -----------------------------------------------------------------------------
+# Best viewed with space indentation (2 spaces)
 # =============================================================================
 
 # =============================================================================
@@ -81,6 +83,8 @@ class Binary :
     """
     self.stack     = []
     self.remainder = []
+    
+    self.lookUpTable = {}
 
     if (len(tokenList) >= 1) :
       self._process(tokenList)
@@ -224,7 +228,7 @@ class Binary :
     nElements = len(self.stack)
     
     # Detect a "-..." pattern.
-    # STEP 1: detect on the own stack
+    # STEP 1: detect the pattern on the own stack
     # Using the "-" in the context of rule [7.1] requires at least 2 elements.
     # Example: "-x"
     if (nElements >= 2) : 
@@ -233,7 +237,7 @@ class Binary :
           self.stack = [symbols.Token("0")] + self.stack
           print("[DEBUG] Added an implicit zero.")
 
-    # STEP 2: detect recursively on the macroleaves
+    # STEP 2: detect the pattern recursively on the macroleaves
     for elt in self.stack :
       if (elt.type == "MACRO") :
         elt._explicitZeros()
@@ -475,7 +479,7 @@ class Binary :
     for (n, element) in enumerate(tokenList) :
       if (element.type == "INFIX") :
         if (element.priority > priority) :
-          print("[DEBUG] This is not supposed to happen")
+          print("[ERROR] This is not supposed to happen! (function <_splitOp>)")
 
         elif (element.priority == priority) :
           isTopElement[n-1] = True
@@ -515,17 +519,87 @@ class Binary :
 
 
   # ---------------------------------------------------------------------------
+  # METHOD: Binary.setVariables()
+  # ---------------------------------------------------------------------------
+  def setVariables(self, lookUpTable) :
+    """
+    DESCRIPTION
+    Declares the variables and their values to the parser.
+    
+    Necessary before any evaluation.
+    
+    The variables are given as a dictionary that pairs the variable name with 
+    either a number (fixed variables) or a generator (random variables)
+    
+    
+    EXAMPLES
+    todo
+    """
+    
+    self.lookUpTable = lookUpTable
+    
+    # Propagate the <lookUpTable> to the macroleaves
+    for element in self.stack :
+      if (element.type == "MACRO") :
+        element.setVariables(lookUpTable)
+
+
+
+  # ---------------------------------------------------------------------------
   # METHOD: Binary.eval()
   # ---------------------------------------------------------------------------
   def eval(self) :
     """
     DESCRIPTION
-    todo
+    Evaluates the Binary object.
+    
+    The Binary object must have been flattened prior to calling this function.
+    
+    The list of variables and their value must be initialized using <setVariables>
+    before calling this function.
+
+    Undeclared variables will return an error.
 
     EXAMPLES
     todo
     """
-    print("<binary.eval> is todo!")
+    
+    nElements = len(self.stack)
+    
+    if (nElements > 1) :
+      output = self._evalOp(op = self.stack[1], leftOperand = self.stack[0], rightOperand = self.stack[2:])
+    
+    else :
+      output = self._evalLeaf(self.stack[0])
+  
+  
+  
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._evalLeaf()
+  # ---------------------------------------------------------------------------
+  def _evalLeaf(self, leaf) :
+    """
+    DESCRIPTION
+    Evaluates a Token (variable, constant, number) or a Macroleaf.
+
+    EXAMPLES
+    todo
+    """
+    
+    if (leaf.type in ["CONSTANT", "NUMBER"]) :
+      return leaf.value
+    
+    elif (leaf.type == "VARIABLE") :
+      print("TODO")
+      
+      # Fetch the variable and its value from <lookUpTable>
+    
+    elif (leaf.type == "MACRO") :
+      return leaf.eval()
+    
+    
+    else :
+      print(f"[INTERNAL ERROR] Expected a leaf, but got a Token of type '{leaf.type}' instead.")
     
   
   

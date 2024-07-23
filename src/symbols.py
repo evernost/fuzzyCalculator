@@ -7,6 +7,8 @@
 # Purpose         : definition of the symbols accepted by the parser.
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
+# -----------------------------------------------------------------------------
+# Best viewed with space indentation (2 spaces)
 # =============================================================================
 
 # =============================================================================
@@ -20,6 +22,7 @@
 # External libs
 # =============================================================================
 import utils
+import math
 
 
 
@@ -27,7 +30,7 @@ import utils
 # Constant pool
 # =============================================================================
 CONSTANTS = [
-  {"name": "pi" , "value": 3.14159265358979},
+  {"name": "pi" , "value": math.pi},
   {"name": "i",   "value": 0.0},
   {"name": "eps", "value": 0.0},
   {"name": "inf", "value": 0.0}
@@ -115,7 +118,11 @@ class Token :
       self.name     = name
       self.nArgs    = 0
       self.dispStr  = f"CONST:'{name}'"
-
+      
+      for c in CONSTANTS :
+        if (name == c["name"]) :
+          self.value = c["value"]
+    
     elif (name in self.functionsList) :
       self.type     = "FUNCTION"
       self.name     = name
@@ -163,6 +170,7 @@ class Token :
       self.type     = "NUMBER"
       self.name     = name
       self.dispStr  = f"NUM:'{name}'"
+      self.value    = float(name)
 
     elif (utils.isBlank(name)) :
       self.type     = "SPACE"
