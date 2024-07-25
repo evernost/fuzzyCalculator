@@ -26,6 +26,15 @@ import macroleaf
 
 
 
+# =============================================================================
+# Constant pool
+# =============================================================================
+BINARY_INIT = 0
+BINARY_BALANCED = 1
+BINARY_FLATTENED = 2
+
+
+
 class Binary :
   """
   DESCRIPTION
@@ -83,6 +92,8 @@ class Binary :
     """
     self.stack     = []
     self.remainder = []
+
+    self.status = BINARY_INIT
     
     self.lookUpTable = {}
 
@@ -521,7 +532,7 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary.setVariables()
   # ---------------------------------------------------------------------------
-  def setVariables(self, lookUpTable) :
+  def setVariables(self, variables) :
     """
     DESCRIPTION
     Declares the variables and their values to the parser.
@@ -531,12 +542,15 @@ class Binary :
     The variables are given as a dictionary that pairs the variable name with 
     either a number (fixed variables) or a generator (random variables)
     
-    
     EXAMPLES
-    todo
+    variables = {
+      "R1": 10000.0, 
+      "R2": variable.Scalar(10.0, "k"),
+      "R3": variable.rand(val = 10, tol = 0.05)
+    }
     """
     
-    self.lookUpTable = lookUpTable
+    self.lookUpTable = variables
     
     # Propagate the <lookUpTable> to the macroleaves
     for element in self.stack :
@@ -564,9 +578,15 @@ class Binary :
     todo
     """
     
+    if (self.state != BINARY_FLATTENED) :
+      print("[ERROR] The binary object must be flattened before evaluation.")
+    
     nElements = len(self.stack)
     
     if (nElements > 1) :
+      # Stack is flattened, so its structure is necessarily [L op L op ... L]
+      # <op> being all of the same priority.
+      # Then rule [R10] applies: the righter part gets evaluated first.
       output = self._evalOp(op = self.stack[1], leftOperand = self.stack[0], rightOperand = self.stack[2:])
     
     else :
@@ -601,6 +621,23 @@ class Binary :
     else :
       print(f"[INTERNAL ERROR] Expected a leaf, but got a Token of type '{leaf.type}' instead.")
     
+  
+  
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._evalOp()
+  # ---------------------------------------------------------------------------
+  def _evalOp(self, leaf) :
+    """
+    DESCRIPTION
+    todo
+
+    EXAMPLES
+    todo
+    """
+    
+    print("todo!")
+    
+  
   
   
   # ---------------------------------------------------------------------------

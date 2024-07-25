@@ -18,15 +18,15 @@
 #  
 # It supports "natural" inputs (e.g. implicit multiplications) and lazy 
 # parenthesis.
-# Expressions like "(a+b)(c-d)" or "sin(x+cox(y" are legal.
+# Expressions like "(a+b)(c-d)" or "sin(x+cos(y" are legal.
 #
 # It is based on native Python and does not require any specific library.
 # - no need for regex
 # - no complex string manipulation
 # 
-# Nonetheless, if transcription to another programming language is needed, 
-# the following will be required:
-# - objects 
+# However, if transcription to another programming language is needed, 
+# the following features will be required:
+# - OOP 
 # - string to float conversion
 # - math functions (sin, cos, exp, etc.)
 # - random number generation
@@ -159,17 +159,20 @@
 # - a+b+c+d -> a+(b+(c+d))
 # - a/b/c   -> a/(b/c)
 # - a//b//c -> a//(b//c)      (note: '//' is associative, parenthesis do not matter)
-# - a^b^c^d -> a^(b^(c^d))    
+# - a^b^c^d -> a^(b^(c^d))    (people will complain anyway, no matter what convention is chosen)
 # In doubt: check the output interpretation, add parenthesis.
 #
 # [R11] OPERATORS PRECEDENCE
 # It is not recommended to change the relative priorities of the basic infix
 # operators: '+', '-', '*' , '/', '^'.
-# - there is no useful case 
+# - as far as I know, there is no real need for that
 # - side effect will emerge due to the parsing strategy 
 #   (e.g. rule [R7.2]: '^' is assumed to have the highest precedence for proper operation)
-# Also, be careful when defining priority of custom infix and
-# think twice about how it interacts with other infix.
+#
+# Also, be careful when defining priority of custom infix: think twice about 
+# how it interacts with other infix.
+# Again, in doubt: use parenthesis and don't blindly rely on precedence. Parenthesis are free!
+#
 # Priority level is limited to 100 (arbitrary limit)
 #
 
@@ -608,26 +611,6 @@ def consumeVar(inputStr) :
 
 
 # ---------------------------------------------------------------------------
-# FUNCTION: addVariable(string)
-# ---------------------------------------------------------------------------
-# def addVariable(self, input = "") :
-  # """
-  # DESCRIPTION
-  # TODO
-
-  # EXAMPLES
-  # (See unit tests in <main>)
-  # """
-  
-  # if (len(input) > 0) :
-    # if not(input in self.variables) :
-      # print(f"[NOTE] New variable added: '{input}'")
-      # self.variables.append(input)
-
-
-
-
-# ---------------------------------------------------------------------------
 # FUNCTION: consumeInfix(string)
 # ---------------------------------------------------------------------------
 def consumeInfix(inputStr) :
@@ -845,8 +828,6 @@ def eval(self, binary, point) :
   todo
   """
   print("TODO")
-
-
 
 
 
