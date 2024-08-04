@@ -340,9 +340,9 @@ class Binary :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary.flatten()
+  # METHOD: Binary.nest()
   # ---------------------------------------------------------------------------
-  def flatten(self) :
+  def nest(self) :
     """
     DESCRIPTION
     Simplifies the stack to an expression involving operators with lowest priority
@@ -391,17 +391,17 @@ class Binary :
     # Process recursively the stacks in the macroleaves
     for element in self.stack :
       if (element.type == "MACRO") :
-        element.flatten()
+        element.nest()
 
 
-    # 'Flatten' is required for 2 or more infix i.e. 5 elements
+    # At least 2 or more infix (i.e. 5 elements) might require nesting
     if (nInfix >= 2) :
       
       # STEP 1: look for the infix of highest priority in [L op L op L ...]
       (minPriority, maxPriority) = self._getPriorityRange(self.stack)
       print(f"[DEBUG] Priority range = ({minPriority}, {maxPriority})")
       
-      # <Flatten> is necessary if there are 2 different levels of priority
+      # <nest> is necessary if there are 2 different levels of priority
       while (maxPriority != minPriority) :
 
         # STEP 2: split apart the highest operator and its adjacent leaves
@@ -578,8 +578,8 @@ class Binary :
     todo
     """
     
-    if (self.state != BINARY_FLATTENED) :
-      print("[ERROR] The binary object must be flattened before evaluation.")
+    # if (self.state != BINARY_FLATTENED) :
+    #   print("[ERROR] The binary object must be flattened before evaluation.")
     
     nElements = len(self.stack)
     

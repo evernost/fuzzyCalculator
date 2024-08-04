@@ -28,7 +28,7 @@
 # the following features will be required:
 # - OOP 
 # - string to float conversion
-# - math functions (sin, cos, exp, etc.)
+# - the math functions you want to support (sin, cos, exp, etc.)
 # - random number generation
 #
 # Parser grants the most classical math operators ('+', '-', '*', '/', '^') 
@@ -69,14 +69,16 @@
 # [R5.1]  "1X"     -> 1*var("X")                 See R2.
 # [R5.2]  "1.0X"   -> 1.0*var("X")               See R2.
 # [R5.3]  "X2"     -> var("X2")                  Perfectly OK: typical case of variable suffixing.
-# [R5.4]  "X_2"    -> var("X_2")                 Same as R5.2
+# [R5.4]  "X_2"    -> var("X_2")                 Same as R5.3
 # [R5.5]  "X2.0    -> var("X")*2.0               A bit odd, but the most plausible meaning.
-# [R5.6]  "X3Y"    -> var("X3")*var("Y")         Not natural, raises a warning.
-# [R5.7]  "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
-# [R5.8]  "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
-# [R5.9]  "pixel"  -> var("pixel")               The variable as a whole is more likely than a const/variables product.
+# [R5.6]  "X3Y"    -> var("X3")*var("Y")   or    | Behaviour can be defined with the TBD attribute.
+#                     var("X3Y")                 | In both cases, it raises a warning.
+# [R5.7]  "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
+# [R5.8]  "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
+# [R5.9]  "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
+# [R5.10] "pixel"  -> var("pixel")               The variable as a whole is more likely than a const/variables product.
 #                                                Otherwise, why not even "p*i*x*e*l"?
-# [R5.10] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
+
 # [R5.11] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here
 # [R5.12] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
 #                                                See also [R5.9]
@@ -839,7 +841,7 @@ if (__name__ == '__main__') :
   print("[INFO] Standalone call: running unit tests...")
   print()
 
-  assert(sanityCheck("pro_ut*cos(2x+pi") == True)
+  assert(sanityCheck("oni_giri*cos(2x+pi") == True)
   assert(sanityCheck("input Str") == True)
   assert(sanityCheck("input Str2.1(a+b)|x|") == False)
   assert(sanityCheck("$inputStr") == False)
@@ -850,9 +852,9 @@ if (__name__ == '__main__') :
   assert(sanityCheck("inpuàtStr") == False)
   print("- Passed: <sanityCheck>")
 
-  assert(bracketBalanceCheck("pro_ut*cos(2x+pi") == True)
-  assert(bracketBalanceCheck("pro_ut*cos(2x+pi(") == True)
-  assert(bracketBalanceCheck("pro_ut*cos(2x+pi()))") == False)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == True)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi(") == True)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi()))") == False)
   assert(bracketBalanceCheck("|3x+6|.2x") == True)
   print("- Passed: <bracketBalanceCheck>")
 
@@ -864,7 +866,8 @@ if (__name__ == '__main__') :
   assert(consumeConst("pi") == ("pi", ""))
   assert(consumeConst("inf") == ("inf", ""))
   assert(consumeConst("eps*4") == ("eps", "*4"))
-  assert(consumeConst("pi3") == ("pi", "3"))
+  assert(consumeConst("pi3") == ("pi", "3"))          # Rule R5.7
+  assert(consumeConst("pi4.0X") == ("pi", "4.0X"))    # Rule R5.8
   assert(consumeConst("pi_3") == ("", "pi_3"))
   assert(consumeConst("pir") == ("", "pir"))
   assert(consumeConst("api") == ("", "api"))
@@ -904,9 +907,11 @@ if (__name__ == '__main__') :
   assert(consumeVar("x_23//4") == ("x_23", "//4"))
   assert(consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
   assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
+  # assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6
   assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
+  assert(consumeVar("_a") == ("_a", ""))
   assert(consumeVar("_a") == ("_a", ""))
   print("- Passed: <consumeVar>")
 
@@ -930,7 +935,7 @@ if (__name__ == '__main__') :
   #   "-x^2"
   # ]
 
-  testVect = ["2.1+4(2-6)"]
+  testVect = ["-2.1+4(2-6)"]
 
   for expr in testVect :
     
@@ -949,7 +954,7 @@ if (__name__ == '__main__') :
     B.balanceMinus()
   
     # STEP 5: reduce to a single leaf
-    B.flatten()
+    B.nest()
 
     # STEP 6: evaluate!
     B.eval()

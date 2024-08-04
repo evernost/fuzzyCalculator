@@ -163,12 +163,14 @@ class Macroleaf :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf.flatten()
+  # METHOD: Macroleaf.nest()
   # ---------------------------------------------------------------------------
-  def flatten(self) :
-    
+  def nest(self) :
+    """
+    Calls the <nest> method of the Binary object in each argument.
+    """
     for n in range(self.nArgs) :
-      self.args[n].flatten()
+      self.args[n].nest()
 
 
 
