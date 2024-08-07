@@ -114,7 +114,7 @@ class Macroleaf :
       
       stack = tokenList
       for n in range(self.nArgs) :
-        self.args[n]._process(stack)
+        self.args[n]._buildStack(stack)
         stack = self.args[n].remainder
       
       self.remainder = stack

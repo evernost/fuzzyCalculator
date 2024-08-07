@@ -38,38 +38,71 @@ BINARY_FLATTENED = 2
 class Binary :
   """
   DESCRIPTION
-  A 'Binary' object is an ordered list of infix operators and (Macro)leaves
-  arranged in the following pattern: 
+  A 'Binary' object is essentially a Python list (the 'stack') containing  
+  an ordered set of infix operators and leaves, always arranged in the following pattern: 
 
-  [L1, op1, L2, op2, ... Ln]
+  Binary.stack = [L1, op1, L2, op2, ... Ln]
   
   where 
-  - <L1> ... <Ln> are leaves or Macroleaves
+  - <L1> ... <Ln> are leaves or Macroleaves objects
   - <op1> ... <opn> are infix operators.
 
-  'Leaves' are meant here in a binary tree context and represent the last stage 
-  of an evaluation stack. 
-  In the context of this parser, a 'leaf' is a constant, a variable or a number.
+  A 'leaf' refers here to the binary tree vocabulary. It represents the very last
+  object that is encountered upon evaluation of an expression.
+  In this parser, a leaf is either a constant, a variable or a number.
 
-  A 'Macroleaf' is essentially a function and a leaf; the function is applied to the leaf.
-  Since a Binary object ultimately reduces to a leaf, a Macroleaf can also be made
-  of a function and a Macroleaf.
-  Hence the recursive nature.
-
-  Any valid list of tokens can be associated with a unique Binary Object.
-  When the expression does not contain any function or parenthesis, 
-  the Binary Object simplifies to a list of leaves and infix operators.
+  A 'Macroleaf' is an object that combines one or more Binary objects
+  and a function (sin, cos, exp, ...)
+  It a nutshell, it models the part of the expression where a function is 
+  applied to a sub-expression.
+  The built-in Binary object(s) are the argument(s) the function applies to.
   
-  A Binary object comes with an <eval> method whose purpose is to reduce 
-  the list of (macro)leaves and infix to a single leaf.
+  Simple parenthesis are also modelled with a Macroleaf, and the function becomes 
+  "id" (mathematical identity) in this case (i.e. no processing)
+  
+  Please note the recursive nature of the Binary object / Macroleaf object.
 
-  For that, the <eval> method:
-  - reduces all the macroleaves to leaves by calling their own <eval> method
-  - builds an ordered evaluation tree based on the relative priorities of each infix
-  operators
+  The claim: a valid expression can always be represented as a chain 'L op L op L op ... L'
+  (a 'binary' expression) where <op> are the infix operators and <L> the leaves/macroleaves.
 
-  'Binary' objects and 'Macroleaf' objects are tightly coupled:
-  please refer to the 'Macroleaf' definition for more information.
+  Though, this assumes that:
+  - implicit multiplications have been explicited
+  - implicit zeros (when '-' is meant as 'opposite of') have been explicited
+
+  Examples (using pseudo-notation): 
+  - "4*x+3"    -> 'L("4")   op("*")   L("x")   op("+")   L("3")'
+  - "2cos(a^2) -> 'L("2")   L("*")   M("cos"; L(L("a")   op("^")   L("2")))
+  - etc.
+  L("...") is a leaf
+  M("fun"; ...) is a Macroleaf appying the function "fun" to its internal Binary objects.
+  
+  Once in the 'L op L op ... L' form, the expression is more suited for processing: 
+  - nesting in the expression is handled by simple recursive calls on the macroleaves
+  - easier identification of the operations with higher precedence
+  - easier evaluation.
+  
+  USAGE
+  The Binary object is directly initialized from a list of Tokens.
+  The initialisation function automatically:
+  - expands the implicit multiplications
+  - balances the minus operators by adding the implicit zeros 
+  - packs the functions calls/parenthesis in macroleaves
+  - generates the binary chain 'L op L op ...'
+  
+  The binary chain is available in <binary.stack>
+  
+  NOTES
+  - Implicit multiplications must have been expanded before.
+  - A simple Python list could have done the job, but it makes more sense 
+  to have it packed in an object since:
+    - specific functions are associated to the processing of the list
+    - the content of the list is not arbitrary and has to follow a pattern.
+    Packing it as an object helps to enforce this pattern and catch
+    invalid inputs.
+  
+  - 'Binary' objects and 'Macroleaf' objects are tightly coupled.
+  Please refer to the 'Macroleaf' definition for more information.
+  - The attributes distinguish between 'tokens' and 'nodes'
   """
   
 
@@ -80,7 +113,7 @@ class Binary :
   def __init__(self, tokenList = []) :
     """
     DESCRIPTION
-    Creates and initializes a Binary object from a list of Tokens.
+    Creates a Binary objects and initializes it from a list of Tokens.
     Takes a list of Tokens as input, returns a Binary object as output.
 
     NOTES
@@ -94,18 +127,29 @@ class Binary :
     self.remainder = []
 
     self.status = BINARY_INIT
-    
+
     self.lookUpTable = {}
 
     if (len(tokenList) >= 1) :
-      self._process(tokenList)
+      self._buildStack(tokenList)
+      self._balanceMinus()
 
+      self.nNodes = len(self.stack)
+      self.nLeaves = 0
+      self.nOps = 0
+    
+    else :
+      print("[WARNING] Binary objects are usually initialized with a list of tokens.")
+      self.nNodes = 0
+      self.nLeaf = 0
+      self.nOps = 0
+      
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary.process(tokenList)
+  # METHOD: Binary._buildStack(tokenList)
   # ---------------------------------------------------------------------------
-  def _process(self, tokenList) :
+  def _buildStack(self, tokenList) :
     """
     DESCRIPTION
     Takes a list of tokens as input and builds the Binary representation of it.
@@ -134,7 +178,7 @@ class Binary :
       # Leaves/infix are simply pushed to the stack.
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
         self.stack.append(currToken)
-        self._process(tail)
+        self._buildStack(tail)
       
       # Function creates a Macroleaf and requires another call to <process> on its argument(s).
       elif (currToken.type == "FUNCTION") :
@@ -142,16 +186,17 @@ class Binary :
         M = macroleaf.Macroleaf(function = currToken.name, tokenList = tailNoParenthesis)
 
         self.stack.append(M)
-        self._process(M.remainder)
+        self._buildStack(M.remainder)
 
       # "(" creates a Macroleaf and requires another call to <process>.
       elif (currToken.type == "BRKT_OPEN") :
         M = macroleaf.Macroleaf(function = "id", tokenList = tail)
         
         self.stack.append(M)
-        self._process(M.remainder)
+        self._buildStack(M.remainder)
 
-      # "," stops the binarisation.
+      # "," occurs when <_buildStack> is called from a Macroleaf.
+      # It stops the binarisation.
       # The Macroleaf must now process the next argument.
       elif (currToken.type == "COMMA") :
         self.remainder = tail
@@ -201,9 +246,9 @@ class Binary :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Binary.balanceMinus
+  # METHOD: Binary._balanceMinus
   # ---------------------------------------------------------------------------
-  def balanceMinus(self) :
+  def _balanceMinus(self) :
     """
     DESCRIPTION
     Detects the minus signs used as a shortcut for the 'opposite' function.
@@ -229,20 +274,20 @@ class Binary :
     self._explicitZeros()   # Add zeros when implicit (rule [7.1])
     self._minusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
-  
+    
   
   # ---------------------------------------------------------------------------
   # METHOD: Binary._explicitZeros()
   # ---------------------------------------------------------------------------
   def _explicitZeros(self) :
     
-    nElements = len(self.stack)
+    nNodes = len(self.stack)
     
     # Detect a "-..." pattern.
     # STEP 1: detect the pattern on the own stack
     # Using the "-" in the context of rule [7.1] requires at least 2 elements.
     # Example: "-x"
-    if (nElements >= 2) : 
+    if (nNodes >= 2) : 
       if (self.stack[0].type == "INFIX") :
         if (self.stack[0].name == "-") :
           self.stack = [symbols.Token("0")] + self.stack
@@ -362,10 +407,6 @@ class Binary :
     
     nElements = len(self.stack)
 
-    # -------------------------------------------
-    # CHECKS
-    # -------------------------------------------
-    # The stack MUST be like [L op L op ...]
     
     # CHECK 1: is the number of elements odd?
     if ((nElements % 2) == 0) :
@@ -537,7 +578,7 @@ class Binary :
     DESCRIPTION
     Declares the variables and their values to the parser.
     
-    Necessary before any evaluation.
+    This function must be called before any evaluation.
     
     The variables are given as a dictionary that pairs the variable name with 
     either a number (fixed variables) or a generator (random variables)
@@ -643,7 +684,6 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary.__str__ (print overloading)
   # ---------------------------------------------------------------------------
-  # Define the behaviour of print(binaryObj)
   def __str__(self) :
     return str(self.stack)
   
@@ -654,6 +694,6 @@ class Binary :
 # -----------------------------------------------------------------------------
 if (__name__ == '__main__') :
   
-  print("[INFO] No unit tests available for this library.")
+  print("[INFO] Unit tests for this library will come in a future release.")
 
 

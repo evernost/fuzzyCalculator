@@ -950,8 +950,8 @@ if (__name__ == '__main__') :
     # STEP 3: create a binary object from the list of tokens
     B = binary.Binary(tokenListFull)
 
-    # STEP 4: balance the minus signs
-    B.balanceMinus()
+    # # STEP 4: balance the minus signs
+    # B.balanceMinus()
   
     # STEP 5: reduce to a single leaf
     B.nest()
