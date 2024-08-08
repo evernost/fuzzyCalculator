@@ -663,7 +663,7 @@ def tokenize(inputStr) :
   DESCRIPTION
   Converts the input expression to an ordered list of Token objects.
 
-  The input characters are read, grouped and classified to abstracted types
+  The input characters are read, grouped and classified to abstract types
   (Token objects) while preserving their information.
   
   This function assumes that syntax checks have been run prior to the call.

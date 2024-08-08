@@ -4,7 +4,7 @@
 # Module name     : fuzzyCalculator
 # File name       : fuzzyCalculator.py
 # File type       : Python script (Python 3.10 or higher)
-# Purpose         : a regular calculator, for scalars and intervals.
+# Purpose         : Fuzzy calculator entry point
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
 # -----------------------------------------------------------------------------
@@ -21,14 +21,14 @@
 # The Fuzzy Calculator is a regular calculator supporting classical math
 # operations on scalars, but enhanced to work also on intervals.
 #
-# In other words, instead of calculating with numbers, it runs the calculation
+# In other words, instead of calculating with numbers, it does the computation
 # over the entire range the variables can live.
 #
 # Behind the scenes, it runs a Monte-Carlo simulation by generating random 
-# values according to the declared statistics of each variable at play.
+# values according to the statistics declared for each variable at play.
 #
 # At the end of the day, not only it gives an idea of the min/max range of the
-# expression, but also gives the probability for the output to live in a certain
+# expression, but it also gives the probability for the output to live in a certain
 # range.
 #
 # ----------------------
@@ -48,9 +48,8 @@
 # 
 # The integrated parser supports "natural" inputs like good old TI calculators,
 # which includes:
-# - implicit multiplications
-# - lazy parenthesis
-# So expressions like "(a+b)(c-d)" or "sin(x+cox(y" are perfectly legal.
+# - implicit multiplications: "(a+b)(c+d)"
+# - lazy parenthesis: "sin(x+cox(y"
 #
 # NOTE: the detailed parsing rules can be found in <parser.py>
 #
@@ -60,51 +59,53 @@
 # --------------------
 # WHAT ELSE DO I NEED?
 # --------------------
-# In order to keep it easily portable for any target and/or programming language, 
+# In order to make it easily portable to any target and/or programming language, 
 # it is based on 'native' Python and does not require any specific library.
 # In particular:
 # - no regex
 # - no complex string manipulation
 #
-# Only numpy/pyplotlib will be used at the end for the actual math and the plot.
+# Only numpy/pyplotlib will be used at the end for the actual math and the plot
+# but any similar library would do the job.
 #
 # ---------------------------------
 # WHAT OPERATIONS CAN I DO WITH IT?
 # ---------------------------------
 # The calculator grants the most classical math operators ('+', '-', '*', '/', '^') 
-# and more obscure ones ('//' for parallel resistor association)
+# and more obscure ones ('//' for parallel resistor association in electronics)
 # Usual math functions are included (sin, cos, log, log10, exp, abs, ...) 
 #
 # Structure is quite flexible so it is possible to add custom functions
 # and infix operators. 
-# Refer to <parser.py> for more information about the limitations.
+# Refer to <qParser.py> for more information about the limitations.
 #
 # ------------------------------
 # WHAT FEATURES MIGHT COME NEXT? 
 # ------------------------------
-# The integrated parser tries to treat the inputs as 'placeholders' as much as 
+# The integrated parser (the "qParser") tries to treat the inputs as 'placeholders' as much as 
 # possible which gives flexibility for the manipulated objects.
 # Future releases could handle fixed point numbers, integers, matrices, etc.
 #
 # It is worth mentionning that the built-in parser preserves the order of the input, 
 # therefore it does not assume commutativity of infix like '+', '*', ... 
-# which makes it possible to extend it to matrices, quaternions, etc.
+# That implies the possibility to support matrices, quaternions or any other abstract 
+# mathematical object in future releases.
 #
 # --------------
 # ANYTHING ELSE?
 # --------------
 # - pipe chars "|" have been considered at some point as a shortcut for abs(), 
-#   but it didn't happen as they lead to ambiguity.
+# but it didn't happen as they lead to ambiguity.
 #
-#   Example: |a + b|cos(x)|c + d|
+# Example: |a + b|cos(x)|c + d|
 #
-#   A solution needs to be found for that.
+# A solution needs to be found for that.
 #
 # ------------
 # TODO / IDEAS
 # ------------
 # Sorted by increasing effort: 
-# - delete the 'match' function to support even lower versions of Python
+# - delete the 'match' function to support older versions of Python
 # - add a pretty print for the 'binary tree' to check/debug the parser's interpretation
 # - add support for scientific notation
 # - parser: allow more flexibility to the rule [5.9] considering that variables are 

@@ -14,7 +14,7 @@
 # =============================================================================
 # Description
 # =============================================================================
-# todo
+# Binary object definition.
 
 
 
@@ -39,12 +39,12 @@ class Binary :
   """
   DESCRIPTION
   A 'Binary' object is essentially a Python list (the 'stack') containing  
-  an ordered set of infix operators and leaves, always arranged in the following pattern: 
+  infix operators and leaves, always arranged in the following pattern: 
 
   Binary.stack = [L1, op1, L2, op2, ... Ln]
   
   where 
-  - <L1> ... <Ln> are leaves or Macroleaves objects
+  - <L1> ... <Ln> are leaves (or Macroleaves objects)
   - <op1> ... <opn> are infix operators.
 
   A 'leaf' refers here to the binary tree vocabulary. It represents the very last
@@ -57,7 +57,7 @@ class Binary :
   applied to a sub-expression.
   The built-in Binary object(s) are the argument(s) the function applies to.
   
-  Simple parenthesis are also modelled with a Macroleaf, and the function becomes 
+  Simple parenthesis are also modelled with a Macroleaf: the function becomes 
   "id" (mathematical identity) in this case (i.e. no processing)
   
   Please note the recursive nature of the Binary object / Macroleaf object.
@@ -76,10 +76,11 @@ class Binary :
   L("...") is a leaf
   M("fun"; ...) is a Macroleaf appying the function "fun" to its internal Binary objects.
   
-  Once in the 'L op L op ... L' form, the expression is more suited for processing: 
-  - nesting in the expression is handled by simple recursive calls on the macroleaves
-  - easier identification of the operations with higher precedence
-  - easier evaluation.
+  Once in the 'L op L op ... L' form (i.e. 'flattened') it makes processing easier.
+  - Nesting (functions, parenthesis) is abstracted by macroleaves, processing can
+  be done recursively.
+  - Identifying the operators with higher precedence is easier
+  - Evaluating the expression is much simpler too
   
   USAGE
   The Binary object is directly initialized from a list of Tokens.
@@ -116,6 +117,10 @@ class Binary :
     Creates a Binary objects and initializes it from a list of Tokens.
     Takes a list of Tokens as input, returns a Binary object as output.
 
+    The function tries to represent the list of tokens as a binary list:
+    'L op L op L op ... L'
+    The result is stored in the <stack> attribute.
+
     NOTES
     The implicit multiplications must be explicited prior to calling the function.
     Refer to <explicitMult> for that purpose.
@@ -123,6 +128,8 @@ class Binary :
     EXAMPLE
     todo
     """
+    self.location = "TOP"
+    
     self.stack     = []
     self.remainder = []
 
@@ -156,17 +163,18 @@ class Binary :
     The binary list is available in the <stack> attribute. 
     
     Returns: None.
-    Only the internal attributes are updated.
+    Internal attributes are updated.
 
-    The tokens that did not get binarized stay in the <remainder> attribute.
-    It usually concerns the tokens that are not at the same level.
-
-    The function expects the list of token to be valid. 
-    Refer to functions:
-    - TBD 
-    - TBD 
-    for the common checks to be done prior to calling this method.
-    Only the syntax errors associated with this processing will be caught here.
+    Special case for the Macroleaf object: 
+    The tokens that did not get binarized are stored in the <remainder> attribute.
+    It is used in 2 scenarios:
+    - when binarising arguments of a multiargs function.
+    Each argument is binarised individually. The comma "," is the separator and stops
+    the binarisation. Binarisation is called again on the remainder.
+    - when a closing parenthesis is found, it closes the Macroleaf.
+    Binarisation stops here.
+    
+    See <macroleaf.py> for more details.
     
     EXAMPLES
     todo
@@ -175,12 +183,12 @@ class Binary :
     if (len(tokenList) >= 2) :
       (currToken, tail) = (tokenList[0], tokenList[1:])
       
-      # Leaves/infix are simply pushed to the stack.
+      # Leaves/infix/macroleaves are simply pushed to the stack.
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
         self.stack.append(currToken)
         self._buildStack(tail)
       
-      # Function creates a Macroleaf and requires another call to <process> on its argument(s).
+      # A function creates a Macroleaf and requires another call to <_buildStack> on its argument(s).
       elif (currToken.type == "FUNCTION") :
         tailNoParenthesis = tail[1:]
         M = macroleaf.Macroleaf(function = currToken.name, tokenList = tailNoParenthesis)
@@ -188,21 +196,21 @@ class Binary :
         self.stack.append(M)
         self._buildStack(M.remainder)
 
-      # "(" creates a Macroleaf and requires another call to <process>.
+      # A "(" creates a Macroleaf and requires another call to <_buildStack>.
       elif (currToken.type == "BRKT_OPEN") :
         M = macroleaf.Macroleaf(function = "id", tokenList = tail)
         
         self.stack.append(M)
         self._buildStack(M.remainder)
 
-      # "," occurs when <_buildStack> is called from a Macroleaf.
+      # A "," occurs when <_buildStack> is called from a Macroleaf.
       # It stops the binarisation.
-      # The Macroleaf must now process the next argument.
+      # The Macroleaf must now processes the next argument.
       elif (currToken.type == "COMMA") :
         self.remainder = tail
         return None
 
-      # ")" stops the binarisation.
+      # A ")" stops the binarisation.
       # The Macroleaf is now complete. 
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = tail
