@@ -33,6 +33,11 @@ BINARY_INIT = 0
 BINARY_BALANCED = 1
 BINARY_FLATTENED = 2
 
+BINARIZE_SUCCESS = 0
+BINARIZE_SUCCESS_WITH_REMAINDER = 1
+BINARIZE_FAILURE = -1
+
+
 
 
 class Binary :
@@ -114,28 +119,24 @@ class Binary :
   def __init__(self, tokenList = []) :
     """
     DESCRIPTION
-    Creates a Binary objects and initializes it from a list of Tokens.
+    Creates a Binary object and initialises it from a list of Tokens.
     Takes a list of Tokens as input, returns a Binary object as output.
 
     The function tries to represent the list of tokens as a binary list:
     'L op L op L op ... L'
     The result is stored in the <stack> attribute.
-
-    NOTES
-    The implicit multiplications must be explicited prior to calling the function.
-    Refer to <explicitMult> for that purpose.
-
-    EXAMPLE
-    todo
-    """
-    self.location = "TOP"
     
+    The <remainder> attribute is only used internally. 
+    It should have any content when called from top level.
+    """
+   
     self.stack     = []
     self.remainder = []
 
-    self.status = BINARY_INIT
-
     self.lookUpTable = {}
+
+    self.location = "TOP"
+    self.status = BINARY_INIT
 
     if (len(tokenList) >= 1) :
       self._buildStack(tokenList)
@@ -145,8 +146,8 @@ class Binary :
       self.nLeaves = 0
       self.nOps = 0
     
+    # Init with empty list of tokens happens in Macroleaves
     else :
-      print("[WARNING] Binary objects are usually initialized with a list of tokens.")
       self.nNodes = 0
       self.nLeaf = 0
       self.nOps = 0
@@ -166,27 +167,68 @@ class Binary :
     Internal attributes are updated.
 
     Special case for the Macroleaf object: 
-    The tokens that did not get binarized are stored in the <remainder> attribute.
+    Binarisation might process only the beginning of the list of Tokens.
+    The tokens that did not get binarised are stored in the <remainder> attribute.
     It is used in 2 scenarios:
     - when binarising arguments of a multiargs function.
     Each argument is binarised individually. The comma "," is the separator and stops
-    the binarisation. Binarisation is called again on the remainder.
-    - when a closing parenthesis is found, it closes the Macroleaf.
-    Binarisation stops here.
+    the binarisation for the current arguemnt. 
+    Binarisation should be called again on the remainder to get the content of the 
+    next argument.
+    - when a closing parenthesis is found, it closes the Macroleaf (end of sub-expression)
+    Binarisation stops here. 
     
     See <macroleaf.py> for more details.
-    
-    EXAMPLES
-    todo
     """
     
+    buffer = tokenList.copy()
+    nTokens = len(buffer)
+    
+    if (nTokens >= 2) :
+      
+
+
+    if (nTokens == 1) :
+      T = buffer[0]
+
+      if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
+        self.stack.append(currToken)
+        self.remainder = []
+        return BINARIZE_SUCCESS
+      
+      elif (currToken.type == "BRKT_CLOSE") :
+        self.remainder = []
+        return BINARIZE_SUCCESS
+
+      elif (currToken.type == "COMMA") :
+        print("[ERROR] The list of tokens cannot end with a comma.")
+        self.stack = []
+        self.remainder = []
+        return BINARIZE_FAILURE
+
+      elif (currToken.type == "INFIX") :
+        print("[ERROR] The list of tokens cannot end with an infix operator.")
+        self.stack = []
+        self.remainder = []
+        return BINARIZE_FAILURE
+
+      else :
+        print(f"[ERROR] Unexpected token: {currToken}")
+        self.stack = []
+        self.remainder = []
+        return BINARIZE_FAILURE
+
+
+
+
+
     if (len(tokenList) >= 2) :
       (currToken, tail) = (tokenList[0], tokenList[1:])
       
-      # Leaves/infix/macroleaves are simply pushed to the stack.
+      # (Macro)Leaves/infix are simply pushed to the stack.
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
         self.stack.append(currToken)
-        self._buildStack(tail)
+        # ret = self._buildStack(tail)
       
       # A function creates a Macroleaf and requires another call to <_buildStack> on its argument(s).
       elif (currToken.type == "FUNCTION") :
@@ -194,31 +236,34 @@ class Binary :
         M = macroleaf.Macroleaf(function = currToken.name, tokenList = tailNoParenthesis)
 
         self.stack.append(M)
-        self._buildStack(M.remainder)
+        ret = self._buildStack(M.remainder)
+        print(ret)
 
       # A "(" creates a Macroleaf and requires another call to <_buildStack>.
       elif (currToken.type == "BRKT_OPEN") :
         M = macroleaf.Macroleaf(function = "id", tokenList = tail)
         
         self.stack.append(M)
-        self._buildStack(M.remainder)
+        ret = self._buildStack(M.remainder)
+        print(ret)
 
       # A "," occurs when <_buildStack> is called from a Macroleaf.
       # It stops the binarisation.
-      # The Macroleaf must now processes the next argument.
+      # The Macroleaf must now process the next argument.
       elif (currToken.type == "COMMA") :
         self.remainder = tail
-        return None
+        return BINARIZE_SUCCESS_WITH_REMAINDER
 
       # A ")" stops the binarisation.
       # The Macroleaf is now complete. 
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = tail
-        return None
+        return BINARIZE_SUCCESS_WITH_REMAINDER
       
       # Anything else is invalid.
       else :
         print(f"[ERROR] Unexpected token: {currToken}")
+        return BINARIZE_FAILURE
 
 
 
@@ -229,26 +274,37 @@ class Binary :
       if (currToken.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
         self.stack.append(currToken)
         self.remainder = []
+        return BINARIZE_SUCCESS
       
       elif (currToken.type == "BRKT_CLOSE") :
         self.remainder = []
+        return BINARIZE_SUCCESS
 
       elif (currToken.type == "COMMA") :
         print("[ERROR] The list of tokens cannot end with a comma.")
+        self.stack = []
+        self.remainder = []
+        return BINARIZE_FAILURE
 
       elif (currToken.type == "INFIX") :
         print("[ERROR] The list of tokens cannot end with an infix operator.")
+        self.stack = []
+        self.remainder = []
+        return BINARIZE_FAILURE
 
       else :
         print(f"[ERROR] Unexpected token: {currToken}")
+        self.stack = []
+        self.remainder = []
+        return BINARIZE_FAILURE
 
-      return None
 
 
-
-    # Terminal case: no token left
+    # No token to process
     else :
-      return None
+      print("[WARNING] Call to <_buildStack> with an empty list of Token is not supposed to happen.")
+      self.remainder = []
+      return BINARIZE_SUCCESS
 
 
 
@@ -302,11 +358,11 @@ class Binary :
           print("[DEBUG] Added an implicit zero.")
 
     # STEP 2: detect the pattern recursively on the macroleaves
-    for elt in self.stack :
-      if (elt.type == "MACRO") :
-        elt._explicitZeros()
+    # for node in self.stack :
+    #   if (node.type == "MACRO") :
+    #     node._explicitZeros()
 
-    return None
+    # return None
 
 
 

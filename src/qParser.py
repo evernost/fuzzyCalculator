@@ -924,18 +924,18 @@ if (__name__ == '__main__') :
   print("- Passed: <consumeInfix>")
   print()
 
-  # testVect = [
-  #   "-u^-3cos(2*pi*v + 1) + 2^0.1x",
-  #   "2x*cos(3.1415t-1.)^3",
-  #   "Q(-3t,0.1)+1",
-  #   "-2x*cos(pi*t-1//R2)", 
-  #   "-R3_2.0x*cos(3.1415t-1//R2)",
-  #   "(x+y)(x-2y)",
-  #   "(-3(x+4))",
-  #   "-x^2"
-  # ]
+  testVect = [
+    "-u^-3cos(2*pi*v + 1) + 2^0.1x",
+    "2x*cos(3.1415t-1.)^3",
+    "Q(-3t,0.1)+1",
+    "-2x*cos(pi*t-1//R2)", 
+    "-R3_2.0x*cos(3.1415t-1//R2)",
+    "(x+y)(x-2y)",
+    "(-3(x+4))",
+    "-x^2"
+  ]
 
-  testVect = ["-2.1+4(2-6)"]
+  #testVect = ["-2.1+4(2-6)"]
 
   for expr in testVect :
     
@@ -949,13 +949,10 @@ if (__name__ == '__main__') :
     
     # STEP 3: create a binary object from the list of tokens
     B = binary.Binary(tokenListFull)
-
-    # # STEP 4: balance the minus signs
-    # B.balanceMinus()
   
-    # STEP 5: reduce to a single leaf
+    # STEP 4: nest away operators with higher precedence
     B.nest()
-
+    
     # STEP 6: evaluate!
     B.eval()
 

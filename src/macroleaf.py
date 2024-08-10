@@ -37,7 +37,7 @@ class Macroleaf :
   - <F> is a function token
   - <B1>, ..., <Bn> are Binary objects.
 
-  There are as many Binary objects <B1>, ..., <Bn> as arguments taken by the function.
+  There are as many Binary objects <Bi> as there are arguments taken by the function.
   
   A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
   that reduces to a leaf.
@@ -76,7 +76,7 @@ class Macroleaf :
     Takes a list of Tokens as input, returns a Macroleaf object as output.
 
     The <function> argument only requires the name of the function as a string.
-    No need to create a Token.
+    No need to create or pass a Token.
 
     EXAMPLE
     M = Macroleaf("exp", myListOfTokens)
@@ -90,39 +90,42 @@ class Macroleaf :
     self.type       = "MACRO"
 
     if (len(tokenList) >= 1) :
-      self._process(tokenList)
+      self._buildStack(tokenList)
+      
+      for n in range(self.nArgs) :
+        self._balanceMinus()
+
+    else :
+      print("[WARNING] Trying to create a Macroleaf with an empty list of Tokens.")
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Macroleaf.process(tokenList)
   # ---------------------------------------------------------------------------
-  def _process(self, tokenList) :
+  def _buildStack(self, tokenList) :
     """
     DESCRIPTION
     Takes a list of tokens as input, assigns them to each
-    argument of the function and binarizes them.
+    argument of the function and binarises them.
     Returns: None.
     Only the internal attributes are updated.
     
     Note: the parenthesis token must be removed before calling this function.
-
-    EXAMPLES
-    todo
     """
     if (len(tokenList) >= 1) :
-      
-      stack = tokenList
+      currentStack = tokenList
       for n in range(self.nArgs) :
-        self.args[n]._buildStack(stack)
-        stack = self.args[n].remainder
+        ret = self.args[n]._buildStack(currentStack)
+        currentStack = self.args[n].remainder
       
-      self.remainder = stack
+      self.remainder = currentStack
       
-    # Terminal case: no token left
+    # No token to process      
     else :
-      print("<macroleaf.process> is todo!")
-      return None
+      print("[WARNING] Call to <_buildStack> with an empty list of Token is not supposed to happen.")
+      self.remainder = []
+      return BINARIZE_SUCCESS
 
 
 
@@ -143,31 +146,25 @@ class Macroleaf :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf._explicitZeros()
+  # METHOD: Macroleaf._balanceMinus
   # ---------------------------------------------------------------------------
-  def _explicitZeros(self) :
+  def _balanceMinus(self) :
+    """
+    DESCRIPTION
+    Calls the <_balanceMinus> method of each Binary object in the <args> list.
+    """
     
     for n in range(self.nArgs) :
-      self.args[n]._explicitZeros()
-
-
-
-  # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf._minusAsOpp()
-  # ---------------------------------------------------------------------------
-  def _minusAsOpp(self) :
+      self.args[n]._balanceMinus()
     
-    for n in range(self.nArgs) :
-      self.args[n]._minusAsOpp()
-
-
-
+    
+    
   # ---------------------------------------------------------------------------
   # METHOD: Macroleaf.nest()
   # ---------------------------------------------------------------------------
   def nest(self) :
     """
-    Calls the <nest> method of the Binary object in each argument.
+    Calls the <nest> method of each Binary object in the <args> list.
     """
     for n in range(self.nArgs) :
       self.args[n].nest()
