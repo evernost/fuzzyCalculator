@@ -190,6 +190,15 @@ import utils
 
 
 
+# =============================================================================
+# Constant pool
+# =============================================================================
+# Check status
+CHECK_SUCCESS = 0
+CHECK_FAILED = 1
+
+
+
 # -----------------------------------------------------------------------------
 # FUNCTION: sanityCheck(string)
 # -----------------------------------------------------------------------------
@@ -264,9 +273,9 @@ def bracketBalanceCheck(inputStr) :
     if (level < 0) :
       utils.showInStr(inputStr, loc)
       print("[ERROR] closing parenthesis in excess.")
-      return False
+      return CHECK_FAILED
 
-  return True
+  return CHECK_SUCCESS
 
 
 
@@ -291,17 +300,17 @@ def firstOrderCheck(inputStr) :
       case (".", ".") :
         utils.showInStr(inputStr, i+1)
         print("[ERROR] cannot make sense of 2 consecutive dots. Is it a typo?")
-        return False
+        return CHECK_FAILED
       
       case (",", ",") :
         utils.showInStr(inputStr, i+1)
         print("[ERROR] cannot make sense of 2 consecutive commas. Is it a typo?")
-        return False
+        return CHECK_FAILED
 
       case (",", ")") :
         utils.showInStr(inputStr, i+1)
         print("[ERROR] possible missing argument?")
-        return False
+        return CHECK_FAILED
 
       # 
       # TODO: this section needs to be completed.
@@ -310,7 +319,7 @@ def firstOrderCheck(inputStr) :
       case _:
         pass
 
-  return True
+  return CHECK_SUCCESS
 
 
 
@@ -725,6 +734,60 @@ def tokenize(inputStr) :
         inputStr = tail
 
   return tokenList
+
+
+
+# -----------------------------------------------------------------------------
+# FUNCTION: secondOrderCheck(tokenList)
+# -----------------------------------------------------------------------------
+def secondOrderCheck(tokenList) :
+  """
+  DESCRIPTION
+  Takes the tokens 2 by 2 and detect any invalid combination.
+  Detailed list can be found in 'secondOrderCheck.xslx'.
+  
+  EXAMPLES
+  (See unit tests in <main>)
+  """
+
+  nTokens = len(tokenList)
+
+  for i in range(nTokens-1) :
+    
+    T1 = tokenList[i]; T2 = tokenList[i+1]
+
+    if (T1.type == "FUNCTION") :
+      if not(T2.type == "BRKT_OPEN") :
+        print(f"[ERROR] A function must be followed with a parenthesis (Rule R3).")
+        return CHECK_FAILED      
+      else :
+        pass
+    
+    
+    # 
+    # TODO: this section needs to be completed.
+    # 
+
+
+  T = tokenList[nTokens-1]
+  if (T.type == "FUNCTION") :
+    print(f"[ERROR] An expression cannot end with a function.")
+    return CHECK_FAILED
+
+  elif (T.type == "BRKT_OPEN") :
+    print(f"[ERROR] An expression cannot end with an opening parenthesis.")
+    return CHECK_FAILED
+  
+  elif (T.type == "INFIX") :
+    print(f"[ERROR] An expression cannot end with an infix operator.")
+    return CHECK_FAILED
+
+
+
+  return CHECK_SUCCESS
+
+
+
 
 
 

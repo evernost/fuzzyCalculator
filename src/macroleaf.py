@@ -125,7 +125,7 @@ class Macroleaf :
     else :
       print("[WARNING] Call to <_buildStack> with an empty list of Token is not supposed to happen.")
       self.remainder = []
-      return BINARIZE_SUCCESS
+      return binary.BINARIZE_SUCCESS
 
 
 
