@@ -240,7 +240,7 @@ def sanityCheck(inputStr) :
     
     if not(alphaTest or digitTest or infixTest or othersTest) :
       utils.showInStr(inputStr, loc)
-      print("[ERROR] this character is not supported by the parser.")
+      print("[ERROR] This character is not supported by the parser.")
       return False
 
   return True
@@ -272,7 +272,7 @@ def bracketBalanceCheck(inputStr) :
 
     if (level < 0) :
       utils.showInStr(inputStr, loc)
-      print("[ERROR] closing parenthesis in excess.")
+      print("[ERROR] Closing parenthesis in excess.")
       return CHECK_FAILED
 
   return CHECK_SUCCESS
@@ -299,17 +299,17 @@ def firstOrderCheck(inputStr) :
     match (charA, charB) :
       case (".", ".") :
         utils.showInStr(inputStr, i+1)
-        print("[ERROR] cannot make sense of 2 consecutive dots. Is it a typo?")
+        print("[ERROR] Cannot make sense of 2 consecutive dots. Is it a typo?")
         return CHECK_FAILED
       
       case (",", ",") :
         utils.showInStr(inputStr, i+1)
-        print("[ERROR] cannot make sense of 2 consecutive commas. Is it a typo?")
+        print("[ERROR] Cannot make sense of 2 consecutive commas. Is it a typo?")
         return CHECK_FAILED
 
       case (",", ")") :
         utils.showInStr(inputStr, i+1)
-        print("[ERROR] possible missing argument?")
+        print("[ERROR] Possible missing argument?")
         return CHECK_FAILED
 
       # 
@@ -912,15 +912,15 @@ if (__name__ == '__main__') :
   assert(sanityCheck("inpuàtStr") == False)
   print("- Passed: <sanityCheck>")
 
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == True)
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi(") == True)
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi()))") == False)
-  assert(bracketBalanceCheck("|3x+6|.2x") == True)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == CHECK_SUCCESS)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi(") == CHECK_SUCCESS)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi()))") == CHECK_FAILED)
+  assert(bracketBalanceCheck("|3x+6|.2x") == CHECK_SUCCESS)
   print("- Passed: <bracketBalanceCheck>")
 
-  assert(firstOrderCheck("sin(2..1x)") == False)
-  assert(firstOrderCheck("1+Q(2,)") == False)
-  assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
+  assert(firstOrderCheck("sin(2..1x)") == CHECK_FAILED)
+  assert(firstOrderCheck("1+Q(2,)") == CHECK_FAILED)
+  assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == CHECK_FAILED)
   print("- Passed: <firstOrderCheck>")
 
   assert(consumeConst("pi") == ("pi", ""))

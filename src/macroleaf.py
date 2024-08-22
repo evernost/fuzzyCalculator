@@ -79,8 +79,8 @@ class Macroleaf :
     No need to create or pass a Token.
 
     EXAMPLE
-    M = Macroleaf("exp", myListOfTokens)
-    M = Macroleaf("cos", myListOfTokens)
+    M = Macroleaf("exp", someListOfTokens)
+    M = Macroleaf("cos", someOtherListOfTokens)
     etc.
     """    
     self.function   = function

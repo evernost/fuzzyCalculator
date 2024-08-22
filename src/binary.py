@@ -181,8 +181,9 @@ class Binary :
     
     buffer = tokenList.copy()
     
-    # Assuming the function is not called with empty-arguments i.e. 
-    # this kind of error is caught beforehand
+    # Assuming functions are not called with empty-arguments i.e. 
+    # this kind of error is caught beforehand.
+    
     while (len(buffer) > 0) :
       nTokens = len(buffer); print(f"[DEBUG] nTokens = {nTokens}")
       
@@ -247,7 +248,7 @@ class Binary :
           return BINARIZE_FAILURE
 
         elif (T.type == "INFIX") :
-          print(f"[ERROR] A list of tokens cannot end with an infix operator (like here: '{T.name}')")
+          print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
           self.remainder = [T]
           return BINARIZE_FAILURE
 
