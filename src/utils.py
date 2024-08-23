@@ -60,18 +60,13 @@ def split(inputStr, n) :
   """
   DESCRIPTION
   Split a string <inputStr> in two at the breakpoint index <n>.
-
-  Known limitations:
-  None.
+  Indexing is 0-based.
 
   EXAMPLES
-  > split("pouet",-1)   = ("", "pouet")
-  > split("pouet",0)    = ("", "pouet")
-  > split("pouet",1)    = ("p", "ouet")
-  > split("pouet",2)    = ("po", "uet")
-  > split("pouet",5)    = ("pouet", "")
-  > split("pouet",6)    = ("pouet", "")
-  > split("pouet",100)  = ("pouet", "")
+  > split("blob", -1) = ("", "blob")
+  > split("blob",  0) = ("", "blob")
+  > split("blob",  1) = ("b", "lob")
+  (See unit tests in <main>)
   """  
   
   # Input guard
@@ -171,11 +166,10 @@ def isNumber(inputStr) :
 # -----------------------------------------------------------------------------
 def splitSpace(inputStr) :
   """
-  DESCRIPTION
   Separates the leading whitespaces from the rest of the string.
 
-  Returns a couple (w, rem) such that inputStr = w || rem
-  and <w> being made of whitespaces only.
+  Returns a couple (w, rem) such that inputStr = w + rem 
+  with "w" being made of whitespaces only.
   
   EXAMPLES
   (See unit tests in <main>)
@@ -254,7 +248,8 @@ def showInStr(inputStr, loc) :
 # -----------------------------------------------------------------------------
 if (__name__ == '__main__') :
   
-  print("[INFO] Standalone call: running unit tests...")
+  print("[INFO] Library called as main: running unit tests...")
+  print()
 
   assert(isNumber("") == False)
   assert(isNumber("1") == True)

@@ -90,7 +90,7 @@ class Macroleaf :
     self.type       = "MACRO"
 
     if (len(tokenList) >= 1) :
-      self._buildStack(tokenList)
+      self._buildArgs(tokenList)
       
       for n in range(self.nArgs) :
         self._balanceMinus()
@@ -101,31 +101,51 @@ class Macroleaf :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf.process(tokenList)
+  # METHOD: Macroleaf._buildArgs(tokenList)
   # ---------------------------------------------------------------------------
-  def _buildStack(self, tokenList) :
+  def _buildArgs(self, tokenList) :
     """
     DESCRIPTION
-    Takes a list of tokens as input, assigns them to each
-    argument of the function and binarises them.
+    Takes a list of tokens as input, assigns them to each argument of the function 
+    and binarises them.
+    
     Returns: None.
     Only the internal attributes are updated.
     
-    Note: the parenthesis token must be removed before calling this function.
+    NOTE 
+    The parenthesis token must be removed before calling this function.
     """
+    
     if (len(tokenList) >= 1) :
-      currentStack = tokenList
+      buffer = tokenList
+      
       for n in range(self.nArgs) :
-        ret = self.args[n]._buildStack(currentStack)
-        currentStack = self.args[n].remainder
-      
-      self.remainder = currentStack
-      
+        
+        # Build the stack with the current buffer.
+        # "_buildStack" will automatically stop when encountering the Tokens
+        # meant for the next argument.
+        ret = self.args[n]._buildStack(buffer)
+        buffer = self.args[n].remainder
+        
+        if (ret == binary.BINARISE_FAILURE) :
+          return binary.BINARISE_FAILURE
+        
+        # Error: function expects another argument, but there are no Tokens left.
+        elif ((n < (self.nArgs-1)) and (len(buffer) == 0)) :
+          print("[ERROR] Internal error: arguments are expected, but there a no Tokens left to process.")
+          return binary.BINARISE_FAILURE
+        
+        # "_buildStack" terminated succesfully. 
+        # Its remainder is cleared and passed on to the next argument.
+        else :
+          self.args[n].remainder = []
+          self.remainder = buffer
+
     # No token to process      
     else :
       print("[WARNING] Call to <_buildStack> with an empty list of Token is not supposed to happen.")
       self.remainder = []
-      return binary.BINARIZE_SUCCESS
+      return binary.BINARISE_SUCCESS
 
 
 
@@ -259,8 +279,9 @@ class Macroleaf :
   # ---------------------------------------------------------------------------
   # Define the behaviour of print(macroleafObj)
   def __str__(self) :
-    argsStr = [str(a) for a in self.args]
-    return "{" + f"fct = {self.function}, args = {argsStr}" + "}"
+    argsStr = [a.getOverviewStr() for a in self.args]
+    #return "{" + f"fct = '{self.function}', args = {self.args}" + "}"
+    return "{" + f"fct = '{self.function}', args = {argsStr}" + "}"
 
 
 

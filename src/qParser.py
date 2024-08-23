@@ -180,12 +180,13 @@
 
 
 
-
 # =============================================================================
 # External libs
 # =============================================================================
-import symbols
+from commons import *
+
 import binary
+import symbols
 import utils
 
 
@@ -193,9 +194,7 @@ import utils
 # =============================================================================
 # Constant pool
 # =============================================================================
-# Check status
-CHECK_SUCCESS = 0
-CHECK_FAILED = 1
+VERBOSE_MODE = True
 
 
 
@@ -204,9 +203,8 @@ CHECK_FAILED = 1
 # -----------------------------------------------------------------------------
 def sanityCheck(inputStr) :
   """
-  DESCRIPTION
-  Checks the input string, makes sure it contains valid characters only.
-  Valid characters:
+  Checks the input string and makes sure it contains valid characters only.
+  Valid characters are:
   - letters: "a" to "z" and "A" to "Z"
   - space: " "
   - digits: "0" to "9"
@@ -217,14 +215,14 @@ def sanityCheck(inputStr) :
   - round brackets: "(" and ")"
   - characters in the infix op list
 
-  Returns True if the check passed, False otherwise.
+  Returns CHECK_SUCCESS if the check passed, CHECK_FAILED otherwise.
 
   NOTE
   In case you want to add custom infix operators, you need to add to the 
   'white list' any special character you might be using.
 
   EXAMPLES
-  (See unit tests in <main>)
+  (See unit tests in "main")
   """
 
   # List the individual characters the infix are made of
@@ -239,11 +237,12 @@ def sanityCheck(inputStr) :
     othersTest  = (char in [" ", ".", ",", "_", "(", ")"])
     
     if not(alphaTest or digitTest or infixTest or othersTest) :
-      utils.showInStr(inputStr, loc)
-      print("[ERROR] This character is not supported by the parser.")
-      return False
+      if VERBOSE_MODE :
+        utils.showInStr(inputStr, loc)
+        print("[ERROR] This character is not supported by the parser.")
+      return CHECK_FAILED
 
-  return True
+  return CHECK_SUCCESS
 
 
 
@@ -252,15 +251,14 @@ def sanityCheck(inputStr) :
 # -----------------------------------------------------------------------------
 def bracketBalanceCheck(inputStr) :
   """
-  DESCRIPTION
-  Checks if the parenthesis are valid.
+  Checks if the parentheses in the input expression are valid.
   This function allows "lazy parenthesis": matching closing parenthesis 
   are not required.
 
-  Returns True if the check passed, False otherwise.
+  Returns CHECK_SUCCESS if the check passed, CHECK_FAILED otherwise.
 
   EXAMPLES
-  (See unit tests in <main>)
+  (See unit tests in "main")
   """
 
   level = 0
@@ -271,8 +269,9 @@ def bracketBalanceCheck(inputStr) :
       level -= 1
 
     if (level < 0) :
-      utils.showInStr(inputStr, loc)
-      print("[ERROR] Closing parenthesis in excess.")
+      if VERBOSE_MODE :
+        utils.showInStr(inputStr, loc)
+        print("[ERROR] Closing parenthesis in excess.")
       return CHECK_FAILED
 
   return CHECK_SUCCESS
@@ -284,40 +283,42 @@ def bracketBalanceCheck(inputStr) :
 # -----------------------------------------------------------------------------
 def firstOrderCheck(inputStr) :
   """
-  DESCRIPTION
-  Takes the chars 2 by 2 and detect any invalid combination.
-  Detailed list can be found in 'firstOrderCheck.xslx'.
+  Takes the chars 2 by 2 and detects any invalid combination.
+  Detailed list of the valid/invalid combinations can be found in 
+  "resources/firstOrderCheck.xslx"
   
   EXAMPLES
-  (See unit tests in <main>)
+  (See unit tests in "main")
   """
 
   for i in (range(len(inputStr)-1)) :
     
-    charA = inputStr[i]; charB = inputStr[i+1]
+    char1 = inputStr[i]; char2 = inputStr[i+1]
 
-    match (charA, charB) :
-      case (".", ".") :
+    if ((char1, char2) == (".", ".")) :
+      if VERBOSE_MODE :
         utils.showInStr(inputStr, i+1)
         print("[ERROR] Cannot make sense of 2 consecutive dots. Is it a typo?")
-        return CHECK_FAILED
+      return CHECK_FAILED
       
-      case (",", ",") :
+    elif ((char1, char2) == (",", ",")) :
+      if VERBOSE_MODE :
         utils.showInStr(inputStr, i+1)
         print("[ERROR] Cannot make sense of 2 consecutive commas. Is it a typo?")
-        return CHECK_FAILED
+      return CHECK_FAILED
 
-      case (",", ")") :
+    elif ((char1, char2) == (",", ")")) :
+      if VERBOSE_MODE :     
         utils.showInStr(inputStr, i+1)
         print("[ERROR] Possible missing argument?")
-        return CHECK_FAILED
+      return CHECK_FAILED
 
-      # 
-      # TODO: this section needs to be completed.
-      # 
+    # 
+    # TODO: this section needs to be completed.
+    # 
 
-      case _:
-        pass
+    else :
+      pass
 
   return CHECK_SUCCESS
 
@@ -328,11 +329,10 @@ def firstOrderCheck(inputStr) :
 # -----------------------------------------------------------------------------
 def reservedWordsCheck(inputStr) :
   """
-  DESCRIPTION
-  Check if reserved words (like function names, constants) are used incorrectly.
+  Checks if reserved words (like function names, constants) are used incorrectly.
   
   EXAMPLES
-  (See unit tests in <main>)
+  (See unit tests in "main")
   """
   
   # Input guard
@@ -349,24 +349,23 @@ def reservedWordsCheck(inputStr) :
 # -----------------------------------------------------------------------------
 def consumeConst(inputStr) :
   """
-  DESCRIPTION
   Consumes the leading constant in a string.
 
-  If <inputStr> is a string starting with the name of a constant, the tuple (c, rem) is 
+  If "inputStr" is a string starting with the name of a constant, the tuple (c, rem) is 
   returned, where:
-  - <c> is the matching constant name
-  - <rem> is the rest of the string.
+  - "c" is the matching constant name
+  - "rem" is the rest of the string.
   
-  so that inputStr = c || rem
+  so that inputStr = c + rem
 
-  If <inputStr> does not start with a known constant or the constant is embedded 
+  If "inputStr" does not start with a known constant or the constant is embedded 
   in a larger name, the tuple ("", input) is returned.
   Refer to rules [5.X] for more details about the parsing strategy.
 
-  The list of available constants is fetched from 'grammar.CONSTANTS'.
+  The list of available constants is fetched from 'symbols.CONSTANTS'.
 
   EXAMPLES
-  (See unit tests in <main>)
+  (See unit tests in "main")
   """
 
   # Input guard
@@ -409,26 +408,25 @@ def consumeConst(inputStr) :
 # -----------------------------------------------------------------------------
 def consumeNumber(inputStr) :
   """
-  DESCRIPTION
   Consumes the leading number in a string.
 
-  If <input> is a string starting with a number, the tuple (n, rem) is 
+  If "input" is a string starting with a number, the tuple (n, rem) is 
   returned, where:
-  - <n> is the matching number
-  - <rem> is the rest of the string.
+  - "n" is the matching number
+  - "rem" is the rest of the string.
   
-  so that input = n || rem
+  so that input = n + rem
 
   The function does a 'greedy' read: as many chars as possible are stacked
-  to the output <n> as long as it makes sense as a number.
+  to the output "n" as long as it makes sense as a number.
 
   The function accepts fractional numbers ("3.14", "0.2", etc.)
   Omitted leading zero is accepted: ".1", ".0001" etc.
 
   The function does not accept negative numbers.
-  If <input> does not start with a digit or a dot, the tuple ("", inputStr) is returned.
+  If "input" does not start with a digit or a dot, the tuple ("", inputStr) is returned.
 
-  Notes: 
+  NOTES
   - the number is returned "as is" without interpretation. 
   Inputs like "0.500000", "4." or "0.0" will not be simplified.
   - integer or fractionnal part can be omitted: "12.", ".34" etc.
@@ -442,7 +440,7 @@ def consumeNumber(inputStr) :
   > consumeNumber("4.2.") = ("4.2", ".")
   > consumeNumber("4.2cos(3x)") = ("4.2", "cos(3x)")
   > consumeNumber("-3.14") = ("", "-3.14")
-  (See unit tests in <main> for more)
+  (See unit tests in "main" for more)
   """
 
   # Input guard
@@ -454,7 +452,7 @@ def consumeNumber(inputStr) :
     return ("", inputStr)
 
   # Start from the first character and consume the remaining chars as long as it makes sense as a number.
-  # The longest string that passed the <isNumber> test becomes the candidate.
+  # The longest string that passes the "isNumber" test becomes the candidate.
   nMax = 0
   for n in range(1, len(inputStr)+1) :
     (head, _) = utils.split(inputStr, n)
@@ -473,17 +471,16 @@ def consumeNumber(inputStr) :
 # -----------------------------------------------------------------------------
 def consumeFunc(inputStr) :
   """
-  DESCRIPTION
   Consumes the leading function in a string.
 
-  If <inputStr> is a string starting with a function, the tuple (f, rem) is 
+  If "inputStr" is a string starting with a function, the tuple (f, rem) is 
   returned, where:
-  - <f> is the matching function name
-  - <rem> is the rest of the string.
+  - "f" is the matching function name
+  - "rem" is the rest of the string.
   
-  The opening parenthesis is omitted in <rem>, so inputStr = f || "(" || rem
+  The opening parenthesis is omitted in "rem", so inputStr = f + "(" + rem
 
-  If <inputStr> does not start with a known function, the tuple ("", inputStr) is 
+  If "inputStr" does not start with a known function, the tuple ("", inputStr) is 
   returned.
 
   The list of available functions is fetched from 'symbols.FUNCTIONS'.
@@ -492,10 +489,9 @@ def consumeFunc(inputStr) :
   - The function name must be immediatly followed by an opening parenthesis "(".
   There is not point in accepting things like "cos (3x+1)" or "cos ax+1".
   It does not bring anything to the user experience, makes the expression
-  harder to read and leads to ambiguity.
+  harder to read and leads to ambiguity (rule [R3])
   - Opening parenthesis is omitted because later in the parsing engine, a function 
   or a single "(" triggers the same processing. 
-  So for the rest of the processing, the "(" following the function is redundant.
   
   Known limitations:
   None.
@@ -504,7 +500,7 @@ def consumeFunc(inputStr) :
   > consumeFunc("sina") = ("", "sina")
   > consumeFunc("sinc(3x+12)") = ("sinc", "3x+12)")
   > consumeFunc("tan (x-pi)") = ("", "tan (x-pi)")
-  (See unit tests in <main> for more)
+  (See unit tests in "main" for more)
   """
   
   functionsExt = [(f["name"] + "(") for f in symbols.FUNCTIONS]
@@ -526,18 +522,18 @@ def consumeFunc(inputStr) :
 # ---------------------------------------------------------------------------
 def consumeVar(inputStr) :
   """
-  DESCRIPTION
   Consumes the leading variable name in a string.
   
   The parsing does not rely on prior variable declaration.
-  It only detects and returns a name that is a legal variable name.
+  It only detects and returns a name that is a legal variable name and hence 
+  could be a variable.
 
-  If <inputStr> is a string starting with a variable, the tuple (v, rem) is 
+  If "inputStr" is a string starting with a variable, the tuple (v, rem) is 
   returned, where:
-  - <v> is a legal variable name
-  - <rem> is the rest of the string.
+  - "v" is a legal variable name
+  - "rem" is the rest of the string.
   
-  so that inputStr = v || rem
+  so that inputStr = v + rem
 
   Several rules apply to the parsing strategy. 
   In short, the function tries to match the head of the input with what could be
@@ -546,10 +542,10 @@ def consumeVar(inputStr) :
   The function filters out variables when their name matches with a function or a constant.
   In that case, the tuple ("", input) is returned.
 
-  This function is usually followed by a call to <addVariable>, that adds 
-  the variable found by <consumeVar> to the list of variables (<variables> attribute).
+  This function is usually followed by a call to "addVariable", that adds 
+  the variable found by "consumeVar" to the list of variables ("variables" attribute).
 
-  The function itself does not alter the content of <variables>.
+  The function itself does not alter the content of "variables".
   So it can be safely used to test whether an unknown string starts with a potential variable.
   
   Refer to rules [5.X] for more details about the parsing strategy. 
@@ -560,7 +556,7 @@ def consumeVar(inputStr) :
   This could give some more flexibility in the syntax (especially on rule [5.9])
 
   EXAMPLES
-  (See unit tests in <main> for more)
+  (See unit tests in "main" for more)
   """
 
   # Input guard
@@ -596,7 +592,8 @@ def consumeVar(inputStr) :
       
         # Number with decimal point: apply rule [R5.5]
         if ("." in nbr) :
-          print("[WARNING] Odd syntax: variable prefixed with a fractional number. Please double check the interpretation.")
+          if VERBOSE_MODE : 
+            print("[WARNING] Odd syntax: variable prefixed with a fractional number. Please double check the interpretation.")
           output = (head, tail)
           break
           
@@ -626,17 +623,16 @@ def consumeVar(inputStr) :
 # ---------------------------------------------------------------------------
 def consumeInfix(inputStr) :
   """
-  DESCRIPTION
   Consumes the leading infix operator in a string.
 
-  If <inputStr> is a string starting with an infix operator, the tuple (op, rem) is 
+  If "inputStr" is a string starting with an infix operator, the tuple (op, rem) is 
   returned, where:
-  - <op> is the matching infix operator name
-  - <rem> is the rest of the string.
+  - "op" is the matching infix operator name
+  - "rem" is the rest of the string.
   
-  so that inputStr = op || rem
+  so that inputStr = op + rem
 
-  If <inputStr> does not start with a known infix operator, the tuple ("", inputStr) is returned.
+  If "inputStr" does not start with a known infix operator, the tuple ("", inputStr) is returned.
 
   The list of available infix operators is fetched from 'symbols.INFIX'
 
@@ -644,7 +640,7 @@ def consumeInfix(inputStr) :
   Please refer to [R6] to see the rules that apply for that.
 
   EXAMPLES
-  (See unit tests in <main>)
+  (See unit tests in "main")
   """
 
   # Input guard
@@ -665,18 +661,17 @@ def consumeInfix(inputStr) :
 
 
 # ---------------------------------------------------------------------------
-# FUNCTION: tokenize(string)
+# FUNCTION: tokenise(string)
 # ---------------------------------------------------------------------------
-def tokenize(inputStr) :
+def tokenise(inputStr) :
   """
-  DESCRIPTION
-  Converts the input expression to an ordered list of Token objects.
+  Generates a list of Token objects from a string containing a valid expression.
 
-  The input characters are read, grouped and classified to abstract types
+  The input characters are read, grouped and classified to an abstract type
   (Token objects) while preserving their information.
   
   This function assumes that syntax checks have been run prior to the call.
-  Otherwise it will not be able to catch errors.
+  Otherwise, some syntax errors will not be caught.
 
   EXAMPLES
   todo
@@ -688,9 +683,13 @@ def tokenize(inputStr) :
 
     # White spaces do not contribute to the parsing (rule [R9])
     (_, inputStr) = utils.splitSpace(inputStr)
+    
     if (len(inputStr) == 0) :
       break
 
+    # Try to interpret the leading characters as a 
+    # number, constant, variable, function or infix.
+    # TODO: check if there can be conflicts.
     (number, tailNumber)      = consumeNumber(inputStr)
     (constant, tailConstant)  = consumeConst(inputStr)
     (function, tailFunction)  = consumeFunc(inputStr)
@@ -717,7 +716,8 @@ def tokenize(inputStr) :
     elif (infix != "") :
       tokenList.append(symbols.Token(infix))
       inputStr = tailInfix
-
+    
+    # Otherwise: detect brackets and commas
     else :
       (head, tail) = utils.pop(inputStr)
 
@@ -732,6 +732,9 @@ def tokenize(inputStr) :
       elif (head == ",") :
         tokenList.append(symbols.Token(head))
         inputStr = tail
+        
+      else :
+        print("[ERROR] Internal error: the input char could not be assigned to any Token.")
 
   return tokenList
 
@@ -743,11 +746,14 @@ def tokenize(inputStr) :
 def secondOrderCheck(tokenList) :
   """
   DESCRIPTION
-  Takes the tokens 2 by 2 and detect any invalid combination.
-  Detailed list can be found in 'secondOrderCheck.xslx'.
+  Takes the tokens 2 by 2 from the list of Tokens and detects any invalid combination.
+  Detailed list can be found in "resources/secondOrderCheck.xslx"
+  
+  It is a complement to "firstOrderCheck".
+  Some checks are easier to do on the list of tokens rather than the raw input expression.
   
   EXAMPLES
-  (See unit tests in <main>)
+  todo
   """
 
   nTokens = len(tokenList)
@@ -794,81 +800,80 @@ def secondOrderCheck(tokenList) :
 def explicitMult(tokenList) :
   """
   DESCRIPTION
-  Detects the implicit multiplications in the list of tokens.
+  Detects and expands implicit multiplications in a list of tokens.
   Returns the same list with the multiplication tokens explicited at the right place.
 
   EXAMPLES
-  TODO
+  todo
   """
   
   nTokens = len(tokenList)
 
-  # Hidden multiplication needs at least 2 tokens
+  # Hidden multiplication requires at least 2 tokens.
   if (nTokens <= 1) :
     return tokenList
 
   else :
     output = []
     for n in range(nTokens-1) :
-      tokA = tokenList[n]; tokB = tokenList[n+1]
+      T1 = tokenList[n]; T2 = tokenList[n+1]
 
-      output.append(tokA)
+      output.append(T1)
+      
+      # Example: "pi(x+4)"
+      if ((T1.type, T2.type) == ("CONSTANT", "BRKT_OPEN")) :
+        output.append(symbols.Token("*"))
 
-      match (tokA.type, tokB.type) :
-        
-        # Example: "pi(x+4)"
-        case ("CONSTANT", "BRKT_OPEN") :
-          output.append(symbols.Token("*"))
+      # Example: "R1(R2+R3)"
+      elif ((T1.type, T2.type) == ("VAR", "BRKT_OPEN")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "R1(R2+R3)"
-        case ("VAR", "BRKT_OPEN") :
-          output.append(symbols.Token("*"))
+      # Example: "x_2.1"
+      elif ((T1.type, T2.type) == ("VAR", "NUMBER")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "x_2.1"
-        case ("VAR", "NUMBER") :
-          output.append(symbols.Token("*"))
+      # Example: "(x+1)pi"
+      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "CONST")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "(x+1)pi"
-        case ("BRKT_CLOSE", "CONST") :
-          output.append(symbols.Token("*"))
+      # Example: "(x+1)cos(y)"
+      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "FUNCTION")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "(x+1)cos(y)"
-        case ("BRKT_CLOSE", "FUNCTION") :
-          output.append(symbols.Token("*"))
+      # Example: "(R2+R3)R1"
+      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "VAR")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "(R2+R3)R1"
-        case ("BRKT_CLOSE", "VAR") :
-          output.append(symbols.Token("*"))
+      # Example: "(x+y)(x-y)"
+      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "BRKT_OPEN")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "(x+y)(x-y)"
-        case ("BRKT_CLOSE", "BRKT_OPEN") :
-          output.append(symbols.Token("*"))
+      # Example: "(x+y)100"
+      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "NUMBER")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "(x+y)100"
-        case ("BRKT_CLOSE", "NUMBER") :
-          output.append(symbols.Token("*"))
+      # Example: "2pi"
+      elif ((T1.type, T2.type) == ("NUMBER", "CONST")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "2pi"
-        case ("NUMBER", "CONST") :
-          output.append(symbols.Token("*"))
+      # Example: "2exp(t)"
+      elif ((T1.type, T2.type) == ("NUMBER", "FUNCTION")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "2exp(-3t)"
-        case ("NUMBER", "FUNCTION") :
-          output.append(symbols.Token("*"))
+      # Example: "2x"
+      elif ((T1.type, T2.type) == ("NUMBER", "VAR")) :
+        output.append(symbols.Token("*"))
 
-        # Example: "2x"
-        case ("NUMBER", "VAR") :
-          output.append(symbols.Token("*"))
-
-        # Example: "2(x+y)"
-        case ("NUMBER", "BRKT_OPEN") :
-          output.append(symbols.Token("*"))
-
-        case (_, _) :
-          pass
+      # Example: "2(x+y)"
+      elif ((T1.type, T2.type) == ("NUMBER", "BRKT_OPEN")) :
+        output.append(symbols.Token("*"))
+      
+      # Anything else: no multiplication hidden
+      else :
+        pass
     
     if (n == (nTokens-2)) :
-      output.append(tokB)
+      output.append(T2)
 
   return output
 
@@ -881,8 +886,8 @@ def eval(self, binary, point) :
   """
   DESCRIPTION
   Takes as input:
-  - <binary> : a reduced Binary object
-  - <point>  : a dictionary containing all variables and their value.
+  - "binary" : a reduced Binary object
+  - "point"  : a dictionary containing all variables and their value.
   
   Returns the evaluated expression.
 
@@ -893,23 +898,24 @@ def eval(self, binary, point) :
 
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Main (unit tests)
-# -----------------------------------------------------------------------------
+# =============================================================================
 if (__name__ == '__main__') :
   
-  print("[INFO] Standalone call: running unit tests...")
+  print("[INFO] Library called as main: running unit tests...")
   print()
 
-  assert(sanityCheck("oni_giri*cos(2x+pi") == True)
-  assert(sanityCheck("input Str") == True)
-  assert(sanityCheck("input Str2.1(a+b)|x|") == False)
-  assert(sanityCheck("$inputStr") == False)
-  assert(sanityCheck("µinputStr") == False)
-  assert(sanityCheck("in#putStr") == False)
-  assert(sanityCheck("inputStr%") == False)
-  assert(sanityCheck("inpuétStr") == False)
-  assert(sanityCheck("inpuàtStr") == False)
+  VERBOSE_MODE = False
+  assert(sanityCheck("oni_giri*cos(2x+pi") == CHECK_SUCCESS)
+  assert(sanityCheck("input Str") == CHECK_SUCCESS)
+  assert(sanityCheck("input Str2.1(a+b)|x|") == CHECK_FAILED)
+  assert(sanityCheck("$inputStr") == CHECK_FAILED)
+  assert(sanityCheck("µinputStr") == CHECK_FAILED)
+  assert(sanityCheck("in#putStr") == CHECK_FAILED)
+  assert(sanityCheck("inputStr%") == CHECK_FAILED)
+  assert(sanityCheck("inpuétStr") == CHECK_FAILED)
+  assert(sanityCheck("inpuàtStr") == CHECK_FAILED)
   print("- Passed: <sanityCheck>")
 
   assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == CHECK_SUCCESS)
@@ -967,7 +973,7 @@ if (__name__ == '__main__') :
   assert(consumeVar("x_23//4") == ("x_23", "//4"))
   assert(consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
   assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
-  # assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6
+  # assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5.6 and needs a fix
   assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
@@ -982,7 +988,22 @@ if (__name__ == '__main__') :
   assert(consumeInfix("-2x+y") == ("-", "2x+y"))
   assert(consumeInfix("^-3") == ("^", "-3"))
   print("- Passed: <consumeInfix>")
+  
+  # TODO: check some tokenisations
+  tokenList = tokenise("1+2*pi*R1*C1")
+  print("- TODO: <tokenise>")
+  
+  # TODO: trigger all the error cases in "secondOrderCheck"
+  # secondOrderCheck([Token("sin")])
+  print("- TODO: <secondOrderCheck>")
+  
   print()
+  VERBOSE_MODE = True
+
+
+  
+
+
 
   testVect = [
     "-u^-3cos(2*pi*v + 1) + 2^0.1x",
@@ -997,12 +1018,12 @@ if (__name__ == '__main__') :
 
   #testVect = ["-2.1+4(2-6)"]
 
-  for expr in testVect :
+  for (n, expr) in enumerate(testVect) :
     
-    print(f"----- expression = '{expr}' -----")
+    print(f"----- Test vector {n}: '{expr}' -----")
 
     # STEP 1: rewrite the expression as a list of tokens
-    tokenList = tokenize(expr)
+    tokenList = tokenise(expr)
     
     # STEP 2: detect and add the implicit multiplications
     tokenListFull = explicitMult(tokenList)

@@ -30,9 +30,9 @@ import macroleaf
 # Constant pool
 # =============================================================================
 # Binarization status
-BINARIZE_SUCCESS = 0
-BINARIZE_SUCCESS_WITH_REMAINDER = 1
-BINARIZE_FAILURE = -1
+BINARISE_SUCCESS = 0
+BINARISE_SUCCESS_WITH_REMAINDER = 1
+BINARISE_FAILURE = -1
 
 
 
@@ -40,10 +40,10 @@ BINARIZE_FAILURE = -1
 class Binary :
   """
   DESCRIPTION
-  A 'Binary' object is essentially a Python list (the 'stack') containing  
+  A 'Binary' object is essentially a Python list (the 'stack') made of  
   infix operators and leaves, always arranged in the following pattern: 
 
-  Binary.stack = [L1, op1, L2, op2, ... Ln]
+  binaryObj.stack = [L1, op1, L2, op2, ... Ln]
   
   where 
   - <L1> ... <Ln> are leaves (or Macroleaves objects)
@@ -72,37 +72,36 @@ class Binary :
   - implicit zeros (when '-' is meant as 'opposite of') have been explicited
 
   Examples (using pseudo-notation): 
-  - "4*x+3"    -> 'L("4")   op("*")   L("x")   op("+")   L("3")'
-  - "2cos(a^2) -> 'L("2")   L("*")   M("cos"; L(L("a")   op("^")   L("2")))
+  - "4*x+3"    becomes   'L("4")   op("*")   L("x")   op("+")   L("3")'
+  - "2cos(a^2) becomes   'L("2")   L("*")   M("cos"; L(L("a")   op("^")   L("2")))
   - etc.
   L("...") is a leaf
-  M("fun"; ...) is a Macroleaf appying the function "fun" to its internal Binary objects.
+  M("fun"; ...) is a Macroleaf applying the function "fun" to its internal Binary objects.
   
   Once in the 'L op L op ... L' form (i.e. 'flattened') it makes processing easier.
-  - Nesting (functions, parenthesis) is abstracted by macroleaves, processing can
+  - Nesting (functions, parenthesis) is abstracted by the Macroleaves, processing can
   be done recursively.
   - Identifying the operators with higher precedence is easier
-  - Evaluating the expression is much simpler too
+  - Evaluating the expression is much simpler too.
   
   USAGE
   The Binary object is directly initialized from a list of Tokens.
-  The initialisation function automatically:
-  - expands the implicit multiplications
-  - balances the minus operators by adding the implicit zeros 
-  - packs the functions calls/parenthesis in macroleaves
-  - generates the binary chain 'L op L op ...'
+  The initialisation function does the following automatically:
+  - it expands the implicit multiplications
+  - it balances the minus operators by adding the implicit zeros 
+  - it packs the functions calls/parenthesis in macroleaves
+  - it generates the binary chain 'L op L op ...'
   
-  The binary chain is available in <binary.stack>
+  The binary chain is available in "binaryObj.stack"
   
   NOTES
   - Implicit multiplications must have been expanded before.
   - A simple Python list could have done the job, but it makes more sense 
   to have it packed in an object since:
-    - specific functions are associated to the processing of the list
+    - processing is required and it is specific to this structure
     - the content of the list is not arbitrary and has to follow a pattern.
     Packing it as an object helps to enforce this pattern and catch
     invalid inputs.
-  
   - 'Binary' objects and 'Macroleaf' objects are tightly coupled.
   Please refer to the 'Macroleaf' definition for more information.
   - The attributes distinguish between 'tokens' and 'nodes'
@@ -115,7 +114,6 @@ class Binary :
   # ---------------------------------------------------------------------------
   def __init__(self, tokenList = []) :
     """
-    DESCRIPTION
     Creates a Binary object and initialises it from a list of Tokens.
     Takes a list of Tokens as input, returns a Binary object as output.
 
@@ -123,8 +121,8 @@ class Binary :
     'L op L op L op ... L'
     The result is stored in the <stack> attribute.
     
-    The <remainder> attribute is only used internally. 
-    It should have any content when called from top level.
+    The "remainder" attribute is only used internally. 
+    It should remain empty when called from top level.
     """
    
     self.stack     = []
@@ -132,9 +130,9 @@ class Binary :
 
     self.lookUpTable = {}
 
-    self.location = "TOP"   # purpose not fully determined yet
-
     if (len(tokenList) >= 1) :
+      self.context = "TOP"
+      
       ret = self._buildStack(tokenList)
       self._balanceMinus()
 
@@ -145,6 +143,7 @@ class Binary :
     # Init with empty list of tokens. 
     # Happens in Macroleaves
     else :
+      self.context = "SUB"      
       self.nNodes = 0
       self.nLeaf = 0
       self.nOps = 0
@@ -156,17 +155,18 @@ class Binary :
   # ---------------------------------------------------------------------------
   def _buildStack(self, tokenList) :
     """
-    DESCRIPTION
     Takes a list of tokens as input and builds the Binary representation of it
-    i.e. a list made of a pattern [L, op, L, op, ..., L]
-    The binary list is available in the <stack> attribute. 
+    i.e. a list made of the pattern [L, op, L, op, ..., L]
+    The binary list is available in the "stack" attribute. 
     
-    Returns: None.
-    Internal attributes are updated.
+    It returns a status that depends on the parsing outcome:
+    - BINARISE_SUCCESS: all good! the entire input could be binarised.
+    - BINARISE_SUCCESS_WITH_REMAINDER: todo
+    - BINARISE_FAILURE: todo
 
     Special case for the Macroleaf object: 
     Binarisation might process only the beginning of the list of Tokens.
-    The tokens that did not get binarised are stored in the <remainder> attribute.
+    The tokens that did not get binarised are stored in the "remainder" attribute.
     It is used in 2 scenarios:
     - when binarising arguments of a multiargs function.
     Each argument is binarised individually. The comma "," is the separator and stops
@@ -180,10 +180,7 @@ class Binary :
     """
     
     buffer = tokenList.copy()
-    
-    # Assuming functions are not called with empty-arguments i.e. 
-    # this kind of error is caught beforehand.
-    
+
     while (len(buffer) > 0) :
       nTokens = len(buffer); print(f"[DEBUG] nTokens = {nTokens}")
       
@@ -215,18 +212,18 @@ class Binary :
         # The Macroleaf must now process the next argument.
         elif (T.type == "COMMA") :
           self.remainder = tail
-          return BINARIZE_SUCCESS_WITH_REMAINDER
+          return BINARISE_SUCCESS_WITH_REMAINDER
 
         # A ")" stops the binarisation.
         # The Macroleaf is now complete. 
         elif (T.type == "BRKT_CLOSE") :
           self.remainder = tail
-          return BINARIZE_SUCCESS_WITH_REMAINDER
+          return BINARISE_SUCCESS_WITH_REMAINDER
         
         # Anything else is invalid.
         else :
           print(f"[ERROR] Unexpected token: {T}")
-          return BINARIZE_FAILURE
+          return BINARISE_FAILURE
 
 
 
@@ -236,36 +233,32 @@ class Binary :
         if (T.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
           self.stack.append(T)
           self.remainder = []
-          return BINARIZE_SUCCESS
+          return BINARISE_SUCCESS
         
         elif (T.type == "BRKT_CLOSE") :
           self.remainder = []
-          return BINARIZE_SUCCESS
+          return BINARISE_SUCCESS
 
         elif (T.type == "COMMA") :
           print("[ERROR] A list of tokens cannot end with a comma.")
           self.remainder = [T]
-          return BINARIZE_FAILURE
+          return BINARISE_FAILURE
 
         elif (T.type == "INFIX") :
           print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
           self.remainder = [T]
-          return BINARIZE_FAILURE
+          return BINARISE_FAILURE
 
         else :
           print(f"[ERROR] Unexpected token: {T}")
           self.remainder = [T]
-          return BINARIZE_FAILURE
+          return BINARISE_FAILURE
 
       
       # nTokens = 0
       else :
         self.remainder = []
-        return BINARIZE_SUCCESS
-
-
-
-
+        return BINARISE_SUCCESS
 
 
 
@@ -712,12 +705,21 @@ class Binary :
     return str(self.stack)
   
   
+  def __repr__(self) :
+    return str(self.stack)
   
-# -----------------------------------------------------------------------------
+  
+  def getOverviewStr(self) :
+    s = [t.getOverviewStr() for t in self.stack]
+    return str(s)
+  
+  
+  
+# =============================================================================
 # Main (unit tests)
-# -----------------------------------------------------------------------------
+# =============================================================================
 if (__name__ == '__main__') :
-  
-  print("[INFO] Unit tests for this library will come in a future release.")
+  print("[INFO] Unit tests for the package <binary.py> will come in a future release.")
+
 
 

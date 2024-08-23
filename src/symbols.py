@@ -37,22 +37,22 @@ CONSTANTS = [
 ]
 
 FUNCTIONS = [
-  {"name": "id",    "nArgs": 1},
-  {"name": "opp",   "nArgs": 1},
-  {"name": "sin",   "nArgs": 1},
-  {"name": "cos",   "nArgs": 1},
-  {"name": "tan",   "nArgs": 1},
-  {"name": "exp",   "nArgs": 1},
-  {"name": "ln",    "nArgs": 1},
-  {"name": "log10", "nArgs": 1},
-  {"name": "logN",  "nArgs": 2},
-  {"name": "abs",   "nArgs": 1},
-  {"name": "sqrt",  "nArgs": 1},
-  {"name": "floor", "nArgs": 1},
-  {"name": "ceil",  "nArgs": 1},
-  {"name": "round", "nArgs": 1},
-  {"name": "Q",     "nArgs": 2},
-  {"name": "sinc",  "nArgs": 1}
+  {"name": "id",    "nArgs": 1, "dispStr": "Identity"},
+  {"name": "opp",   "nArgs": 1, "dispStr": "Opposite"},
+  {"name": "sin",   "nArgs": 1, "dispStr": "Sine"},
+  {"name": "cos",   "nArgs": 1, "dispStr": "Cosine"},
+  {"name": "tan",   "nArgs": 1, "dispStr": "Tangent"},
+  {"name": "exp",   "nArgs": 1, "dispStr": "Exponential"},
+  {"name": "ln",    "nArgs": 1, "dispStr": "Natural log"},
+  {"name": "log10", "nArgs": 1, "dispStr": "Log base 10"},
+  {"name": "logN",  "nArgs": 2, "dispStr": "Log base N"},
+  {"name": "abs",   "nArgs": 1, "dispStr": "Abs value"},
+  {"name": "sqrt",  "nArgs": 1, "dispStr": "Square root"},
+  {"name": "floor", "nArgs": 1, "dispStr": "Floor"},
+  {"name": "ceil",  "nArgs": 1, "dispStr": "Ceil"},
+  {"name": "round", "nArgs": 1, "dispStr": "Round"},
+  {"name": "Q",     "nArgs": 2, "dispStr": "Quantise"},
+  {"name": "sinc",  "nArgs": 1, "dispStr": "Sinc"}
 ]
 
 INFIX = [
@@ -191,19 +191,19 @@ class Token :
     """
     return self.dispStr
   
-  
-  
   def __repr__(self) :
     """
     Defines the behaviour of print([tokenObj1, tokenObj2])
     """
     return self.dispStr
 
+  def getOverviewStr(self) :
+    return self.name
 
 
-# -----------------------------------------------------------------------------
+
+# =============================================================================
 # Main (unit tests)
-# -----------------------------------------------------------------------------
+# =============================================================================
 if (__name__ == '__main__') :
-  
-  print("[INFO] No unit tests available for this library.")
+  print("[INFO] There are no unit tests available for the package <symbols.py>")
