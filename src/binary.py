@@ -301,7 +301,8 @@ class Binary :
     nNodes = len(self.stack)
     
     # Detect a "-..." pattern.
-    # STEP 1: detect the pattern on the own stack
+    # STEP 1: detect the pattern in the stack
+    
     # Using the "-" in the context of rule [7.1] requires at least 2 elements.
     # Example: "-x"
     if (nNodes >= 2) : 
@@ -310,7 +311,7 @@ class Binary :
           self.stack = [symbols.Token("0")] + self.stack
           print("[DEBUG] Added an implicit zero.")
 
-    # STEP 2: detect the pattern recursively on the macroleaves
+    # STEP 2: detect the pattern recursively in the macroleaves
     # for node in self.stack :
     #   if (node.type == "MACRO") :
     #     node._explicitZeros()

@@ -66,23 +66,52 @@
 # The following priorities have been defined based on what feels the most "natural"
 # interpretation. 
 # In case of ambiguity, a warning is raised.
-# [R5.1]  "1X"     -> 1*var("X")                 See R2.
-# [R5.2]  "1.0X"   -> 1.0*var("X")               See R2.
-# [R5.3]  "X2"     -> var("X2")                  Perfectly OK: typical case of variable suffixing.
-# [R5.4]  "X_2"    -> var("X_2")                 Same as R5.3
-# [R5.5]  "X2.0    -> var("X")*2.0               A bit odd, but the most plausible meaning.
-# [R5.6]  "X3Y"    -> var("X3")*var("Y")   or    | Behaviour can be defined with the TBD attribute.
-#                     var("X3Y")                 | In both cases, it raises a warning.
-# [R5.7]  "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
-# [R5.8]  "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
-# [R5.9]  "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
-# [R5.10] "pixel"  -> var("pixel")               The variable as a whole is more likely than a const/variables product.
-#                                                Otherwise, why not even "p*i*x*e*l"?
+# [R5.1] "pixel"      -> var("pixel")             The variable as a whole is more likely than a product of smaller variables/const.
+#                                                 Why not even "p*i*x*e*l", "pi*x*e*l", "p*ixel", etc.
 
-# [R5.11] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here
-# [R5.12] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
-#                                                See also [R5.9]
-# [R5.13] "ipi"    -> var("ipi")                 Same as [R5.12]
+# Rules for prefixing digit/number:
+# [R5.2]  "1X"        -> 1*var("X")               A variable cannot start with a digit (rule R2)
+# [R5.3]  "1_X"       -> 1*var("_X")              Same as R5.2
+# [R5.4]  "1.0X"      -> 1.0*var("X")             Same as R5.2
+# [R5.5]  "1.0_X"     -> 1.0*var("_X")            Same as R5.2
+#
+# Rules for suffixing digit/number:
+# [R5.6]  "X2"        -> var("X2")                Typical case of variable suffixing.
+# [R5.7]  "X_2"       -> var("X_2")               Same as R5.6
+# [R5.8]  "X2.0       -> var("X")*2.0             | A decimal number interrupts the variable parsing.
+#                                                 | A bit odd, but it is probably the most plausible meaning.
+#                                                 | Raises a warning.
+# [R5.9]  "X_2.0      -> var("X_")*2.0            Same as R5.8
+#
+# Rules for characters following suffixing digit/number:
+# [R5.10] "X3Y"       -> var("X3")*var("Y")       | If a variable contains a number, its name can only end with a digit.
+#         "R10C2"     -> var("R10")*var("C2")     |
+#         "C1cos("    -> var("C1")*cos(...        |
+#         "X2cos+3"   -> syntax error!            "cos" is not called according to the rules for functions (R3)
+# [R5.11] "X_3Y"      -> var("X_3")*var("Y")      | Same principle as [R5.10]
+#         "v_21cos("  -> var("v_21")*cos(...      |
+#         "X_2cos("   -> var("X_2")*cos(...       |
+# [R5.12] "X2.0cos("  -> var("X")*2.0*cos(...     Consistent with R5.8
+# [R5.13] "X_2.0cos(" -> var("X_")*2.0*cos(...    Consistent with R5.9
+# [R5.14] "R1_Y*pi"   -> var("R1_Y")*pi           | An underscore can escape 
+#         "x_1_2_Y*4" -> var("x_1_2_Y")*4         | 
+#         "X_3.0_Y"    -> var("X_")*3.0*var("_Y")
+
+
+# Consequences:
+# "X_3.1Y" -> var("X_")*3.1"*var("Y")           Consequence of rule R5.9
+
+
+
+# [R5.8]  "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
+# [R5.9]  "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
+# [R5.10] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
+
+
+# [R5.12] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here.
+# [R5.13] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
+#                                                See also [R5.10]
+# [R5.14] "ipi"    -> var("ipi")                 Same as [R5.13]
 #
 # [R6] INFIX OPERATOR NAME
 # The super common ones (+, -, /, *, ...) along with exotic ones ('//') are already included.
@@ -956,6 +985,7 @@ if (__name__ == '__main__') :
   assert(consumeNumber("6.280 sin(y") == ("6.280", " sin(y"))
   assert(consumeNumber(" 64") == ("", " 64"))
   assert(consumeNumber("x86") == ("", "x86"))
+  assert(consumeNumber("3_x") == ("3", "_x"))     # Rule R5.4
   print("- Passed: <consumeNumber>")
 
   assert(consumeFunc("sina") == ("", "sina"))
@@ -968,12 +998,24 @@ if (__name__ == '__main__') :
   print("- Passed: <consumeFunc>")
 
   assert(consumeVar("bonjour") == ("bonjour", ""))
-  assert(consumeVar("3x") == ("", "3x"))
-  assert(consumeVar("x_2*3") == ("x_2", "*3"))
+  assert(consumeVar("_var1") == ("_var1", ""))
+  assert(consumeVar("3x") == ("", "3x"))          # Rule R5.2
+  assert(consumeVar("3_x") == ("", "3_x"))        # Rule R5.3
+  assert(consumeVar("3.14x") == ("", "3.14x"))    # Rule R5.4
+  assert(consumeVar("3.14_x") == ("", "3.14_x"))  # Rule R5.5
+  assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))          # Rule R5.6
+  assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))      # Rule R5.7
+  assert(consumeVar("onigiri_3.14*pi") == ("onigiri_", "3.14*pi"))  # Rule R5.8
   assert(consumeVar("x_23//4") == ("x_23", "//4"))
-  assert(consumeVar("x2.3") == ("x", "2.3"))            # Raises a warning
   assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
-  # assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5.6 and needs a fix
+  assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
+  assert(consumeVar("R1*3") == ("R1", "*3"))
+  assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
+  assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
+  assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))      # Rule R5.X
+  assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
+  assert(consumeVar("var5_3cos(x)") == ("var5_3cos", "(x)"))
+  assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5._ and needs a fix
   assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
@@ -990,7 +1032,17 @@ if (__name__ == '__main__') :
   print("- Passed: <consumeInfix>")
   
   # TODO: check some tokenisations
-  tokenList = tokenise("1+2*pi*R1*C1")
+  tokenList = [
+    "1X",
+    "3.14X",
+    "1_x",
+    "1.0_x",
+    "R1",
+    "R_1",
+    "R1.0",
+    "R_1.0",
+    "1+2*pi*R1*C1"
+  ]
   print("- TODO: <tokenise>")
   
   # TODO: trigger all the error cases in "secondOrderCheck"
@@ -1001,12 +1053,8 @@ if (__name__ == '__main__') :
   VERBOSE_MODE = True
 
 
-  
-
-
-
   testVect = [
-    "-u^-3cos(2*pi*v + 1) + 2^0.1x",
+    "-u^-3cos(-phi0 +2*pi*v + 1) + 2^0.1x",
     "2x*cos(3.1415t-1.)^3",
     "Q(-3t,0.1)+1",
     "-2x*cos(pi*t-1//R2)", 
