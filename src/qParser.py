@@ -93,9 +93,9 @@
 #         "X_2cos("   -> var("X_2")*cos(...       |
 # [R5.12] "X2.0cos("  -> var("X")*2.0*cos(...     Consistent with R5.8
 # [R5.13] "X_2.0cos(" -> var("X_")*2.0*cos(...    Consistent with R5.9
-# [R5.14] "R1_Y*pi"   -> var("R1_Y")*pi           | An underscore can escape 
+# [R5.14] "R1_Y*pi"   -> var("R1_Y")*pi           | An underscore allows more complex variable names, even after a digit.
 #         "x_1_2_Y*4" -> var("x_1_2_Y")*4         | 
-#         "X_3.0_Y"    -> var("X_")*3.0*var("_Y")
+# [R5.15] "X_3.0_Y"    -> var("X_")*3.0*var("_Y") Raises a warning
 
 
 # Consequences:
@@ -594,56 +594,83 @@ def consumeVar(inputStr) :
   OUTPUT_FAILURE = ("", inputStr)
   reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
 
+  (
+    FSM_INIT, 
+    FSM_FAIL1,
+    FSM_FAIL2,
+    FSM_FAIL3,
+    FSM_FAIL4,
+    FSM_I,
+    FSM_II,
+    FSM_III
+  ) = range(8)
+  
   # Rule [R2]: a variable must start with a letter or an underscore
   if not(utils.isAlpha(inputStr[0]) or (inputStr[0] == "_")) :
     return ("", inputStr)
 
-  output = (-1, "")
-  for n in range(1, len(inputStr)+1) :
-    (head, tail) = utils.split(inputStr, n)
-    
-    # End of string reached
-    if (n == len(inputStr)) :
-      output = (head, "")
-      break
-    
-    # There are remaining characters to process
-    else :
-      nextChar = tail[0]
 
-      # Coming next: letter or '_'
-      if (utils.isAlpha(nextChar) or (nextChar == "_")) :
-        pass
-
-      # Coming next: digit
-      elif utils.isDigit(nextChar) :
-        (nbr, _) = consumeNumber(tail)
-      
-        # Number with decimal point: apply rule [R5.5]
-        if ("." in nbr) :
-          if VERBOSE_MODE : 
-            print("[WARNING] Odd syntax: variable prefixed with a fractional number. Please double check the interpretation.")
-          output = (head, tail)
-          break
-          
-        # Number without decimal point: apply rule [R5.3]
-        else :
-          pass
-
-      # Coming next: anything else
-      else :
-        output = (head, tail)
-        break
-
-  (var, _) = output
-  if not(var in reservedNames) :
-    return output
   
-  elif (var == -1) :
-    print("[ERROR] Internal error.")
+    
 
-  else :
-    return OUTPUT_FAILURE
+  state = FSM_INIT
+  stateNext = FSM_INIT
+
+
+  for (n, c) in enumerate(inputStr) :
+    if (n == len(inputStr)) :
+      lastChar = True
+      
+      if (state == FSM_INIT) :
+        if (c == "_") :
+          stateNext = FSM_I
+        elif utils.isAlpha(c) :
+
+
+
+
+  #   # End of string reached
+  #   if (n == len(inputStr)) :
+  #     output = (head, "")
+  #     break
+    
+  #   # There are remaining characters to process
+  #   else :
+  #     nextChar = tail[0]
+
+  #     # Coming next: letter or '_'
+  #     if (utils.isAlpha(nextChar) or (nextChar == "_")) :
+  #       pass
+
+  #     # Coming next: digit
+  #     elif utils.isDigit(nextChar) :
+  #       (nbr, _) = consumeNumber(tail)
+      
+  #       # Number with decimal point: apply rule [R5.5]
+  #       if ("." in nbr) :
+  #         if VERBOSE_MODE : 
+  #           print("[WARNING] Odd syntax: variable prefixed with a fractional number. Please double check the interpretation.")
+  #         output = (head, tail)
+  #         break
+          
+  #       # Number without decimal point: apply rule [R5.3]
+  #       else :
+  #         pass
+
+  #     # Coming next: anything else
+  #     else :
+  #       output = (head, tail)
+  #       break
+
+  # (var, _) = output
+  # if not(var in reservedNames) :
+  #   return output
+  
+  # elif (var == -1) :
+  #   print("[ERROR] Internal error.")
+
+  # else :
+  #   return OUTPUT_FAILURE
 
 
 
@@ -974,6 +1001,9 @@ if (__name__ == '__main__') :
   assert(consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
   print("- Passed: <consumeConst>")
 
+  assert(consumeNumber("_1") == ("", "_1"))
+  assert(consumeNumber("_") == ("", "_"))
+  assert(consumeNumber("x") == ("", "x"))
   assert(consumeNumber("42") == ("42", ""))
   assert(consumeNumber("4.2") == ("4.2", ""))
   assert(consumeNumber("4.2.") == ("4.2", "."))
@@ -997,6 +1027,12 @@ if (__name__ == '__main__') :
   assert(consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
   print("- Passed: <consumeFunc>")
 
+  assert(consumeVar("x") == ("x", ""))
+  assert(consumeVar("1") == ("", "1"))
+  assert(consumeVar("_") == ("", "_"))
+  assert(consumeVar(".") == ("", "."))
+  assert(consumeVar("_1") == ("", "_1"))
+  assert(consumeVar("_a") == ("_a", ""))
   assert(consumeVar("bonjour") == ("bonjour", ""))
   assert(consumeVar("_var1") == ("_var1", ""))
   assert(consumeVar("3x") == ("", "3x"))          # Rule R5.2
