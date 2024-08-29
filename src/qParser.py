@@ -213,6 +213,7 @@
 # External libs
 # =============================================================================
 from commons import *
+from enum import Enum
 
 import binary
 import symbols
@@ -594,83 +595,155 @@ def consumeVar(inputStr) :
   OUTPUT_FAILURE = ("", inputStr)
   reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
 
-  (
-    FSM_INIT, 
-    FSM_FAIL1,
-    FSM_FAIL2,
-    FSM_FAIL3,
-    FSM_FAIL4,
-    FSM_I,
-    FSM_II,
-    FSM_III
-  ) = range(8)
+  class fsmState(Enum) :
+    INIT = 0
+    UNDERSCORE_FIRST = 1
+    PROC = 2
+    PROC_NUM = 3
   
-  # Rule [R2]: a variable must start with a letter or an underscore
-  if not(utils.isAlpha(inputStr[0]) or (inputStr[0] == "_")) :
+  if (inputStr == "") :
     return ("", inputStr)
 
-
-  
-    
-
-  state = FSM_INIT
-  stateNext = FSM_INIT
-
+  state = fsmState.INIT
+  stateNext = fsmState.INIT
+  splitPoint = 0; splitPointBeforeNum = 0
 
   for (n, c) in enumerate(inputStr) :
-    if (n == len(inputStr)) :
-      lastChar = True
-      
-      if (state == FSM_INIT) :
-        if (c == "_") :
-          stateNext = FSM_I
-        elif utils.isAlpha(c) :
-
-
-
-
-  #   # End of string reached
-  #   if (n == len(inputStr)) :
-  #     output = (head, "")
-  #     break
+    lastChar = (n == (len(inputStr)-1))
+    splitPointCurr = n+1
     
-  #   # There are remaining characters to process
-  #   else :
-  #     nextChar = tail[0]
-
-  #     # Coming next: letter or '_'
-  #     if (utils.isAlpha(nextChar) or (nextChar == "_")) :
-  #       pass
-
-  #     # Coming next: digit
-  #     elif utils.isDigit(nextChar) :
-  #       (nbr, _) = consumeNumber(tail)
+    # -----------------------------------------------------------------------
+    # State: INIT
+    # -----------------------------------------------------------------------
+    if (state == fsmState.INIT) :
+      if lastChar :
+        if utils.isAlpha(c) :
+          splitPoint = splitPointCurr
+        
+        elif utils.isDigit(c) :
+          print(f"[DEBUG] BRK01, '{inputStr}': a number cannot be a variable.")
+          return ("", inputStr)
+        
+        else :
+          print(f"[DEBUG] BRK02, '{inputStr}': '{c}' cannot be a variable.")
+          return ("", inputStr)
       
-  #       # Number with decimal point: apply rule [R5.5]
-  #       if ("." in nbr) :
-  #         if VERBOSE_MODE : 
-  #           print("[WARNING] Odd syntax: variable prefixed with a fractional number. Please double check the interpretation.")
-  #         output = (head, tail)
-  #         break
+      else :      
+        if utils.isAlpha(c) :
+          splitPoint = splitPointCurr
+          stateNext = fsmState.PROC
+        
+        elif utils.isDigit(c) :
+          print(f"[DEBUG] BRK03, '{inputStr}': a variable cannot start with a number.")
+          return ("", inputStr)
+
+        elif (c == "_") :
+          splitPoint = splitPointCurr
+          stateNext = fsmState.UNDERSCORE_FIRST
+      
+        else :
+          print(f"[DEBUG] BRK04: a variable cannot start with '{c}'.")
+          return ("", inputStr)
+
+    # -----------------------------------------------------------------------
+    # State: FSM_UNDERSCORE_FIRST
+    # -----------------------------------------------------------------------
+    elif (state == fsmState.UNDERSCORE_FIRST) :
+      if lastChar :
+        if (utils.isDigit(c) or (c == "_")) :
+          print(f"[DEBUG] BRK05, '{inputStr}': a variable cannot be purely made of a combination of underscores and digits.")
+          return ("", inputStr)
+        
+        elif utils.isAlpha(c) :
+          splitPoint = splitPointCurr
           
-  #       # Number without decimal point: apply rule [R5.3]
-  #       else :
-  #         pass
+        else :
+          print(f"[DEBUG] BRK06, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          return ("", inputStr)
+      
+      else :
+        if (utils.isDigit(c) or (c == "_")) :
+          splitPoint = splitPointCurr
+        
+        elif utils.isAlpha(c) :
+          splitPoint = splitPointCurr
+          stateNext = fsmState.PROC
+          
+        else :
+          print(f"[DEBUG] BRK07, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          return ("", inputStr)
+          
+    # -----------------------------------------------------------------------
+    # State: FSM_PROC
+    # -----------------------------------------------------------------------
+    elif (state == fsmState.PROC) :
+      if lastChar :
+        if (utils.isAlpha(c) or utils.isDigit(c) or (c == "_")) :
+          splitPoint = splitPointCurr
+          
+        else :
+          print(f"[DEBUG] BRK08, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          return utils.split(inputStr, splitPoint)
+      
+      else :        
+        if (utils.isAlpha(c) or (c == "_")) :
+          splitPoint = splitPointCurr
 
-  #     # Coming next: anything else
-  #     else :
-  #       output = (head, tail)
-  #       break
+        elif utils.isDigit(c) :
+          #splitPoint = n+1   // At this point, we do not know yet if the number is included to the variable [R5.8]
+          splitPointBeforeNum = splitPointCurr-1
+          stateNext = fsmState.PROC_NUM
+          
+        else :
+          print(f"[DEBUG] BRK09, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          return utils.split(inputStr, splitPoint)
+        
+    # -----------------------------------------------------------------------
+    # State: FSM_PROC_NUM
+    # -----------------------------------------------------------------------
+    elif (state == fsmState.PROC_NUM) :
+      if lastChar :
+        if (utils.isAlpha(c) or utils.isDigit(c) or (c == "_")) :
+          splitPoint = splitPointCurr
+          
+        elif (c == ".") :
+          print(f"[DEBUG] BRK10, '{inputStr}': a decimal number interrupts the parsing of a variable.")
+          splitPoint = splitPointBeforeNum
+          return utils.split(inputStr, splitPoint)
+          
+        else :
+          print(f"[DEBUG] BRK11, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          splitPoint = splitPointCurr-1
+          return utils.split(inputStr, splitPoint)
+      
+      else :
+        if utils.isDigit(c) :
+          pass
+        
+        elif (c == ".") :
+          print(f"[DEBUG] BRK12, '{inputStr}': a decimal number interrupts the parsing of a variable.")
+          splitPoint = splitPointBeforeNum
+          return utils.split(inputStr, splitPoint)
+        
+        elif (utils.isAlpha(c) or (c == "_")) :
+          splitPoint = splitPointCurr
+          stateNext = fsmState.PROC
+          
+        else :
+          print(f"[DEBUG] BRK13, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          splitPoint = splitPointCurr-1
+          return utils.split(inputStr, splitPoint)
 
-  # (var, _) = output
-  # if not(var in reservedNames) :
-  #   return output
-  
-  # elif (var == -1) :
-  #   print("[ERROR] Internal error.")
 
-  # else :
-  #   return OUTPUT_FAILURE
+    state = stateNext
+
+
+
+
+  # TODO: reject if it is a reserved name
+
+
+  return utils.split(inputStr, splitPoint)
 
 
 
@@ -1033,6 +1106,7 @@ if (__name__ == '__main__') :
   assert(consumeVar(".") == ("", "."))
   assert(consumeVar("_1") == ("", "_1"))
   assert(consumeVar("_a") == ("_a", ""))
+  assert(consumeVar("a_") == ("a_", ""))
   assert(consumeVar("bonjour") == ("bonjour", ""))
   assert(consumeVar("_var1") == ("_var1", ""))
   assert(consumeVar("3x") == ("", "3x"))          # Rule R5.2
@@ -1042,8 +1116,13 @@ if (__name__ == '__main__') :
   assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))          # Rule R5.6
   assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))      # Rule R5.7
   assert(consumeVar("onigiri_3.14*pi") == ("onigiri_", "3.14*pi"))  # Rule R5.8
+  assert(consumeVar("x_2//4") == ("x_2", "//4"))
   assert(consumeVar("x_23//4") == ("x_23", "//4"))
-  assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning (this input is seriously odd)
+  assert(consumeVar("x_123456//7") == ("x_123456", "//7"))
+  assert(consumeVar("x_3.0+ 1") == ("x_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
+  assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning
+  assert(consumeVar("x_1.+ 1") == ("x_", "1.+ 1"))     # Raises a warning
+  assert(consumeVar("x_12.*3") == ("x_", "12.*3"))      # Raises a warning
   assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
   assert(consumeVar("R1*3") == ("R1", "*3"))
   assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
@@ -1055,8 +1134,6 @@ if (__name__ == '__main__') :
   assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
-  assert(consumeVar("_a") == ("_a", ""))
-  assert(consumeVar("_a") == ("_a", ""))
   print("- Passed: <consumeVar>")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
