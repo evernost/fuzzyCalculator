@@ -285,3 +285,9 @@ class Macroleaf :
 
 
 
+# =============================================================================
+# Main (unit tests)
+# =============================================================================
+if (__name__ == '__main__') :
+  print("[INFO] Unit tests for the package 'macroleaf.py' will come in a future release.")
+

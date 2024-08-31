@@ -267,7 +267,6 @@ class Binary :
   # ---------------------------------------------------------------------------
   def _balanceMinus(self) :
     """
-    DESCRIPTION
     Detects the minus signs used as a shortcut for the 'opposite' function.
     Takes as input a Binary object, edits its stack so that it has full expansion
     of the 'minus' infix operators.
@@ -281,22 +280,30 @@ class Binary :
 
     Please refer to rules [R7.X] in <parser.py>
 
-    The process is done recursively on the Binary objects integrated within 
+    The process is done recursively on the Binary objects embedded inside 
     macroleaves.
-
-    EXAMPLES
-    todo
     """
     
     self._explicitZeros()   # Add zeros when implicit (rule [7.1])
     self._minusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
-    
+
   
   # ---------------------------------------------------------------------------
   # METHOD: Binary._explicitZeros()
   # ---------------------------------------------------------------------------
   def _explicitZeros(self) :
+    """
+    Adds a "0" Token to the stack (i.e. a list of tokens) every time the minus sign "-" 
+    is meant as the "opposite" function (e.g. "-2+3x" -> "0-2+3x")
+    
+    Function operates recursively 
+    
+    It is highly recommended to let the "_balanceMinus" function do the calling 
+    to "_explicitZeros" instead of calling it manually.
+    
+    See "_balanceMinus" for more information.
+    """
     
     nNodes = len(self.stack)
     
@@ -720,7 +727,7 @@ class Binary :
 # Main (unit tests)
 # =============================================================================
 if (__name__ == '__main__') :
-  print("[INFO] Unit tests for the package <binary.py> will come in a future release.")
+  print("[INFO] Unit tests for the package 'binary.py' will come in a future release.")
 
 
 

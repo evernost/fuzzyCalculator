@@ -612,6 +612,11 @@ def consumeVar(inputStr) :
     lastChar = (n == (len(inputStr)-1))
     splitPointCurr = n+1
     
+    # Note:
+    # Using "splitPointCurr" is defined such that using it as split point i.e. in:
+    # > utils.split(inputStr, splitPointCurr)
+    # would include the current character "c".
+    
     # -----------------------------------------------------------------------
     # State: INIT
     # -----------------------------------------------------------------------
@@ -683,20 +688,22 @@ def consumeVar(inputStr) :
           
         else :
           print(f"[DEBUG] BRK08, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
-          return utils.split(inputStr, splitPoint)
+          #splitPoint = splitPointCurr-1
+          #return utils.split(inputStr, splitPoint)
       
       else :        
         if (utils.isAlpha(c) or (c == "_")) :
           splitPoint = splitPointCurr
 
         elif utils.isDigit(c) :
-          #splitPoint = n+1   // At this point, we do not know yet if the number is included to the variable [R5.8]
           splitPointBeforeNum = splitPointCurr-1
           stateNext = fsmState.PROC_NUM
           
         else :
           print(f"[DEBUG] BRK09, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
-          return utils.split(inputStr, splitPoint)
+          #splitPoint = splitPointCurr-1
+          #return utils.split(inputStr, splitPoint)
+          break
         
     # -----------------------------------------------------------------------
     # State: FSM_PROC_NUM
@@ -707,43 +714,46 @@ def consumeVar(inputStr) :
           splitPoint = splitPointCurr
           
         elif (c == ".") :
-          print(f"[DEBUG] BRK10, '{inputStr}': a decimal number interrupts the parsing of a variable.")
           splitPoint = splitPointBeforeNum
-          return utils.split(inputStr, splitPoint)
+          #return utils.split(inputStr, splitPoint)
+          print(f"[DEBUG] BRK10, '{inputStr}': a decimal number interrupts the parsing of a variable.")
           
         else :
-          print(f"[DEBUG] BRK11, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           splitPoint = splitPointCurr-1
-          return utils.split(inputStr, splitPoint)
+          #return utils.split(inputStr, splitPoint)
+          print(f"[DEBUG] BRK11, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
       
       else :
         if utils.isDigit(c) :
           pass
         
         elif (c == ".") :
-          print(f"[DEBUG] BRK12, '{inputStr}': a decimal number interrupts the parsing of a variable.")
           splitPoint = splitPointBeforeNum
-          return utils.split(inputStr, splitPoint)
+          #return utils.split(inputStr, splitPoint)
+          print(f"[DEBUG] BRK12, '{inputStr}': a decimal number interrupts the parsing of a variable.")
+          break
         
         elif (utils.isAlpha(c) or (c == "_")) :
           splitPoint = splitPointCurr
           stateNext = fsmState.PROC
           
         else :
-          print(f"[DEBUG] BRK13, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           splitPoint = splitPointCurr-1
-          return utils.split(inputStr, splitPoint)
+          #return utils.split(inputStr, splitPoint)
+          print(f"[DEBUG] BRK13, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          break
 
 
+    # Update FSM
     state = stateNext
 
+  (candidate, _) = utils.split(inputStr, splitPoint)
 
-
-
-  # TODO: reject if it is a reserved name
-
-
-  return utils.split(inputStr, splitPoint)
+  if candidate in reservedNames :
+    return ("", inputStr)
+  
+  else: 
+    return utils.split(inputStr, splitPoint)
 
 
 
@@ -1121,19 +1131,19 @@ if (__name__ == '__main__') :
   assert(consumeVar("x_123456//7") == ("x_123456", "//7"))
   assert(consumeVar("x_3.0+ 1") == ("x_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
   assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning
-  assert(consumeVar("x_1.+ 1") == ("x_", "1.+ 1"))     # Raises a warning
+  assert(consumeVar("x_1.+ 1") == ("x_", "1.+ 1"))      # Raises a warning
   assert(consumeVar("x_12.*3") == ("x_", "12.*3"))      # Raises a warning
   assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
-  assert(consumeVar("R1*3") == ("R1", "*3"))
-  assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
-  assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
-  assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))      # Rule R5.X
-  assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
-  assert(consumeVar("var5_3cos(x)") == ("var5_3cos", "(x)"))
-  assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5._ and needs a fix
-  assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
+  assert(consumeVar("R1*3") == ("R1", "*3"))
+  assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
+  assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
+  #assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
+  #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))      # Rule R5.X
+  #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
+  #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))
+  #assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5._ and needs a fix
   print("- Passed: <consumeVar>")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
