@@ -198,6 +198,9 @@ class Token :
     return self.dispStr
 
   def getOverviewStr(self) :
+    """
+    todo
+    """
     return self.name
 
 

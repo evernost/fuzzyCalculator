@@ -78,10 +78,10 @@ class Binary :
   L("...") is a leaf
   M("fun"; ...) is a Macroleaf applying the function "fun" to its internal Binary objects.
   
-  Once in the 'L op L op ... L' form (i.e. 'flattened') it makes processing easier.
-  - Nesting (functions, parenthesis) is abstracted by the Macroleaves, processing can
+  Once in the "flattened form" i.e. 'L op L op ... L', the processing is much easier.
+  - Nesting (functions, parenthesis) is abstracted by the Macroleaves: processing can
   be done recursively.
-  - Identifying the operators with higher precedence is easier
+  - Identifying the operators with higher precedence is easier.
   - Evaluating the expression is much simpler too.
   
   USAGE
@@ -112,7 +112,7 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary.__init__ (constructor)
   # ---------------------------------------------------------------------------
-  def __init__(self, tokenList = []) :
+  def __init__(self, tokenList = [], context = "TOP") :
     """
     Creates a Binary object and initialises it from a list of Tokens.
     Takes a list of Tokens as input, returns a Binary object as output.
@@ -131,9 +131,9 @@ class Binary :
     self.lookUpTable = {}
 
     if (len(tokenList) >= 1) :
-      self.context = "TOP"
-      
-      ret = self._buildStack(tokenList)
+      self.context = context
+     
+      self.status = self._buildStack(tokenList)
       self._balanceMinus()
 
       self.nNodes = len(self.stack)
@@ -141,12 +141,12 @@ class Binary :
       self.nOps = 0
     
     # Init with empty list of tokens. 
-    # Happens in Macroleaves
     else :
-      self.context = "SUB"      
-      self.nNodes = 0
-      self.nLeaf = 0
-      self.nOps = 0
+      print("[DEBUG] Warning: this section is not supposed to be called.")
+      # self.context = "SUB"      
+      # self.nNodes = 0
+      # self.nLeaf = 0
+      # self.nOps = 0
       
 
 
@@ -182,7 +182,7 @@ class Binary :
     buffer = tokenList.copy()
 
     while (len(buffer) > 0) :
-      nTokens = len(buffer); print(f"[DEBUG] nTokens = {nTokens}")
+      nTokens = len(buffer)
       
       if (nTokens > 1) :
         (T, tail) = (buffer[0], buffer[1:])
@@ -273,7 +273,7 @@ class Binary :
     
     Returns: None.
     
-    For that purpose, the function can:
+    The balancing is done by two means:
     - explicit the hidden '0' to balance the infix '-' operator
     - replace the infix operator and its operand with a macroleaf calling the 'opp'
       function.
@@ -294,13 +294,18 @@ class Binary :
   # ---------------------------------------------------------------------------
   def _explicitZeros(self) :
     """
-    Adds a "0" Token to the stack (i.e. a list of tokens) every time the minus sign "-" 
-    is meant as the "opposite" function (e.g. "-2+3x" -> "0-2+3x")
-    
-    Function operates recursively 
-    
-    It is highly recommended to let the "_balanceMinus" function do the calling 
+    Adds a "0" Token to the stack every time the minus sign "-" 
+    is meant as the 'opposite' function in the beginning of an expression 
+    e.g. "-2+3x" -> "0-2+3x"
+
+    The function operates on the "stack" property directly.
+
+    Cases like "2^-4" are treated in "_minusAsOpp".
+
+    It is highly recommended to let the constructor "__init__" do the calling 
     to "_explicitZeros" instead of calling it manually.
+    In particular, it does the processing recursively so that it applies properly
+    to all the nested stacks (e.g. in Macroleaves)
     
     See "_balanceMinus" for more information.
     """
@@ -331,6 +336,19 @@ class Binary :
   # METHOD: Binary._minusAsOpp()
   # ---------------------------------------------------------------------------
   def _minusAsOpp(self) :
+    """
+    Replaces the minus signs '-' with a Macroleaf expansion with function 'opp'.
+    e.g. "2^-4" -> "2^Macro"
+    
+    The function operates on the 'stack' property directly.
+
+    It is highly recommended to let the constructor "__init__" do the calling 
+    to "_minusAsOpp" instead of calling it manually.
+    In particular, it does the processing recursively so that it applies properly
+    to all the nested stacks (e.g. in Macroleaves)
+    
+    See "_balanceMinus" for more information.
+    """
     
     nElements = len(self.stack)
     
@@ -397,13 +415,12 @@ class Binary :
       self.stack = newStack
 
     # Less than 4 elements
-    # There is nothing to be expanded in the stack, but there might in the macroleaves.
+    # There is nothing to be expanded in the stack.
     else :
-      for elt in self.stack :
-        if (elt.type == "MACRO") :
-          elt._minusAsOpp()
-      
-      
+      pass
+      # for elt in self.stack :
+        # if (elt.type == "MACRO") :
+          # elt._minusAsOpp()
       
     return None
 
@@ -414,40 +431,35 @@ class Binary :
   # ---------------------------------------------------------------------------
   def nest(self) :
     """
-    DESCRIPTION
     Simplifies the stack to an expression involving operators with lowest priority
     only.
-    Operators with high priority are stored in a Macroleaf
     
+    Rewriting is done by repeatingly isolating away the operators of higher priority
+    and their operands in a Macroleaf.
+
     It does not assume commutativity of the infix operators.
 
     Associativity strategy are detailed in [R10].
     
     Note: minus signs '-' must have been balanced prior to calling this function
     (function <balanceMinus>)
-
-    EXAMPLES
-    todo
     """
     
-    nElements = len(self.stack)
+    # CHECK 1: number of nodes must be even.
+    if ((nNodes % 2) == 0) :
+      print("[ERROR] nNodes shall be even at that point!")
 
-    
-    # CHECK 1: is the number of elements odd?
-    if ((nElements % 2) == 0) :
-      print(f"[ERROR] nElements should be odd at that point!")
-
-    # CHECK 2: is it a pattern of alternating (macro)leaf and operators?
+    # CHECK 2: nodes in the stack (top level and macros) must follow a 'L op L ... op L' pattern
     nInfix = 0
     for (n, element) in enumerate(self.stack) :        
       if ((n % 2) == 0) :
         if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
-          print("[ERROR] The expression to flatten must follow the pattern [L op L op ...]")
+          print("[ERROR] The expression to nest must follow the pattern [L op L op ...]")
           exit()
 
       else :
         if (element.type != "INFIX") :
-          print("[ERROR] The expression to flatten must follow the pattern [L op L op ...]")
+          print("[ERROR] The expression to nest must follow the pattern [L op L op ...]")
           exit()
 
         else :
@@ -712,10 +724,8 @@ class Binary :
   def __str__(self) :
     return str(self.stack)
   
-  
   def __repr__(self) :
     return str(self.stack)
-  
   
   def getOverviewStr(self) :
     s = [t.getOverviewStr() for t in self.stack]

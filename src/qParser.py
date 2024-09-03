@@ -101,17 +101,15 @@
 # Consequences:
 # "X_3.1Y" -> var("X_")*3.1"*var("Y")           Consequence of rule R5.9
 
+# To be classified
+# [R5.__] "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
+# [R5.__] "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
+# [R5.__] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
 
-
-# [R5.8]  "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
-# [R5.9]  "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
-# [R5.10] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
-
-
-# [R5.12] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here.
-# [R5.13] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
+# [R5.__] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here.
+# [R5.__] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
 #                                                See also [R5.10]
-# [R5.14] "ipi"    -> var("ipi")                 Same as [R5.13]
+# [R5.__] "ipi"    -> var("ipi")                 Same as [R5.13]
 #
 # [R6] INFIX OPERATOR NAME
 # The super common ones (+, -, /, *, ...) along with exotic ones ('//') are already included.
@@ -225,6 +223,7 @@ import utils
 # Constant pool
 # =============================================================================
 VERBOSE_MODE = True
+DEBUG_MODE = False
 
 
 
@@ -626,11 +625,13 @@ def consumeVar(inputStr) :
           splitPoint = splitPointCurr
         
         elif utils.isDigit(c) :
-          print(f"[DEBUG] BRK01, '{inputStr}': a number cannot be a variable.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK01, '{inputStr}': a number cannot be a variable.")
           return ("", inputStr)
         
         else :
-          print(f"[DEBUG] BRK02, '{inputStr}': '{c}' cannot be a variable.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK02, '{inputStr}': '{c}' cannot be a variable.")
           return ("", inputStr)
       
       else :      
@@ -639,7 +640,8 @@ def consumeVar(inputStr) :
           stateNext = fsmState.PROC
         
         elif utils.isDigit(c) :
-          print(f"[DEBUG] BRK03, '{inputStr}': a variable cannot start with a number.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK03, '{inputStr}': a variable cannot start with a number.")
           return ("", inputStr)
 
         elif (c == "_") :
@@ -647,7 +649,8 @@ def consumeVar(inputStr) :
           stateNext = fsmState.UNDERSCORE_FIRST
       
         else :
-          print(f"[DEBUG] BRK04: a variable cannot start with '{c}'.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK04: a variable cannot start with '{c}'.")
           return ("", inputStr)
 
     # -----------------------------------------------------------------------
@@ -656,14 +659,16 @@ def consumeVar(inputStr) :
     elif (state == fsmState.UNDERSCORE_FIRST) :
       if lastChar :
         if (utils.isDigit(c) or (c == "_")) :
-          print(f"[DEBUG] BRK05, '{inputStr}': a variable cannot be purely made of a combination of underscores and digits.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK05, '{inputStr}': a variable cannot be purely made of a combination of underscores and digits.")
           return ("", inputStr)
         
         elif utils.isAlpha(c) :
           splitPoint = splitPointCurr
           
         else :
-          print(f"[DEBUG] BRK06, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK06, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           return ("", inputStr)
       
       else :
@@ -675,7 +680,8 @@ def consumeVar(inputStr) :
           stateNext = fsmState.PROC
           
         else :
-          print(f"[DEBUG] BRK07, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK07, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           return ("", inputStr)
           
     # -----------------------------------------------------------------------
@@ -687,9 +693,8 @@ def consumeVar(inputStr) :
           splitPoint = splitPointCurr
           
         else :
-          print(f"[DEBUG] BRK08, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
-          #splitPoint = splitPointCurr-1
-          #return utils.split(inputStr, splitPoint)
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK08, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
       
       else :        
         if (utils.isAlpha(c) or (c == "_")) :
@@ -700,9 +705,8 @@ def consumeVar(inputStr) :
           stateNext = fsmState.PROC_NUM
           
         else :
-          print(f"[DEBUG] BRK09, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
-          #splitPoint = splitPointCurr-1
-          #return utils.split(inputStr, splitPoint)
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK09, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           break
         
     # -----------------------------------------------------------------------
@@ -715,22 +719,22 @@ def consumeVar(inputStr) :
           
         elif (c == ".") :
           splitPoint = splitPointBeforeNum
-          #return utils.split(inputStr, splitPoint)
-          print(f"[DEBUG] BRK10, '{inputStr}': a decimal number interrupts the parsing of a variable.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK10, '{inputStr}': a decimal number interrupts the parsing of a variable.")
           
         else :
           splitPoint = splitPointCurr-1
-          #return utils.split(inputStr, splitPoint)
-          print(f"[DEBUG] BRK11, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK11, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
       
       else :
         if utils.isDigit(c) :
           pass
         
         elif (c == ".") :
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK12, '{inputStr}': a decimal number interrupts the parsing of a variable.")
           splitPoint = splitPointBeforeNum
-          #return utils.split(inputStr, splitPoint)
-          print(f"[DEBUG] BRK12, '{inputStr}': a decimal number interrupts the parsing of a variable.")
           break
         
         elif (utils.isAlpha(c) or (c == "_")) :
@@ -738,11 +742,10 @@ def consumeVar(inputStr) :
           stateNext = fsmState.PROC
           
         else :
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK13, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           splitPoint = splitPointCurr-1
-          #return utils.split(inputStr, splitPoint)
-          print(f"[DEBUG] BRK13, '{inputStr}': the character '{c}' interrupts the parsing of a variable.")
           break
-
 
     # Update FSM
     state = stateNext
@@ -849,6 +852,7 @@ def tokenise(inputStr) :
       inputStr = tailFunction
 
     elif (variable != "") :
+      print(f"[DEBUG] Found variable: '{variable}'")
       tokenList.append(symbols.Token(variable))
       inputStr = tailVariable
       
@@ -1045,7 +1049,9 @@ if (__name__ == '__main__') :
   print("[INFO] Library called as main: running unit tests...")
   print()
 
+  # Disable the babbling mode while doing the unit tests
   VERBOSE_MODE = False
+
   assert(sanityCheck("oni_giri*cos(2x+pi") == CHECK_SUCCESS)
   assert(sanityCheck("input Str") == CHECK_SUCCESS)
   assert(sanityCheck("input Str2.1(a+b)|x|") == CHECK_FAILED)
@@ -1173,13 +1179,15 @@ if (__name__ == '__main__') :
   print("- TODO: <secondOrderCheck>")
   
   print()
+  
+  # Restore the babbling mode
   VERBOSE_MODE = True
 
 
   testVect = [
     "-u^-3cos(-phi0 +2*pi*v + 1) + 2^0.1x",
     "2x*cos(3.1415t-1.)^3",
-    "Q(-3t,0.1)+1",
+    "Q(-3t, -0.1+lsb*0.12)+1",
     "-2x*cos(pi*t-1//R2)", 
     "-R3_2.0x*cos(3.1415t-1//R2)",
     "(x+y)(x-2y)",
@@ -1196,7 +1204,7 @@ if (__name__ == '__main__') :
     # STEP 1: rewrite the expression as a list of tokens
     tokenList = tokenise(expr)
     
-    # STEP 2: detect and add the implicit multiplications
+    # STEP 2: detect and add the implicit multiplication tokens
     tokenListFull = explicitMult(tokenList)
     
     # STEP 3: create a binary object from the list of tokens
@@ -1206,7 +1214,7 @@ if (__name__ == '__main__') :
     B.nest()
     
     # STEP 6: evaluate!
-    B.eval()
+    #B.eval()
 
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListFull}")

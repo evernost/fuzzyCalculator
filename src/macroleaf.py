@@ -28,7 +28,6 @@ import math
 
 class Macroleaf :
   """
-  Description
   A Macroleaf <M> is a recursive structure represented as follows:
   
   M = {F, [B1, B2, ..., Bn]]}
@@ -71,32 +70,31 @@ class Macroleaf :
   # ---------------------------------------------------------------------------
   def __init__(self, function, tokenList) :
     """
-    DESCRIPTION
     Creates and initializes a Macroleaf object from a function and a list of Tokens.
     Takes a list of Tokens as input, returns a Macroleaf object as output.
 
-    The <function> argument only requires the name of the function as a string.
+    The "function" argument defines what function shall apply to the evaluation 
+    of the internal Binary object.
+    The argument expects the name of the function as a string.
     No need to create or pass a Token.
 
-    EXAMPLE
+    Then, it processes "tokenList" essentially like "Binary" would.
+
+    Examples:
     M = Macroleaf("exp", someListOfTokens)
     M = Macroleaf("cos", someOtherListOfTokens)
     etc.
     """    
     self.function   = function
     self.nArgs      = symbols.nArgsFromFunctionName(function)
-    self.args       = [binary.Binary() for _ in range(self.nArgs)]
+    self.args       = []
     self.remainder  = []
     self.type       = "MACRO"
 
-    if (len(tokenList) >= 1) :
-      self._buildArgs(tokenList)
-      
-      for n in range(self.nArgs) :
-        self._balanceMinus()
-
-    else :
+    if (len(tokenList) == 0) :
       print("[WARNING] Trying to create a Macroleaf with an empty list of Tokens.")
+      
+    self.status = self._buildArgs(tokenList)
 
 
 
@@ -105,7 +103,6 @@ class Macroleaf :
   # ---------------------------------------------------------------------------
   def _buildArgs(self, tokenList) :
     """
-    DESCRIPTION
     Takes a list of tokens as input, assigns them to each argument of the function 
     and binarises them.
     
@@ -117,29 +114,40 @@ class Macroleaf :
     """
     
     if (len(tokenList) >= 1) :
-      buffer = tokenList
       
+      buffer = tokenList
       for n in range(self.nArgs) :
+        lastArg = (n == self.nArgs-1)
         
-        # Build the stack with the current buffer.
-        # "_buildStack" will automatically stop when encountering the Tokens
+        # Binarise the current buffer.
+        # Binarisation stops automatically when encountering Tokens
         # meant for the next argument.
-        ret = self.args[n]._buildStack(buffer)
-        buffer = self.args[n].remainder
+        self.args.append(binary.Binary(buffer, context = "MACRO"))
+        ret = self.args[n].status
         
+        # Binarisation failed: propagate the status to the upper level.
         if (ret == binary.BINARISE_FAILURE) :
           return binary.BINARISE_FAILURE
         
-        # Error: function expects another argument, but there are no Tokens left.
-        elif ((n < (self.nArgs-1)) and (len(buffer) == 0)) :
+        # Binarisation terminated successfully.
+        # But there is no token left to process, and the top function requires another argument.
+        elif (not(lastArg) and (len(self.args[n].remainder) == 0)) :
+          
+          if (ret != binary.BINARISE_SUCCESS_WITH_REMAINDER) :
+            print("[DEBUG] Error: binarisation returned an incorrect value.")
+          
           print("[ERROR] Internal error: arguments are expected, but there a no Tokens left to process.")
           return binary.BINARISE_FAILURE
         
-        # "_buildStack" terminated succesfully. 
-        # Its remainder is cleared and passed on to the next argument.
+        # Binarisation terminated successfully. 
+        # The remainder of the Binary object in the current argument is cleared
+        # and transferred to the next argument.
         else :
+          buffer = self.args[n].remainder
           self.args[n].remainder = []
-          self.remainder = buffer
+          
+          if lastArg :
+            self.remainder = buffer
 
     # No token to process      
     else :
@@ -165,20 +173,6 @@ class Macroleaf :
 
 
 
-  # ---------------------------------------------------------------------------
-  # METHOD: Macroleaf._balanceMinus
-  # ---------------------------------------------------------------------------
-  def _balanceMinus(self) :
-    """
-    DESCRIPTION
-    Calls the <_balanceMinus> method of each Binary object in the <args> list.
-    """
-    
-    for n in range(self.nArgs) :
-      self.args[n]._balanceMinus()
-    
-    
-    
   # ---------------------------------------------------------------------------
   # METHOD: Macroleaf.nest()
   # ---------------------------------------------------------------------------
