@@ -178,9 +178,10 @@ class Macroleaf :
   # ---------------------------------------------------------------------------
   def nest(self) :
     """
-    Calls the <nest> method of each Binary object in the <args> list.
+    Calls the "nest()" method of each Binary object in the "args" list.
     """
     for n in range(self.nArgs) :
+      print(f"[DEBUG] Nesting argument {n+1}/{self.nArgs}...")
       self.args[n].nest()
 
 

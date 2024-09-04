@@ -446,20 +446,20 @@ class Binary :
     """
     
     # CHECK 1: number of nodes must be even.
-    if ((nNodes % 2) == 0) :
-      print("[ERROR] nNodes shall be even at that point!")
+    if ((self.nNodes % 2) == 0) :
+      print("[ERROR] Number of nodes shall be even at that point!")
 
     # CHECK 2: nodes in the stack (top level and macros) must follow a 'L op L ... op L' pattern
     nInfix = 0
     for (n, element) in enumerate(self.stack) :        
       if ((n % 2) == 0) :
         if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
-          print("[ERROR] The expression to nest must follow the pattern [L op L op ...]")
+          print("[ERROR] The expression to nest does not follow the pattern [L op L op ...]")
           exit()
 
       else :
         if (element.type != "INFIX") :
-          print("[ERROR] The expression to nest must follow the pattern [L op L op ...]")
+          print("[ERROR] The expression to nest does not follow the pattern [L op L op ...]")
           exit()
 
         else :
@@ -472,11 +472,12 @@ class Binary :
         element.nest()
 
 
-    # At least 2 or more infix (i.e. 5 elements) might require nesting
+    # Nesting can be required as soon as there are 2 or more infix: "L op L op L"
+    # i.e. more than 5 nodes.
     if (nInfix >= 2) :
       
       # STEP 1: look for the infix of highest priority in [L op L op L ...]
-      (minPriority, maxPriority) = self._getPriorityRange(self.stack)
+      (minPriority, maxPriority) = self._getPriorityRange()
       print(f"[DEBUG] Priority range = ({minPriority}, {maxPriority})")
       
       # <nest> is necessary if there are 2 different levels of priority
@@ -484,7 +485,7 @@ class Binary :
 
         # STEP 2: split apart the highest operator and its adjacent leaves
         # from the rest: [L op L op], [L op L], [op L op L op L op L]
-        (chunks, chunkNeedsMacro) = self._splitOp(self.stack, maxPriority)
+        (chunks, chunkNeedsMacro) = self._splitOp(maxPriority)
 
         # STEP 3: create a macro for the highest operators 
         # Result = [L op L op], M, [op L op L op L op L]
@@ -503,11 +504,9 @@ class Binary :
         
         # STEP 4: repeat until the stack is 'flat' 
         # (all operators have the same priority)
-        (minPriority, maxPriority) = self._getPriorityRange(self.stack)
+        (minPriority, maxPriority) = self._getPriorityRange()
 
-      # Ends up with [L op L op L], all with identical precedence
-
-
+      # END: stacks now looks like [L op L op L], all with identical precedence.
 
     # Only 1 infix operator: nothing to do, leave the stack as it is.
     else :
@@ -518,22 +517,27 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary._getPriorityRange()
   # ---------------------------------------------------------------------------
-  def _getPriorityRange(self, elementList) :
+  def _getPriorityRange(self) :
     """
-    DESCRIPTION
-    todo
-
-    EXAMPLES
-    todo
+    Browses the stack and returns the (min, max) priority encountered while 
+    inspecting the infix operators.
+    
+    The method is used for the nesting operations, the goal being to
+    'flatten' the expression i.e. abstract away infix with higher precedence
+    in a Macroleaf.
+    
+    It does not inspect the content of the Macroleaves (it is done already
+    by the recursive call in the "nest()" method)
     """
+    
     minPriority = 100; maxPriority = -1
-    for element in elementList :
-      if (element.type == "INFIX") :
-        if (element.priority > maxPriority) :
-          maxPriority = element.priority
+    for node in self.stack :
+      if (node.type == "INFIX") :
+        if (node.priority > maxPriority) :
+          maxPriority = node.priority
 
-        if (element.priority < minPriority) :
-          minPriority = element.priority
+        if (node.priority < minPriority) :
+          minPriority = node.priority
 
     return (minPriority, maxPriority)
 
@@ -542,13 +546,12 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary._splitOp()
   # ---------------------------------------------------------------------------
-  def _splitOp(self, tokenList, priority) :
+  def _splitOp(self, priority) :
     """
-    DESCRIPTION
     Breaks apart the stack to isolate the sequences of (macro)leaves and 
     infix operator(s), keeping only the infix(es) of highest priority.
     
-    The function takes the internal stack as input.
+    The function operates on the stack.
     It returns the stack broken apart as output, as a list of lists.
     
     If all infix have the same priority, the stack is returned as is.
@@ -557,18 +560,17 @@ class Binary :
     B = Binary()
     B.stack = [a * b + c / d ^ e + f]
     B._splitOp = [[a * b + c /] [d ^ e] [+ f]]
-    
     (representation is simplified for the sake of the example)
     """
 
-    nElements = len(tokenList)
-    isTopElement = [False for _ in range(nElements)]
+    #self.nNodes = len(self.stack)
+    isTopElement = [False for _ in range(self.nNodes)]
 
     # STEP 1: create a 'side array' indicating where the split must be done.
-    for (n, element) in enumerate(tokenList) :
+    for (n, element) in enumerate(self.stack) :
       if (element.type == "INFIX") :
         if (element.priority > priority) :
-          print("[ERROR] This is not supposed to happen! (function <_splitOp>)")
+          print("[DEBUG] Error: inconsistency in '_splitOp'. The requested 'break' priority is higher than any infix in the stack.")
 
         elif (element.priority == priority) :
           isTopElement[n-1] = True
@@ -577,31 +579,31 @@ class Binary :
 
     # STEP 2: do the actual split
     chunksOut = []; chunkIsTop = []
-    for (n, element) in enumerate(tokenList) :
+    for (n, element) in enumerate(self.stack) :
       if (n == 0) :
-        tmp = [tokenList[0]]
+        tmpStack = [self.stack[0]]
 
       else :
-        if (isTopElement[n-1] != isTopElement[n]) :
-          if (n == (nElements-1)) :
-            chunksOut.append(tmp)
+        if (isTopElement[n] != isTopElement[n-1]) :
+          if (n == (self.nNodes-1)) :
+            chunksOut.append(tmpStack)
             chunkIsTop.append(isTopElement[n-1])
 
-            chunksOut.append([tokenList[n]])
+            chunksOut.append([self.stack[n]])
             chunkIsTop.append(isTopElement[n])
           else :
-            chunksOut.append(tmp)
+            chunksOut.append(tmpStack)
             chunkIsTop.append(isTopElement[n-1])
 
-            tmp = [tokenList[n]]
+            tmpStack = [self.stack[n]]
 
         else :
-          if (n == (nElements-1)) :
-            tmp.append(tokenList[n])
-            chunksOut.append(tmp)
+          if (n == (self.nNodes-1)) :
+            tmpStack.append(self.stack[n])
+            chunksOut.append(tmpStack)
             chunkIsTop.append(isTopElement[n])
           else :
-            tmp.append(tokenList[n])
+            tmpStack.append(self.stack[n])
 
     return (chunksOut, chunkIsTop)
 
