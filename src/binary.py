@@ -480,7 +480,7 @@ class Binary :
       (minPriority, maxPriority) = self._getPriorityRange()
       print(f"[DEBUG] Priority range = ({minPriority}, {maxPriority})")
       
-      # <nest> is necessary if there are 2 different levels of priority
+      # Call to "nest()" is necessary if there are 2 different levels of priority
       while (maxPriority != minPriority) :
 
         # STEP 2: split apart the highest operator and its adjacent leaves
@@ -580,30 +580,42 @@ class Binary :
     # STEP 2: do the actual split
     chunksOut = []; chunkIsTop = []
     for (n, element) in enumerate(self.stack) :
+      lastNode = (n == (self.nNodes-1))
       if (n == 0) :
-        tmpStack = [self.stack[0]]
+        subStack = [self.stack[0]]
 
       else :
+        # CASE 1: priority of the node has changed.
+        # Either:
+        # - the node before was involved in a high priority infix, but now not anymore.
+        # - the node before was not involved in a high priority infix, but now it does.
         if (isTopElement[n] != isTopElement[n-1]) :
-          if (n == (self.nNodes-1)) :
-            chunksOut.append(tmpStack)
+          if lastNode :
+            chunksOut.append(subStack)
             chunkIsTop.append(isTopElement[n-1])
 
             chunksOut.append([self.stack[n]])
             chunkIsTop.append(isTopElement[n])
+          
           else :
-            chunksOut.append(tmpStack)
+            
+            # Push the current "sub stack" to the output list
+            # and mark its status (top priority element or not)
+            chunksOut.append(subStack)
             chunkIsTop.append(isTopElement[n-1])
 
-            tmpStack = [self.stack[n]]
-
+            # Start a new sub stack
+            subStack = [self.stack[n]]
+        
+        # CASE 2: priority of the node remains the same.
         else :
           if (n == (self.nNodes-1)) :
-            tmpStack.append(self.stack[n])
-            chunksOut.append(tmpStack)
+            subStack.append(self.stack[n])
+            chunksOut.append(subStack)
             chunkIsTop.append(isTopElement[n])
+          
           else :
-            tmpStack.append(self.stack[n])
+            subStack.append(self.stack[n])
 
     return (chunksOut, chunkIsTop)
 
@@ -645,9 +657,9 @@ class Binary :
   def eval(self) :
     """
     DESCRIPTION
-    Evaluates the Binary object.
+    Evaluates the Binary object in the stack.
     
-    The Binary object must have been flattened prior to calling this function.
+    The Binary object must have been nested prior to calling this function.
     
     The list of variables and their value must be initialized using <setVariables>
     before calling this function.
@@ -657,20 +669,19 @@ class Binary :
     EXAMPLES
     todo
     """
-    
-    # if (self.state != BINARY_FLATTENED) :
-    #   print("[ERROR] The binary object must be flattened before evaluation.")
-    
-    nElements = len(self.stack)
-    
-    if (nElements > 1) :
+        
+    if (self.nNodes > 1) :
+      
       # Stack is flattened, so its structure is necessarily [L op L op ... L]
-      # <op> being all of the same priority.
+      # 'op' being all of the same priority.
       # Then rule [R10] applies: the righter part gets evaluated first.
       output = self._evalOp(op = self.stack[1], leftOperand = self.stack[0], rightOperand = self.stack[2:])
     
+      return output
+
     else :
       output = self._evalLeaf(self.stack[0])
+      return output
   
   
   
