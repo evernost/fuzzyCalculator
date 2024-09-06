@@ -500,7 +500,11 @@ class Binary :
             else :
               newStack += chunks[i]
 
-          self.stack = newStack  
+          self.stack = newStack
+
+          # TODO: update the other properties
+          # self.nNodes = ...
+          # self.nLeaves = ...
         
         # STEP 4: repeat until the stack is 'flat' 
         # (all operators have the same priority)
@@ -654,10 +658,11 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary.eval()
   # ---------------------------------------------------------------------------
-  def eval(self) :
+  def eval(self, stack = []) :
     """
-    DESCRIPTION
-    Evaluates the Binary object in the stack.
+    Evaluates the Binary object in the list of nodes 'stack'
+    (a 'node' is either a Token or a Macroleaf)
+    By default (empty list of nodes), it processes the own stack.
     
     The Binary object must have been nested prior to calling this function.
     
@@ -669,18 +674,22 @@ class Binary :
     EXAMPLES
     todo
     """
-        
-    if (self.nNodes > 1) :
-      
-      # Stack is flattened, so its structure is necessarily [L op L op ... L]
-      # 'op' being all of the same priority.
-      # Then rule [R10] applies: the righter part gets evaluated first.
-      output = self._evalOp(op = self.stack[1], leftOperand = self.stack[0], rightOperand = self.stack[2:])
-    
+
+    # By default, process the own stack.
+    if (len(stack) == 0) :
+      stack = self.stack
+
+    # The expression must be nested at this point, so its structure is: [L op L op ... op L]
+    # 'op' being all of the same priority.
+    # Then rule [R10] applies: the righter part gets evaluated first.
+    nNodes = len(stack)
+
+    if (nNodes > 1) :
+      output = self._evalOp(op = stack[1], leftOperand = stack[0], rightOperand = stack[2:])    
       return output
 
     else :
-      output = self._evalLeaf(self.stack[0])
+      output = self._evalLeaf(stack[0])
       return output
   
   
@@ -690,7 +699,6 @@ class Binary :
   # ---------------------------------------------------------------------------
   def _evalLeaf(self, leaf) :
     """
-    DESCRIPTION
     Evaluates a Token (variable, constant, number) or a Macroleaf.
 
     EXAMPLES
@@ -701,9 +709,13 @@ class Binary :
       return leaf.value
     
     elif (leaf.type == "VARIABLE") :
-      print("TODO")
-      
+     
       # Fetch the variable and its value from <lookUpTable>
+      # todo!
+      
+      input(f"Assign value to '{leaf.name}': ")
+      
+      
     
     elif (leaf.type == "MACRO") :
       return leaf.eval()
@@ -717,18 +729,30 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary._evalOp()
   # ---------------------------------------------------------------------------
-  def _evalOp(self, leaf) :
+  def _evalOp(self, op, leftOperand, rightOperand) :
     """
-    DESCRIPTION
     todo
+    """
+    
+    if (op.type != "INFIX") :
+      if hasattr(op, "name") :
+        print(f"[DEBUG] Error: '{op.name}' is not a valid infix operator.")
+      else :
+        print(f"[DEBUG] Error: while evaluating, got an invalid infix operator.")
+        
+    else :
+      if (op.name == "+") :
+        return (self.eval(leftOperand) + self.eval(rightOperand))
+    
+      elif (op.name == "-") :
+        print("todo")
 
-    EXAMPLES
-    todo
-    """
-    
-    print("todo!")
-    
-  
+      # etc.
+
+      else :
+      
+        # TODO: find a more elegant way to be aware of all existing infix operators
+        print(f"[DEBUG] Error: unknown infix operator.")
   
   
   # ---------------------------------------------------------------------------

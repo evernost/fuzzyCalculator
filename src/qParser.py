@@ -1214,7 +1214,7 @@ if (__name__ == '__main__') :
     B.nest()
     
     # STEP 6: evaluate!
-    #B.eval()
+    B.eval()
 
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListFull}")
