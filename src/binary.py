@@ -503,7 +503,7 @@ class Binary :
           self.stack = newStack
 
           # TODO: update the other properties
-          # self.nNodes = ...
+          self.nNodes = len(self.stack)
           # self.nLeaves = ...
         
         # STEP 4: repeat until the stack is 'flat' 
@@ -660,9 +660,9 @@ class Binary :
   # ---------------------------------------------------------------------------
   def eval(self, stack = []) :
     """
-    Evaluates the Binary object in the list of nodes 'stack'
-    (a 'node' is either a Token or a Macroleaf)
-    By default (empty list of nodes), it processes the own stack.
+    Evaluates the stack of the Binary object.
+    By default it processes the own stack, but a specific stack can be passed as 
+    argument (reserved for internal use)
     
     The Binary object must have been nested prior to calling this function.
     
@@ -685,7 +685,15 @@ class Binary :
     nNodes = len(stack)
 
     if (nNodes > 1) :
-      output = self._evalOp(op = stack[1], leftOperand = stack[0], rightOperand = stack[2:])    
+      
+      leftOperand = self._evalLeaf(stack[0])
+      
+      if (len(stack[2:]) == 1) :
+        rightOperand = self._evalLeaf(stack[2])
+      else :
+        rightOperand = self.eval(stack[2:])
+      
+      output = self._evalOp(op = stack[1], leftOperand = leftOperand, rightOperand = rightOperand)
       return output
 
     else :
@@ -741,17 +749,28 @@ class Binary :
         print(f"[DEBUG] Error: while evaluating, got an invalid infix operator.")
         
     else :
+
+      #
+      # TODO: find a more elegant way to be aware of all existing infix operators
+      #
+
       if (op.name == "+") :
         return (self.eval(leftOperand) + self.eval(rightOperand))
     
       elif (op.name == "-") :
-        print("todo")
+        return (self.eval(leftOperand) - self.eval(rightOperand))
 
-      # etc.
+      elif (op.name == "*") :
+        return (self.eval(leftOperand) * self.eval(rightOperand))
 
-      else :
-      
-        # TODO: find a more elegant way to be aware of all existing infix operators
+      elif (op.name == "/") :
+        return (self.eval(leftOperand) / self.eval(rightOperand))
+
+      elif (op.name == "//") :
+        a = self.eval(leftOperand); b = self.eval(rightOperand)
+        return ((a*b)/(a+b))
+
+      else :      
         print(f"[DEBUG] Error: unknown infix operator.")
   
   

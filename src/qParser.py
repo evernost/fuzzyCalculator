@@ -1185,6 +1185,7 @@ if (__name__ == '__main__') :
 
 
   testVect = [
+    "-2.1+4(2-6)",
     "-u^-3cos(-phi0 +2*pi*v + 1) + 2^0.1x",
     "2x*cos(3.1415t-1.)^3",
     "Q(-3t, -0.1+lsb*0.12)+1",
@@ -1194,8 +1195,6 @@ if (__name__ == '__main__') :
     "(-3(x+4))",
     "-x^2"
   ]
-
-  #testVect = ["-2.1+4(2-6)"]
 
   for (n, expr) in enumerate(testVect) :
     
