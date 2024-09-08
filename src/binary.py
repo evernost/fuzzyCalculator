@@ -465,13 +465,12 @@ class Binary :
         else :
           nInfix += 1
 
-
-    # Process recursively the stacks in the macroleaves
+    # Nest the stacks in the Macroleaves
     for element in self.stack :
       if (element.type == "MACRO") :
         element.nest()
 
-
+    # Nest the actual stack.
     # Nesting can be required as soon as there are 2 or more infix: "L op L op L"
     # i.e. more than 5 nodes.
     if (nInfix >= 2) :
@@ -680,22 +679,20 @@ class Binary :
       stack = self.stack
 
     # The expression must be nested at this point, so its structure is: [L op L op ... op L]
-    # 'op' being all of the same priority.
+    # 'op' having all the same priority.
     # Then rule [R10] applies: the righter part gets evaluated first.
     nNodes = len(stack)
 
     if (nNodes > 1) :
       
-      leftOperand = self._evalLeaf(stack[0])
-      
+      # Identifying [L1 op1 L2 op2 ... Ln] as [L1 op1 rem]
       if (len(stack[2:]) == 1) :
-        rightOperand = self._evalLeaf(stack[2])
+        output = self._evalOp(leftLeaf = stack[0], op = stack[1], remainder = [stack[2]])
       else :
-        rightOperand = self.eval(stack[2:])
-      
-      output = self._evalOp(op = stack[1], leftOperand = leftOperand, rightOperand = rightOperand)
+        output = self._evalOp(leftLeaf = stack[0], op = stack[1], remainder = stack[2:])
+        
       return output
-
+    
     else :
       output = self._evalLeaf(stack[0])
       return output
@@ -716,64 +713,68 @@ class Binary :
     if (leaf.type in ["CONSTANT", "NUMBER"]) :
       return leaf.value
     
-    elif (leaf.type == "VARIABLE") :
+    elif (leaf.type == "VAR") :
      
       # Fetch the variable and its value from <lookUpTable>
-      # todo!
-      
+      # todo!      
       input(f"Assign value to '{leaf.name}': ")
-      
-      
-    
+
     elif (leaf.type == "MACRO") :
       return leaf.eval()
     
-    
     else :
-      print(f"[INTERNAL ERROR] Expected a leaf, but got a Token of type '{leaf.type}' instead.")
+      print(f"[DEBUG] Internal error: expected a leaf, but got a Token of type '{leaf.type}' instead.")
     
   
   
   # ---------------------------------------------------------------------------
   # METHOD: Binary._evalOp()
   # ---------------------------------------------------------------------------
-  def _evalOp(self, op, leftOperand, rightOperand) :
+  def _evalOp(self, leftLeaf, op, remainder) :
     """
     todo
     """
     
+
+    # Checks
+    if not(leftLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
+      print(f"[DEBUG] Error: in _evalOp, 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
+        
     if (op.type != "INFIX") :
       if hasattr(op, "name") :
         print(f"[DEBUG] Error: '{op.name}' is not a valid infix operator.")
       else :
         print(f"[DEBUG] Error: while evaluating, got an invalid infix operator.")
         
-    else :
+    # Evaluation of each argument of the operator
+    leftArg = self._evalLeaf(leftLeaf)
+    rightArg = self.eval(remainder)
 
-      #
-      # TODO: find a more elegant way to be aware of all existing infix operators
-      #
+    #
+    # TODO: find a more elegant way to be aware of all existing infix operators
+    #
 
-      if (op.name == "+") :
-        return (self.eval(leftOperand) + self.eval(rightOperand))
-    
-      elif (op.name == "-") :
-        return (self.eval(leftOperand) - self.eval(rightOperand))
+    if (op.name == "+") :
+      return (leftArg + rightArg)
+  
+    elif (op.name == "-") :
+      return (leftArg - rightArg)
 
-      elif (op.name == "*") :
-        return (self.eval(leftOperand) * self.eval(rightOperand))
+    elif (op.name == "*") :
+      return (leftArg * rightArg)
 
-      elif (op.name == "/") :
-        return (self.eval(leftOperand) / self.eval(rightOperand))
+    elif (op.name == "/") :
+      return (leftArg / rightArg)
 
-      elif (op.name == "//") :
-        a = self.eval(leftOperand); b = self.eval(rightOperand)
-        return ((a*b)/(a+b))
+    elif (op.name == "//") :
+      a = leftArg; b = rightArg
+      return ((a*b)/(a+b))
 
-      else :      
-        print(f"[DEBUG] Error: unknown infix operator.")
+    else :      
+      print(f"[DEBUG] Error: unknown infix operator.")
   
   
+
   # ---------------------------------------------------------------------------
   # METHOD: Binary.__str__ (print overloading)
   # ---------------------------------------------------------------------------
@@ -794,6 +795,4 @@ class Binary :
 # =============================================================================
 if (__name__ == '__main__') :
   print("[INFO] Unit tests for the package 'binary.py' will come in a future release.")
-
-
 

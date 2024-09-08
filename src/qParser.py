@@ -1183,7 +1183,6 @@ if (__name__ == '__main__') :
   # Restore the babbling mode
   VERBOSE_MODE = True
 
-
   testVect = [
     "-2.1+4(2-6)",
     "-u^-3cos(-phi0 +2*pi*v + 1) + 2^0.1x",
@@ -1213,11 +1212,12 @@ if (__name__ == '__main__') :
     B.nest()
     
     # STEP 6: evaluate!
-    B.eval()
+    out = B.eval()
 
     print(f"Tokens          : {tokenList}")
     print(f"Tokens with mult: {tokenListFull}")
     print(f"Binary          : {B}")
+    print(f"output          : {out}")
     print()
 
 
