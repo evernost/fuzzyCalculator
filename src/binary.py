@@ -684,15 +684,20 @@ class Binary :
     nNodes = len(stack)
 
     if (nNodes > 1) :
+      firstLoop = True
+      outputTok = symbols.Token("0.0", value = 0)
       
-      # Identifying [L1 op1 L2 op2 ... Ln] as [L1 op1 rem]
-      if (len(stack[2:]) == 1) :
-        output = self._evalOp(leftLeaf = stack[0], op = stack[1], remainder = [stack[2]])
-      else :
-        output = self._evalOp(leftLeaf = stack[0], op = stack[1], remainder = stack[2:])
+      while (nNodes > 1) :
+        if firstLoop :
+          outputTok.value = self._evalOp(leftLeaf = stack[0], op = stack[1], rightLeaf = stack[2])
+          firstLoop = False
+        else :
+          outputTok.value = self._evalOp(leftLeaf = outputTok, op = stack[1], rightLeaf = stack[2])
         
-      return output
-    
+        stack = stack[2:]; nNodes -= 2      
+      
+      return outputTok.value
+
     else :
       output = self._evalLeaf(stack[0])
       return output
@@ -717,7 +722,7 @@ class Binary :
      
       # Fetch the variable and its value from <lookUpTable>
       # todo!      
-      input(f"Assign value to '{leaf.name}': ")
+      input(f"Assign value to variable '{leaf.name}': ")
 
     elif (leaf.type == "MACRO") :
       return leaf.eval()
@@ -730,16 +735,18 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary._evalOp()
   # ---------------------------------------------------------------------------
-  def _evalOp(self, leftLeaf, op, remainder) :
+  def _evalOp(self, leftLeaf, op, rightLeaf) :
     """
     todo
     """
     
-
     # Checks
     if not(leftLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
       print(f"[DEBUG] Error: in _evalOp, 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
         
+    if not(rightLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
+      print(f"[DEBUG] Error: in _evalOp, 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
+
     if (op.type != "INFIX") :
       if hasattr(op, "name") :
         print(f"[DEBUG] Error: '{op.name}' is not a valid infix operator.")
@@ -748,7 +755,7 @@ class Binary :
         
     # Evaluation of each argument of the operator
     leftArg = self._evalLeaf(leftLeaf)
-    rightArg = self.eval(remainder)
+    rightArg = self._evalLeaf(rightLeaf)
 
     #
     # TODO: find a more elegant way to be aware of all existing infix operators

@@ -205,6 +205,19 @@ class Token :
 
 
 
+
+  def __setattr__(self, attrName, attrValue):
+    if (attrName == "value") :
+      if (self.type == "NUMBER") :
+        super().__setattr__("value", attrValue)
+        super().__setattr__("name", str(attrValue))
+        super().__setattr__("dispStr", f"NUM:'{attrValue}'")
+        
+    else :
+      super().__setattr__(attrName, attrValue)
+
+
+
 # =============================================================================
 # Main (unit tests)
 # =============================================================================
