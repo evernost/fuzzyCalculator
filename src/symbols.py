@@ -205,9 +205,14 @@ class Token :
 
 
 
-
+  # ---------------------------------------------------------------------------
+  # METHOD: Token.__setattr__ (generic attribute setter)
+  # ---------------------------------------------------------------------------
   def __setattr__(self, attrName, attrValue):
     if (attrName == "value") :
+      
+      # In case the token is a number, we want its attributes to change 
+      # automatically as the value is changed.
       if (self.type == "NUMBER") :
         super().__setattr__("value", attrValue)
         super().__setattr__("name", str(attrValue))

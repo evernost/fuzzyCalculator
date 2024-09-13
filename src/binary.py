@@ -771,14 +771,18 @@ class Binary :
       return (leftArg * rightArg)
 
     elif (op.name == "/") :
+      # TODO: check for division by zero
       return (leftArg / rightArg)
+
+    elif (op.name == "^") :
+      return (leftArg ** rightArg)
 
     elif (op.name == "//") :
       a = leftArg; b = rightArg
       return ((a*b)/(a+b))
 
     else :      
-      print(f"[DEBUG] Error: unknown infix operator.")
+      print(f"[DEBUG] Error in '_evalOp': unknown infix operator '{op.name}'.")
   
   
 
