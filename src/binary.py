@@ -721,7 +721,7 @@ class Binary :
     elif (leaf.type == "VAR") :
      
       # Fetch the variable and its value from <lookUpTable>
-      # todo!      
+      # todo!
       input(f"Assign value to variable '{leaf.name}': ")
 
     elif (leaf.type == "MACRO") :

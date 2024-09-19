@@ -1183,25 +1183,36 @@ if (__name__ == '__main__') :
   # Restore the babbling mode
   VERBOSE_MODE = True
 
+  # testVect = [
+  #   "1-2+3-4",
+  #   "-1-2-3",
+  #   "-1+4(2-1",
+  #   "-(4+1)*2-3*7",
+  #   "2^3^4",
+  #   "2^-1+2",
+  #   "-x^2",
+  #   "-u^-3cos(-phi0 +2*pi*v + 1) + 2^0.1x",
+  #   "2x*cos(3.1415t-1.)^3",
+  #   "Q(-3t, -0.1+lsb*0.12)+1",
+  #   "-2x*cos(pi*t-1//R2)", 
+  #   "-R3_2.0x*cos(3.1415t-1//R2)",
+  #   "(x+y)(x-2y)",
+  #   "(-3(x+4))"
+  # ]
+
   testVect = [
-    "1-2+3-4",
-    "-1-2-3",
-    "-1+4(2-1",
-    "-(4+1)*2-3*7",
-    "2^3^4",
-    "2^-1+2",
-    "-u^-3cos(-phi0 +2*pi*v + 1) + 2^0.1x",
-    "2x*cos(3.1415t-1.)^3",
-    "Q(-3t, -0.1+lsb*0.12)+1",
-    "-2x*cos(pi*t-1//R2)", 
-    "-R3_2.0x*cos(3.1415t-1//R2)",
-    "(x+y)(x-2y)",
-    "(-3(x+4))",
-    "-x^2"
+    ("1-2+3-4",       1-2+3-4),
+    ("-1-2-3",        -1-2-3),
+    ("-1+4(2-1",      -1+4*(2-1)),
+    ("-(4+1)*2-3*7",  -(4+1)*2-3*7),
+    ("2^3^4",         (2**3)**4),
+    ("2^-1+2",        (2^(-1))+2)
   ]
 
-  for (n, expr) in enumerate(testVect) :
+  for (n, vect) in enumerate(testVect) :
     
+    (expr, val) = vect
+
     print(f"----- Test vector {n}: '{expr}' -----")
 
     # STEP 1: rewrite the expression as a list of tokens
@@ -1223,6 +1234,7 @@ if (__name__ == '__main__') :
     print(f"Tokens with mult: {tokenListFull}")
     print(f"Binary          : {B}")
     print(f"output          : {out}")
+    print(f"expected        : {val}")
     print()
 
 
