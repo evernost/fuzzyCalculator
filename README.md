@@ -2,7 +2,7 @@
 
 
 ## What is it?
-The Fuzzy Calculator is a regular calculator supporting classical math operations, but enhanced to work on intervals instead of scalars.
+The Fuzzy Calculator looks like a regular calculator supporting classical math operations, but enhanced to work on intervals instead of scalars.
 
 In other words, instead of executing calculations on numbers, it runs a Monte-Carlo simulation based on the statistics of the operands.
 
@@ -10,8 +10,8 @@ Not only it gives a range of the output, but it also gives a "plausible" range (
 
 ## What can I do with it?
 Non exhaustive list:
-- signal processing: determine the range of an input to define the most appropriate coding.
 - worst case analysis: what are the min/max values an expression can reach?
+- signal processing: determine the range of a variable after some processing to the number of bits required.
 
 ## How do I use it?
 The calculator takes as input a string containing the mathematical expression.
@@ -22,9 +22,11 @@ The integrated parser supports "natural" inputs like good old TI calculators, wh
 - lazy parenthesis
 So expressions like "(a+b)(c-d)" or "sin(x+cox(y" are perfectly legal.
 
-*Note:* rules for the parsing are detailed in <parser.py>
+Then, declare the variables and their statistic (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.
 
-Declare the variables and their statistic (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.
+> [!NOTE]
+> Several rules apply for the parsing and the way it is going to be interpreted.</br>
+> A detailed list of those rules can be found in "qParser.py"
 
 ## What else do I need?
 In order to keep it easily portable for any target and/or programming language, it is based on 'native' Python and does not require any specific library.
@@ -47,10 +49,11 @@ Future releases could handle fixed point numbers, integers, matrices, etc.
 
 It is worth mentionning that the built-in parser preserves the order of the input, therefore it does not assume commutativity of infix like '+', '*', ... which makes it possible to extend it to matrices, quaternions, etc.
 
-## Notes
-- pipe chars "|" have been considered as a shortcut for abs(), but it didn't happen as they lead to ambiguity. 
-A solution needs to be found for that.
-Example: |a + b|cos(x)|c + d|
+> [!NOTE]
+> Pipe char "|" have been considered as a shortcut for abs(), but it leads to ambiguity. </br>
+> **Example:** |a + b|cos(x)|c + d|</br>
+> It would be great to find a solution for that.
+
 
 ## TODO / Ideas
 Sorted by increasing effort: 
@@ -69,7 +72,8 @@ Sorted by increasing effort:
   - possible warnings (ambiguities, ...), errors are shown as the user types
   - ...
 
-## Misc
-Python 3.10 is required for the pattern matching features.
-Pattern matching is used for cleaner code, but does not participate to 
-the actual parsing process.
+
+## What is the development status?
+Still on-going, some expression already evaluate succesfully!
+
+
