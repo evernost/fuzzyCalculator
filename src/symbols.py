@@ -199,7 +199,8 @@ class Token :
 
   def getOverviewStr(self) :
     """
-    todo
+    Returns a string with a pretty print of the content of the Token,
+    so that it is readable when several of them a shown in a row.
     """
     return self.name
 

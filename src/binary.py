@@ -6,7 +6,7 @@
 # File type       : Python script (Python 3.10 or greater)
 # Purpose         : Binary object definition
 # Author          : QuBi (nitrogenium@outlook.fr)
-# Creation date   : June 1st, 2024
+# Creation date   : Saturday, 1 June 2024
 # -----------------------------------------------------------------------------
 # Best viewed with space indentation (2 spaces)
 # =============================================================================
@@ -659,9 +659,9 @@ class Binary :
   # ---------------------------------------------------------------------------
   def eval(self, stack = []) :
     """
-    Evaluates the stack of the Binary object.
-    By default it processes the own stack, but a specific stack can be passed as 
-    argument (reserved for internal use)
+    Evaluates the stack in the Binary object.
+    A specific stack can be given as argument, but this mode is usually used
+    by the internal machinery.
     
     The Binary object must have been nested prior to calling this function.
     
@@ -669,35 +669,33 @@ class Binary :
     before calling this function.
 
     Undeclared variables will return an error.
-
-    EXAMPLES
-    todo
     """
 
     # By default, process the own stack.
     if (len(stack) == 0) :
       stack = self.stack
 
-    # The expression must be nested at this point, so its structure is: [L op L op ... op L]
-    # 'op' having all the same priority.
+    # The expression must has been nested so its structure is: [L op1 L op2 ... opN L]
+    # 'op1', ..., 'opN' having all the same priority.
     # Then rule [R10] applies: the righter part gets evaluated first.
     nNodes = len(stack)
 
     if (nNodes > 1) :
       firstLoop = True
-      outputTok = symbols.Token("0.0", value = 0)
+      resultToken = symbols.Token("0.0", value = 0)
       
       while (nNodes > 1) :
         if firstLoop :
-          outputTok.value = self._evalOp(leftLeaf = stack[0], op = stack[1], rightLeaf = stack[2])
+          resultToken.value = self._evalOp(leftLeaf = stack[0], op = stack[1], rightLeaf = stack[2])
           firstLoop = False
         else :
-          outputTok.value = self._evalOp(leftLeaf = outputTok, op = stack[1], rightLeaf = stack[2])
+          resultToken.value = self._evalOp(leftLeaf = resultToken, op = stack[1], rightLeaf = stack[2])
         
         stack = stack[2:]; nNodes -= 2      
       
-      return outputTok.value
+      return resultToken.value
 
+    # Only 1 node: it is a leaf, evaluate it.
     else :
       output = self._evalLeaf(stack[0])
       return output
@@ -710,6 +708,7 @@ class Binary :
   def _evalLeaf(self, leaf) :
     """
     Evaluates a Token (variable, constant, number) or a Macroleaf.
+    Returns a scalar.
 
     EXAMPLES
     todo
@@ -737,10 +736,11 @@ class Binary :
   # ---------------------------------------------------------------------------
   def _evalOp(self, leftLeaf, op, rightLeaf) :
     """
-    todo
+    Evaluates a triplet 'leftLeaf op rightLeaf' (like "2 + 3")
+    Returns the scalar the expression evaluates to.
     """
     
-    # Checks
+    # Checks: make sure each argument is of the right type
     if not(leftLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
       print(f"[DEBUG] Error: in _evalOp, 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
         

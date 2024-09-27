@@ -6,7 +6,7 @@
 # File type       : Python script (Python 3.10 or greater)
 # Purpose         : built-in parser for the Fuzzy Calculator
 # Author          : QuBi (nitrogenium@outlook.fr)
-# Creation date   : June 1st, 2024
+# Creation date   : Saturday, 1 June 2024
 # -----------------------------------------------------------------------------
 # Best viewed with space indentation (2 spaces)
 # =============================================================================
@@ -18,30 +18,36 @@
 #  
 # It supports "natural" inputs (e.g. implicit multiplications) and lazy 
 # parenthesis.
-# Expressions like "(a+b)(c-d)" or "sin(x+cos(y" are legal.
+# Expressions like "(a+b)(c-d)" or "sin(x+cos(y" are valid.
 #
-# It is based on native Python and does not require any specific library.
-# - no need for regex
+# It is based on native Python and does not require any specific library:
+# - no regex
 # - no complex string manipulation
 # 
 # However, if transcription to another programming language is needed, 
-# the following features will be required:
+# the following features would be nice to have:
 # - OOP 
 # - string to float conversion
 # - the math functions you want to support (sin, cos, exp, etc.)
-# - random number generation
+# - random number generation for the Monte-Carlo analysis
+# - some plotting features
 #
-# Parser grants the most classical math operators ('+', '-', '*', '/', '^') 
-# and more obscure ones ('//' for parallel resistor association)
+# The calculator provides the most common math operators ('+', '-', '*', '/', '^') 
+# and some obscure ones ('//' for parallel resistor association)
 # Usual math functions are included (sin, cos, log, exp, abs, ...) 
 #
-# The parser preserves the order of the input, therefore does not 
-# assume commutativity of infix like '+', '*' etc. 
+# The parser preserves the order of the input while evaluating, therefore 
+# it does not assume commutativity of infix like '+', '*' etc. 
 # This could allow to extend the parser to other types, like matrices.
 #
 # When called as a 'main', the library runs unit tests on the built-in
 # parsing functions.
 #
+#
+#
+# The following gives the parsing strategy and lists all rules that apply 
+# when evaluating an expression.
+# 
 # -------------
 # PARSING RULES
 # -------------
@@ -214,6 +220,7 @@ from commons import *
 from enum import Enum
 
 import binary
+import numpy as np
 import symbols
 import utils
 
@@ -1022,25 +1029,6 @@ def explicitMult(tokenList) :
 
 
 
-# ---------------------------------------------------------------------------
-# FUNCTION: eval
-# ---------------------------------------------------------------------------
-def eval(self, binary, point) :
-  """
-  DESCRIPTION
-  Takes as input:
-  - "binary" : a reduced Binary object
-  - "point"  : a dictionary containing all variables and their value.
-  
-  Returns the evaluated expression.
-
-  EXAMPLES
-  todo
-  """
-  print("TODO")
-
-
-
 # =============================================================================
 # Main (unit tests)
 # =============================================================================
@@ -1201,12 +1189,22 @@ if (__name__ == '__main__') :
   # ]
 
   testVect = [
-    ("1-2+3-4",       1-2+3-4),
-    ("-1-2-3",        -1-2-3),
-    ("-1+4(2-1",      -1+4*(2-1)),
-    ("-(4+1)*2-3*7",  -(4+1)*2-3*7),
-    ("2^3^4",         (2**3)**4),
-    ("2^-1+2",        (2^(-1))+2)
+    ("1-2+3-4",         1-2+3-4),
+    ("-1-2-3",          -1-2-3),
+    ("-1+4(2-1",        -1+4*(2-1)),
+    ("-(4+1)*2-3*7",    (-(4+1)*2)-(3*7)),
+    ("2^3^4",           (2**3)**4),
+    ("2^-1+2",          (2**(-1))+2),
+    ("1*2-3*4",         1*2-3*4),
+    ("-1*2-3*4",        -1*2-3*4),
+    ("(1+2)(3+4)",      (1+2)*(3+4)),
+    ("(1+2)(3+4)(5-6",  (1+2)*(3+4)*(5-6)),
+    ("-(1+2)(3+4)",     -(1+2)*(3+4)),
+    ("12//100",         12*100/(12+100)),
+    ("4.7 + 10//100",   4.7+(10*100/(10+100))),
+    ("-(-3+9)/(1+2)",   -(-3+9)/(1+2)),
+    ("-abs(-15*7)/5",   -105/5),
+    ("sin(2*pi*0.1",    np.sin(2*np.pi*0.1))
   ]
 
   for (n, vect) in enumerate(testVect) :
