@@ -12,7 +12,7 @@ Not only it gives the **output range** of an expression, but also a most **plaus
 
 ## What can I do with it?
 Non-exhaustive list:
-- worst case analysis: what are the min/max values an expression can reach?
+- worst case analysis: what is the min/max range an expression can reach?
 - signal processing: determine numbers of bits required for a variable that endures various processings.
 
 ## How do I use it?
@@ -23,7 +23,7 @@ The integrated parser supports "natural" inputs like good old TI calculators, wh
 - implicit multiplications
 - lazy parenthesis
 
-So expressions like ```"(a+b)(c-d)"``` or ```"sin(x+cox(y"``` are perfectly legal.
+So expressions like ```"(a+b)(c-d)"``` or ```"sin(x+cox(y"``` are valid.
 
 Then, declare the variables and their statistic (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.
 
@@ -53,7 +53,7 @@ Future releases could handle fixed point numbers, integers, matrices, etc.
 It is worth mentionning that the built-in parser preserves the order of the input, therefore it does not assume commutativity of infix like ```'+'```, ```'*'```, ... which makes it possible to extend it to matrices, quaternions, etc.
 
 > [!NOTE]
-> Pipe char "|" have been considered as a shortcut for abs(), but it leads to ambiguity. </br>
+> Pipe char "|" has been considered as a shortcut for abs(), but it leads to ambiguity. </br>
 > **Example:** ```|a + b|cos(x)|c + d|```</br>
 > It would be great to find a solution for that.
 
