@@ -33,18 +33,20 @@ Then, declare the variables and their statistic (uniform in range, gaussian, etc
 
 ## What else do I need?
 In order to keep it easily portable for any target and/or programming language, it is based on 'native' Python and does not require any specific library.
-In particular:
-- no regex
-- no complex string manipulation
 
-Only numpy will be used at the end to calculate the functions.
+In particular:
+- no need for regex
+- no complex string manipulation
+- no call to Python ```eval``` (that would be lame...)
+
+Only ```numpy``` is used eventually at the end to calculate the functions.
 
 ## What operations can I do with it?
-The calculator provides the most classical math operators (```'+'```, ```'-'```, ```'*'```, ```'/'```, ```'^'```) and more obscure ones (```'//'``` for parallel resistor association)
+The calculator provides the most classical math operators (```'+'```, ```'-'```, ```'*'```, ```'/'```, ```'^'```) and more obscure ones (```'//'``` for parallel resistor association).
 Usual math functions are included (```sin```, ```cos```, ```log```, ```log10```, ```exp```, ```abs```, ...) 
 
 Structure is quite flexible so it is possible to add custom functions and infix operators. 
-Refer to <parser.py> for more information about the limitations.
+Refer to ```parser.py``` for more information about the limitations.
 
 ## What features might come next?
 The integrated parser tries to treat the inputs as 'placeholders' as much as possible which gives flexibility for the manipulated objects.
@@ -53,7 +55,7 @@ Future releases could handle fixed point numbers, integers, matrices, etc.
 It is worth mentionning that the built-in parser preserves the order of the input, therefore it does not assume commutativity of infix like ```'+'```, ```'*'```, ... which makes it possible to extend it to matrices, quaternions, etc.
 
 > [!NOTE]
-> Pipe char "|" has been considered as a shortcut for abs(), but it leads to ambiguity. </br>
+> Pipe char "|" has been considered as a shortcut for ```abs()```, but it turns out it leads to ambiguity. </br>
 > **Example:** ```|a + b|cos(x)|c + d|```</br>
 > It would be great to find a solution for that.
 
@@ -63,7 +65,7 @@ Sorted by increasing effort:
 - add a pretty print for the 'binary tree' to check/debug the parser's interpretation
 - add support for scientific notation
 - add support for thousands delimitation using "_": ```"3_141_592"``` vs ```"3141592"```
-- add support for special characters (pi?)
+- add support for special characters (```π```?)
 - add support for 'dot-prefixed' operators like ```".+"```?
 - add support for complex numbers
 - add an interactive mode where: 
@@ -77,9 +79,9 @@ Sorted by increasing effort:
 
 
 ## What is the development status?
-So far, it has been tested **successfully** on various expressions with scalars (see unit tests)
+So far, it has been tested **successfully** on various expressions with scalars (see unit tests).
 
-Remaining:
+What is remaining:
 - solve bugs with the constants
 - add support for variables and attach them the appropriate random generator
 
