@@ -5,15 +5,15 @@
 The Fuzzy Calculator looks like a regular calculator. It supports classical math operations, but it has been pimped to work on **intervals** instead of scalars.
 
 In other words: 
-- with numbers: it does the usual computation,
+- with numbers: it does the usual computation (```2*3+1/7```, ```cos(10)```, ```2*exp(-1.0)```,  ...)
 - with intervals: it runs a Monte-Carlo simulation based on the statistics of the operands.
 
 Not only it gives the **output range** of an expression, but also a most **plausible** values it can take.
 
 ## What can I do with it?
-Non-exhaustive list:
-- worst case analysis: what is the min/max range an expression can reach?
-- signal processing: determine numbers of bits required for a variable that endures various processings.
+Typical use cases:
+- **worst case analysis**: what is the min/max range an expression can reach?
+- **fine algorithm design**: determine numbers of bits required for a variable that endures various processings.
 
 ## How do I use it?
 The calculator takes as input a string containing the mathematical expression.
@@ -21,7 +21,7 @@ All the parsing machinery is included.
 
 The integrated parser supports "natural" inputs like good old TI calculators, which includes:
 - implicit multiplications
-- lazy parenthesis
+- lazy parenthesis (no need for the closing bracket when there is no ambiguity)
 
 So expressions like ```"(a+b)(c-d)"``` or ```"sin(x+cox(y"``` are valid.
 
@@ -29,7 +29,7 @@ Then, declare the variables and their statistic (uniform in range, gaussian, etc
 
 > [!NOTE]
 > Several rules apply for the parsing and the way it is going to be interpreted.</br>
-> A detailed list of those rules can be found in "qParser.py"
+> A detailed list of those rules can be found in ```src/qParser.py```
 
 ## What else do I need?
 In order to keep it easily portable for any target and/or programming language, it is based on 'native' Python and does not require any specific library.
@@ -39,14 +39,14 @@ In particular:
 - no complex string manipulation
 - no call to Python ```eval``` (that would be lame...)
 
-Only ```numpy``` is used eventually at the end to calculate the functions.
+Only ```numpy``` is used eventually at the end to evaluate the math functions.
 
 ## What operations can I do with it?
 The calculator provides the most classical math operators (```'+'```, ```'-'```, ```'*'```, ```'/'```, ```'^'```) and more obscure ones (```'//'``` for parallel resistor association).
 Usual math functions are included (```sin```, ```cos```, ```log```, ```log10```, ```exp```, ```abs```, ...) 
 
-Structure is quite flexible so it is possible to add custom functions and infix operators. 
-Refer to ```parser.py``` for more information about the limitations.
+Structure is quite flexible so it is possible to **add custom functions and infix operators**. 
+Refer to ```src/qParser.py``` for more information about the limitations.
 
 ## What features might come next?
 The integrated parser tries to treat the inputs as 'placeholders' as much as possible which gives flexibility for the manipulated objects.
