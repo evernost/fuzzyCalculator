@@ -69,12 +69,12 @@
 # Function cannot be called with empty arguments.
 #
 # [R5] IMPLICIT MULTIPLICATION RULES
-# The following priorities have been defined based on what feels the most "natural"
-# interpretation. 
+# The following priorities have been defined based on what feels 
+# the most "natural" interpretation. 
 # In case of ambiguity, a warning is raised.
 # [R5.1] "pixel"      -> var("pixel")             The variable as a whole is more likely than a product of smaller variables/const.
 #                                                 Why not even "p*i*x*e*l", "pi*x*e*l", "p*ixel", etc.
-
+#
 # Rules for prefixing digit/number:
 # [R5.2]  "1X"        -> 1*var("X")               A variable cannot start with a digit (rule R2)
 # [R5.3]  "1_X"       -> 1*var("_X")              Same as R5.2
@@ -89,7 +89,7 @@
 #                                                 | Raises a warning.
 # [R5.9]  "X_2.0      -> var("X_")*2.0            Same as R5.8
 #
-# Rules for characters following suffixing digit/number:
+# Rules for suffixing digit/number (continued):
 # [R5.10] "X3Y"       -> var("X3")*var("Y")       | If a variable contains a number, its name can only end with a digit.
 #         "R10C2"     -> var("R10")*var("C2")     |
 #         "C1cos("    -> var("C1")*cos(...        |
@@ -107,9 +107,9 @@
 # Consequences:
 # "X_3.1Y" -> var("X_")*3.1"*var("Y")           Consequence of rule R5.9
 
-# To be classified
-# [R5.__] "pi4X"   -> const("pi")*4*var("X")     Acceptable, but raises a warning.
-# [R5.__] "pi4.0X" -> const("pi")*4.0*var("X")   Acceptable.
+# Behaviour not decided yet:
+# [R5.__] "pi4X"   -> const("pi")*4*var("X")     ??
+# [R5.__] "pi4.0X" -> const("pi")*4.0*var("X")   ??
 # [R5.__] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
 
 # [R5.__] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here.
@@ -210,6 +210,14 @@
 #
 # Priority level is limited to 100 (arbitrary limit)
 #
+
+
+# TODO: complete the list of parsing rules
+# TODO: replace "CHECK_SUCCESS", etc. with something that 
+#       is more debugging friendly like an actual enum.
+
+
+
 
 
 

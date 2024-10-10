@@ -125,32 +125,35 @@
 #
 #
 #
-# ----
-# Misc
-# ---- 
-# Python 3.10 is required for the pattern matching features.
-# Pattern matching is used for cleaner code, but does not participate to 
-# the actual parsing process.
-#
 
 
 
 # =============================================================================
 # External libs
 # =============================================================================
+from commons import *
+from enum import Enum
+
 import qParser
 import variable
 
 
 
+class calcStatus(Enum) :
+  INIT = 0
+  COMPILE_OK = 1
+  COMPILE_FAILED = 2
 
-# I wrap the calls to the parser.
-# I keep track of the variables declared
-# I run the Monte-Carlo simulations
 
 
 
+# =============================================================================
+# Main code
+# =============================================================================
 class Calc :
+  
+  
+  
   
   # ---------------------------------------------------------------------------
   # METHOD: Calc.__init__ (constructor)
@@ -158,19 +161,95 @@ class Calc :
   def __init__(self) :
     self.expr       = ""
     self.variables  = []
+    self.status     = calcStatus.INIT
+
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Calc.compile(string)
+  # METHOD: Calc.input(string)
   # ---------------------------------------------------------------------------
-  def compile(self, expr) :
-  
+  def input(self, expr) :
+    """
+    Sets the expression to be analysed by the parser.
+    As it is set, some first basic checks are run on the expression to make 
+    sure it is valid before proceeding any further.
+    """
     self.expr = expr
-  
-    ret = qParser.sanityCheck(expr)
-    ret = qParser.bracketBalanceCheck(expr)
-    ret = qParser.firstOrderCheck(expr)
     
+    # Run some basic checks
+    ret = qParser.sanityCheck(self.expr)
+    if (ret != CHECK_SUCCESS) :
+      print("[ERROR] Parser failed due to an error in the sanity check.")
+      exit()
+      
+    ret = qParser.bracketBalanceCheck(self.expr)
+    if (ret != CHECK_SUCCESS) :
+      print("[ERROR] Parser failed due to an error in the bracket balance.")
+      exit()
+      
+    ret = qParser.firstOrderCheck(self.expr)
+    if (ret != CHECK_SUCCESS) :
+      print("[ERROR] Parser failed due to an error in the first order check.")
+      exit()
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.compile()
+  # ---------------------------------------------------------------------------
+  def compile(self) :
+  
+    
+    # STEP 1: rewrite the expression as a list of tokens
+    tokenList = qParser.tokenise(self.expr)
+    
+    # STEP 2: detect and add the implicit multiplication tokens
+    tokenListFull = qParser.explicitMult(tokenList)
+    
+    # STEP 3: create a binary object from the list of tokens
+    B = binary.Binary(tokenListFull)
+  
+    # STEP 4: nest away operators with higher precedence
+    B.nest()
+    
+    # STEP 6: evaluate!
+    #out = B.eval()
+
+    # TODO: update the internal status
+    #self.status = ...
   
   
   
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.eval()
+  # ---------------------------------------------------------------------------
+  def eval(self) :
+    """
+    For a scalar expression (no variables): evaluates the expression, returns
+    the value.
+    
+    For an expression with variables: draws one occurence of the variables, 
+    evaluates the expression and returns the value.
+    
+    For a more complete evaluation, please refer to the 'sim' method.
+    """
+    
+    if (self.status != calcStatus.COMPILE_OK) :
+      print("[ERROR] Please compile an expression before evaluating it.")
+    
+    else :
+      print("todo")
+    
+    
+    
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.sim()
+  # ---------------------------------------------------------------------------
+  def sim(self, nPts = 1000) :
+    """
+    todo!
+    """
+    print("todo")
+    
+    
+    
