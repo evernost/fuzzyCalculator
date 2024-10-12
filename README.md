@@ -76,6 +76,7 @@ Sorted by increasing effort:
   - implicit multiplications are automatically expanded
   - possible warnings (ambiguities, ...), errors are shown as the user types
   - ...
+- add one-liners for intervals: ```"[1,2]*[-1,3] + [2,3]"```
 
 
 ## What is the development status?
@@ -84,6 +85,5 @@ So far, it has been tested **successfully** on various expressions with scalars 
 What is remaining:
 - solve bugs with the constants
 - add support for variables and attach them the appropriate random generator
-- add one-liners for intervals: ```"[1,2]*[-1,3] + [2,3]"```
 
 
