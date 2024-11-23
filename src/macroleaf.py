@@ -28,29 +28,31 @@ import math
 
 class Macroleaf :
   """
-  A Macroleaf <M> is a recursive structure represented as follows:
+  A Macroleaf object 'M' is a recursive structure that can be represented 
+  as follows:
   
-  M = {F, [B1, B2, ..., Bn]]}
+  M = {F, [B1, B2, ..., Bn]}
   
   where:
-  - <F> is a function token
-  - <B1>, ..., <Bn> are Binary objects.
+  - 'F' is a function token
+  - 'B1', ..., 'Bn' are Binary objects.
 
-  There are as many Binary objects <Bi> as there are arguments taken by the function.
+  There are as many Binary objects 'B...' as there are arguments taken 
+  by the function 'F'.
   
-  A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
-  that reduces to a leaf.
+  A Macroleaf aims at representing a function 'F' that applies to one or more
+  elements that reduces to a leaf. 
+  E.g. very concrete functions like 'sin', 'exp', 'log' etc. 
+  Their arguments always boil down to a single leaf aka a number.
   
   The structure being recursive, it needs a terminal case.
   The terminal case is usually:
 
   M = {Id, [L]}
   
-  where <Id> is the Identity function and <L> is a 'leaf': a constant, a variable or a number.
+  where 'Id' is the Identity function and 'L' is a 'leaf': a constant, a variable or a number.
 
-  
   Claim: any valid expression can be associated to a Macroleaf representation.
-
 
   Advantage: once the representation is built, the evaluation is straighforward.
   - Evaluate (recursively) each binary object
