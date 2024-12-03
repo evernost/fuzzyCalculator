@@ -19,11 +19,9 @@ Typical use cases:
 The calculator takes as input a string containing the mathematical expression.
 All the parsing machinery is included.
 
-The integrated parser supports "natural" inputs like good old TI calculators, which includes:
-- implicit multiplications
-- lazy parenthesis (no need for the closing bracket when there is no ambiguity)
-
-So expressions like ```"(a+b)(c-d)"``` or ```"sin(x+cox(y"``` are valid.
+The integrated parser supports "natural" inputs like good old TI calculators:
+- implicit multiplications: ```2x-3y```, ```(a+b)(c-d)```, etc.
+- lazy parenthesis (no need to close brackets): ```2(x+y```, ```"sin(x+cox(y"```
 
 Then, declare the variables and their statistic (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.
 
