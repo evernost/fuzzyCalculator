@@ -23,8 +23,8 @@
 # =============================================================================
 # External libs
 # =============================================================================
-from src.fuzzyCalculator import *
-from src.variable import *
+import src.fuzzyCalculator as fuzzyCalculator
+import src.variable as variable
 
 
 
@@ -33,10 +33,11 @@ from src.variable import *
 # =============================================================================
 
 
+
 # -----------------------------------------------------------------------------
 # EXAMPLE 1: basic scalar operations
 # -----------------------------------------------------------------------------
-fcalc = Calc()
+fcalc = fuzzyCalculator.Calc()
 fcalc.input("1234*5678-9876")
 fcalc.compile()
 
@@ -49,7 +50,7 @@ fcalc.compile()
 # -----------------------------------------------------------------------------
 # EXAMPLE 2: your first syntax error
 # -----------------------------------------------------------------------------
-fcalc = Calc()
+fcalc = fuzzyCalculator.Calc()
 fcalc.input("x-3*")
 fcalc.compile()
 

@@ -224,13 +224,14 @@
 # =============================================================================
 # External libs
 # =============================================================================
-from commons import *
-from enum import Enum
+from src.commons import *
 
-import binary
+import src.binary as binary
+import src.symbols as symbols
+import src.utils as utils
+
+from enum import Enum
 import numpy as np
-import symbols
-import utils
 
 
 

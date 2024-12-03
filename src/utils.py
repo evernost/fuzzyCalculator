@@ -17,13 +17,13 @@
 # All the utilitary functions that haven't enough fame yet to get their 
 # own library :(
 # 
-# Note: when called as a 'main', it runs the unit tests on the functions.
+# Run is as a 'main()' to call the unit tests.
 
 
 # =============================================================================
 # External libs
 # =============================================================================
-import symbols
+import src.symbols as symbols
 
 
 
@@ -32,11 +32,7 @@ import symbols
 # -----------------------------------------------------------------------------
 def pop(inputStr) :
   """
-  DESCRIPTION
-  Return a tuple containing the first character of <inputStr> and its tail.
-
-  Known limitations: 
-  None.
+  Returns a tuple containing the first character of 'inputStr' and its tail.
   
   EXAMPLES
   - pop("abcde") = ("a", "bcde")
@@ -58,15 +54,15 @@ def pop(inputStr) :
 # -----------------------------------------------------------------------------
 def split(inputStr, n) :
   """
-  DESCRIPTION
-  Split a string <inputStr> in two at the breakpoint index <n>.
+  Splits the string 'inputStr' in two at the breakpoint index 'n'.
   Indexing is 0-based.
 
   EXAMPLES
   > split("blob", -1) = ("", "blob")
   > split("blob",  0) = ("", "blob")
   > split("blob",  1) = ("b", "lob")
-  (See unit tests in <main>)
+  
+  See unit tests in 'main()'
   """  
   
   # Input guard
@@ -89,10 +85,10 @@ def split(inputStr, n) :
 # -----------------------------------------------------------------------------
 def isAlpha(inputStr) :
   """
-  DESCRIPTION
-  Returns True if the first char of inputStr is a letter.
+  Returns True if the first char of 'inputStr' is a letter.
   Capitalisation is ignored.
   """
+
   char = inputStr[0]
 
   testAlpha = False
@@ -108,9 +104,9 @@ def isAlpha(inputStr) :
 # -----------------------------------------------------------------------------
 def isDigit(inputStr) :
   """
-  DESCRIPTION
-  Returns True if the first char of inputStr is a digit.
+  Returns True if the first char of 'inputStr' is a digit.
   """
+
   char = inputStr[0]
 
   return (ord(char) >= ord("0")) and (ord(char) <= ord("9"))
@@ -122,8 +118,7 @@ def isDigit(inputStr) :
 # -----------------------------------------------------------------------------
 def isNumber(inputStr) :
   """
-  DESCRIPTION
-  Test if the input is the string representation of a digit or a number (whole or fractional).
+  Tests if the input is the string representation of a number (whole or fractional).
   
   The test fails if the string contains anything else than digits and more than
   one dot. 
@@ -136,7 +131,7 @@ def isNumber(inputStr) :
   """
   
   # Input guard
-  assert isinstance(inputStr, str), "<isNumber> expects a string as an input."
+  assert isinstance(inputStr, str), "'isNumber' expects a string as an input."
 
   gotDigit = False
 
@@ -176,7 +171,7 @@ def splitSpace(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "<splitSpace> expects a string as an input."
+  assert isinstance(inputStr, str), "'splitSpace' expects a string as an input."
 
   for n in range(len(inputStr)) :
     if (inputStr[n] != " ") :
@@ -189,7 +184,6 @@ def splitSpace(inputStr) :
 # -----------------------------------------------------------------------------
 def isLegalVariableName(inputStr) :
   """
-  DESCRIPTION
   Test if the input string is a valid variable name.
   
   This test only checks the syntax. It does not indicate if this variable
@@ -227,8 +221,7 @@ def isLegalVariableName(inputStr) :
 # -----------------------------------------------------------------------------
 def showInStr(inputStr, loc) :
   """
-  DESCRIPTION
-  Prints <inputStr> with a "^" char right below the a location
+  Prints 'inputStr' with a "^" char right below the a location
   defined by <loc>.
   It helps to point out a specific char in the string.
 

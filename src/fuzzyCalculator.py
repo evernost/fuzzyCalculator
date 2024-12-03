@@ -131,11 +131,12 @@
 # =============================================================================
 # External libs
 # =============================================================================
-from commons import *
-from enum import Enum
+from src.commons import *
 
-import qParser
-import variable
+import src.binary as binary
+import src.qParser as qParser
+
+from enum import Enum
 
 
 
@@ -151,9 +152,6 @@ class calcStatus(Enum) :
 # Main code
 # =============================================================================
 class Calc :
-  
-  
-  
   
   # ---------------------------------------------------------------------------
   # METHOD: Calc.__init__ (constructor)
@@ -174,6 +172,7 @@ class Calc :
     As it is set, some first basic checks are run on the expression to make 
     sure it is valid before proceeding any further.
     """
+
     self.expr = expr
     
     # Run some basic checks
@@ -249,7 +248,15 @@ class Calc :
     """
     todo!
     """
+    
     print("todo")
     
     
     
+
+# =============================================================================
+# Main (unit tests)
+# =============================================================================
+if (__name__ == "__main__") :
+  print("[INFO] There are no unit tests available for 'fuzzyCalculator.py'")
+

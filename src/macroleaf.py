@@ -28,39 +28,38 @@ import math
 
 class Macroleaf :
   """
-  A Macroleaf <M> is a recursive structure represented as follows:
+  A Macroleaf 'M' is a recursive structure represented as follows:
   
   M = {F, [B1, B2, ..., Bn]]}
   
   where:
-  - <F> is a function token
-  - <B1>, ..., <Bn> are Binary objects.
+  - 'F' is a function (as Token object, declared in symbols.py)
+  - 'B1', ..., 'Bn' are Binary objects.
 
-  There are as many Binary objects <Bi> as there are arguments taken by the function.
+  There are as many Binary objects 'Bi' as there are arguments taken by the 
+  function 'F'.
   
-  A 'Macroleaf' is essentially a function <F> applied to objects (Binary objects)
-  that reduces to a leaf.
+  A "Macroleaf" is essentially a function 'F' applied to objects (Binary objects)
+  and whose outcome reduce to a leaf.
   
   The structure being recursive, it needs a terminal case.
   The terminal case is usually:
 
   M = {Id, [L]}
   
-  where <Id> is the Identity function and <L> is a 'leaf': a constant, a variable or a number.
+  where 'Id' is the Identity function and 'L' is a "leaf": a constant, a variable or a number.
 
   
   Claim: any valid expression can be associated to a Macroleaf representation.
-
+  - cos(2x) -> {F:cos, [NUM:2, OP:*, VAR:x]}
 
   Advantage: once the representation is built, the evaluation is straighforward.
   - Evaluate (recursively) each binary object
-  - Apply the top function to the result.
+  - Apply the top function 'F' to the result.
 
   Priority between operators is decided when the list of Tokens is evaluated.
   Token list evaluation is beyond the scope of this class.
 
-  Examples:
-  - cos(2x) -> {F:cos, [NUM:2, OP:*, VAR:x]}
   """
 
 
@@ -71,9 +70,9 @@ class Macroleaf :
   def __init__(self, function, tokenList) :
     """
     Creates and initializes a Macroleaf object from a function and a list of Tokens.
-    Takes a list of Tokens as input, returns a Macroleaf object as output.
+    It returns a Macroleaf object as output.
 
-    The "function" argument defines what function shall apply to the evaluation 
+    The 'function' argument defines what function shall apply to the evaluation 
     of the internal Binary object.
     The argument expects the name of the function as a string.
     No need to create or pass a Token.
@@ -81,10 +80,11 @@ class Macroleaf :
     Then, it processes "tokenList" essentially like "Binary" would.
 
     Examples:
-    M = Macroleaf("exp", someListOfTokens)
+    M = Macroleaf("exp", [Token1, Token2, Token3, ...])
     M = Macroleaf("cos", someOtherListOfTokens)
     etc.
-    """    
+    """
+
     self.function   = function
     self.nArgs      = symbols.nArgsFromFunctionName(function)
     self.args       = []
