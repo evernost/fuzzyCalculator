@@ -35,52 +35,64 @@ import src.variable as variable
 
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 1: basic scalar operations
+# EXAMPLE 1: a basic scalar operation
 # -----------------------------------------------------------------------------
 fcalc = fuzzyCalculator.Calc()
+fcalc.setMode("SCALAR")
 fcalc.input("1234*5678-9876")
 fcalc.compile()
-
-
-
-
+fcalc.print()
 
 
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 2: your first syntax error
+# EXAMPLE 2: another basic scalar operation
 # -----------------------------------------------------------------------------
 fcalc = fuzzyCalculator.Calc()
-fcalc.input("x-3*")
+fcalc.setMode("SCALAR")
+fcalc.input("-2cos(1.5pi)")
 fcalc.compile()
+fcalc.print()
 
 
 
-
-
-
-a = variable.scalar(3.14)
-fcalc.declare(a)
-
-fcalc.compile("a + cos(pi/2 + 0.01)")
-
-ret = fcalc.eval()
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 2: resistors in parallel 
+# EXAMPLE 3: your first syntax error
+# -----------------------------------------------------------------------------
+fcalc = fuzzyCalculator.Calc()
+fcalc.setMode("SCALAR")
+fcalc.input("x-3*")
+fcalc.compile()
+fcalc.print()
+
+
+
+# a = variable.scalar(3.14)
+# fcalc.declare(a)
+# fcalc.compile("a + cos(pi/2 + 0.01)")
+# ret = fcalc.eval()
+
+# -----------------------------------------------------------------------------
+# EXAMPLE 4: using variables - resistors in parallel 
 # -----------------------------------------------------------------------------
 
 # 10 Ohms resistance with 5% tolerance (uniform)
 R1 = variable.rand(val = 10, tol = 0.05)
 R2 = variable.rand(val = 10, tol = 0.05)
 
+fcalc = fuzzyCalculator.Calc()
+fcalc.setMode("MAX_RANGE")
 fcalc.declare(R1)
 fcalc.declare(R2)
 fcalc.compile("R1//R2 + 100")
 fcalc.sim(nPts = 1000)
+fcalc.print()
+
+
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 2
+# EXAMPLE 5
 # -----------------------------------------------------------------------------
 
 # Variable with center value and uncertainty: x = 1.0 +/- 0.1
@@ -89,13 +101,17 @@ x = variable.rand(center = 1.0, err = 0.1)
 # Variable in range: y = [-1.0, 1.0]
 y = variable.rand(min = -1.0, max = 1.0)
 
-fcalc.declare(x)
-fcalc.declare(y)
+# You can also declare a list of variables:
+fcalc.setMode("MAX_RANGE")
+fcalc.declare([x, y])
 fcalc.compile("sin(2*pi*x + cos(y)")
 fcalc.sim(nPts = 1000)
+fcalc.print()
+
+
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 3
+# EXAMPLE 6
 # -----------------------------------------------------------------------------
 
 # Gaussian variable
@@ -108,9 +124,12 @@ fcalc.declare(z2)
 fcalc.declare(z3)
 fcalc.compile("(z1^2)-(z2^2) + z3^2")
 fcalc.sim(nPts = 1000)
+fcalc.print()
+
+
 
 # -----------------------------------------------------------------------------
-# EXAMPLE 4 (syntax error)
+# EXAMPLE 7 (syntax error)
 # -----------------------------------------------------------------------------
 
 z = variable.scalar(1.2)

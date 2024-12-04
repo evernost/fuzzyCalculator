@@ -14,7 +14,7 @@
 # =============================================================================
 # Description
 # =============================================================================
-# todo
+# TODO
 
 
 
@@ -30,7 +30,7 @@ class Macroleaf :
   """
   A Macroleaf 'M' is a recursive structure represented as follows:
   
-  M = {F, [B1, B2, ..., Bn]]}
+  M = {F, [B1, B2, ..., Bn]}
   
   where:
   - 'F' is a function (as Token object, declared in symbols.py)
@@ -49,7 +49,6 @@ class Macroleaf :
   
   where 'Id' is the Identity function and 'L' is a "leaf": a constant, a variable or a number.
 
-  
   Claim: any valid expression can be associated to a Macroleaf representation.
   - cos(2x) -> {F:cos, [NUM:2, OP:*, VAR:x]}
 
