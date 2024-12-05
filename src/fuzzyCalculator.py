@@ -140,7 +140,10 @@ from enum import Enum
 
 
 
-class calcStatus(Enum) :
+# =============================================================================
+# Constant pool
+# =============================================================================
+class CalcStatus(Enum) :
   INIT = 0
   COMPILE_OK = 1
   COMPILE_FAILED = 2
@@ -159,7 +162,7 @@ class Calc :
   def __init__(self) :
     self.expr       = ""
     self.variables  = []
-    self.status     = calcStatus.INIT
+    self.status     = CalcStatus.INIT
 
 
 
@@ -176,18 +179,18 @@ class Calc :
     self.expr = expr
     
     # Run some basic checks
-    ret = qParser.sanityCheck(self.expr)
-    if (ret != CHECK_SUCCESS) :
+    checkPassed = qParser.sanityCheck(self.expr)
+    if not(checkPassed) :
       print("[ERROR] Parser failed due to an error in the sanity check.")
       exit()
       
-    ret = qParser.bracketBalanceCheck(self.expr)
-    if (ret != CHECK_SUCCESS) :
+    checkPassed = qParser.bracketBalanceCheck(self.expr)
+    if not(checkPassed) :
       print("[ERROR] Parser failed due to an error in the bracket balance.")
       exit()
       
-    ret = qParser.firstOrderCheck(self.expr)
-    if (ret != CHECK_SUCCESS) :
+    checkPassed = qParser.firstOrderCheck(self.expr)
+    if not(checkPassed) :
       print("[ERROR] Parser failed due to an error in the first order check.")
       exit()
 
@@ -233,12 +236,25 @@ class Calc :
     For a more complete evaluation, please refer to the 'sim' method.
     """
     
-    if (self.status != calcStatus.COMPILE_OK) :
+    if (self.status != CalcStatus.COMPILE_OK) :
       print("[ERROR] Please compile an expression before evaluating it.")
     
     else :
       print("todo")
     
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.print()
+  # ---------------------------------------------------------------------------
+  def print(self) :
+    """
+    Prints the result of 'eval()' along with some useful information depending 
+    on the simulation that has been run.
+    """
+    
+    print("todo")
+
     
     
   # ---------------------------------------------------------------------------
@@ -250,9 +266,8 @@ class Calc :
     """
     
     print("todo")
-    
-    
-    
+
+
 
 # =============================================================================
 # Main (unit tests)

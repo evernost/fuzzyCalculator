@@ -212,14 +212,6 @@
 #
 
 
-# TODO: complete the list of parsing rules
-# TODO: replace "CHECK_SUCCESS", etc. with something that 
-#       is more debugging friendly like an actual enum.
-
-
-
-
-
 
 # =============================================================================
 # External libs
@@ -243,6 +235,10 @@ DEBUG_MODE = False
 
 
 
+# =============================================================================
+# Main code
+# =============================================================================
+
 # -----------------------------------------------------------------------------
 # FUNCTION: sanityCheck(string)
 # -----------------------------------------------------------------------------
@@ -260,7 +256,7 @@ def sanityCheck(inputStr) :
   - round brackets: "(" and ")"
   - characters in the infix op list
 
-  Returns CHECK_SUCCESS if the check passed, CHECK_FAILED otherwise.
+  Returns True if the check passed, False otherwise.
 
   NOTE
   In case you want to add custom infix operators, you need to add to the 
@@ -285,9 +281,9 @@ def sanityCheck(inputStr) :
       if VERBOSE_MODE :
         utils.showInStr(inputStr, loc)
         print("[ERROR] This character is not supported by the parser.")
-      return CHECK_FAILED
+      return False
 
-  return CHECK_SUCCESS
+  return True
 
 
 
@@ -300,7 +296,7 @@ def bracketBalanceCheck(inputStr) :
   This function allows "lazy parenthesis": matching closing parenthesis 
   are not required.
 
-  Returns CHECK_SUCCESS if the check passed, CHECK_FAILED otherwise.
+  Returns True if the check passed, False otherwise.
 
   EXAMPLES
   (See unit tests in "main")
@@ -317,9 +313,9 @@ def bracketBalanceCheck(inputStr) :
       if VERBOSE_MODE :
         utils.showInStr(inputStr, loc)
         print("[ERROR] Closing parenthesis in excess.")
-      return CHECK_FAILED
+      return False
 
-  return CHECK_SUCCESS
+  return True
 
 
 
@@ -332,6 +328,8 @@ def firstOrderCheck(inputStr) :
   Detailed list of the valid/invalid combinations can be found in 
   "resources/firstOrderCheck.xslx"
   
+  Returns True if the check passed, False otherwise.
+
   EXAMPLES
   (See unit tests in "main")
   """
@@ -343,20 +341,20 @@ def firstOrderCheck(inputStr) :
     if ((char1, char2) == (".", ".")) :
       if VERBOSE_MODE :
         utils.showInStr(inputStr, i+1)
-        print("[ERROR] Cannot make sense of 2 consecutive dots. Is it a typo?")
-      return CHECK_FAILED
+        print("[ERROR] A valid expression cannot have 2 consecutive dots. Is it a typo?")
+      return False
       
     elif ((char1, char2) == (",", ",")) :
       if VERBOSE_MODE :
         utils.showInStr(inputStr, i+1)
-        print("[ERROR] Cannot make sense of 2 consecutive commas. Is it a typo?")
-      return CHECK_FAILED
+        print("[ERROR] A valid expression cannot have 2 consecutive commas. Is it a typo?")
+      return False
 
     elif ((char1, char2) == (",", ")")) :
       if VERBOSE_MODE :     
         utils.showInStr(inputStr, i+1)
         print("[ERROR] Possible missing argument?")
-      return CHECK_FAILED
+      return False
 
     # 
     # TODO: this section needs to be completed.
@@ -381,11 +379,10 @@ def reservedWordsCheck(inputStr) :
   """
   
   # Input guard
-  assert isinstance(inputStr, str), "<reservedWordsCheck> expects a string as an input."
+  assert isinstance(inputStr, str), "'reservedWordsCheck' expects a string as an input."
 
   print("TODO")
-
-  return False
+  return True
 
 
 
@@ -396,15 +393,15 @@ def consumeConst(inputStr) :
   """
   Consumes the leading constant in a string.
 
-  If "inputStr" is a string starting with the name of a constant, the tuple (c, rem) is 
+  If 'inputStr' is a string starting with the name of a constant, the tuple (c, rem) is 
   returned, where:
-  - "c" is the matching constant name
-  - "rem" is the rest of the string.
+  - 'c' is the matching constant name
+  - 'rem' is the rest of the string.
   
-  so that inputStr = c + rem
+  so that inputStr = c + rem.
 
-  If "inputStr" does not start with a known constant or the constant is embedded 
-  in a larger name, the tuple ("", input) is returned.
+  If 'inputStr' does not start with a known constant or the constant is embedded 
+  in a larger name, the tuple ("", inputStr) is returned.
   Refer to rules [5.X] for more details about the parsing strategy.
 
   The list of available constants is fetched from 'symbols.CONSTANTS'.
@@ -414,7 +411,7 @@ def consumeConst(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "<consumeConst> expects a string as an input."
+  assert isinstance(inputStr, str), "'consumeConst' expects a string as an input."
 
   constList = [c["name"] for c in symbols.CONSTANTS]
 
@@ -489,7 +486,7 @@ def consumeNumber(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "<consumeNumber> expects a string as an input."
+  assert isinstance(inputStr, str), "'consumeNumber' expects a string as an input."
  
   # Test the first character.
   # A valid number can only start with a digit or a "."
@@ -516,14 +513,14 @@ def consumeNumber(inputStr) :
 # -----------------------------------------------------------------------------
 def consumeFunc(inputStr) :
   """
-  Consumes the leading function in a string.
+  Consumes the leading function name in a string.
 
-  If "inputStr" is a string starting with a function, the tuple (f, rem) is 
+  If 'inputStr' is a string starting with a function, the tuple (f, rem) is 
   returned, where:
-  - "f" is the matching function name
-  - "rem" is the rest of the string.
+  - 'f' is the matching function name
+  - 'rem' is the rest of the string.
   
-  The opening parenthesis is omitted in "rem", so inputStr = f + "(" + rem
+  The opening parenthesis is omitted in 'rem', so inputStr = f + '(' + rem
 
   If "inputStr" does not start with a known function, the tuple ("", inputStr) is 
   returned.
@@ -537,9 +534,6 @@ def consumeFunc(inputStr) :
   harder to read and leads to ambiguity (rule [R3])
   - Opening parenthesis is omitted because later in the parsing engine, a function 
   or a single "(" triggers the same processing. 
-  
-  Known limitations:
-  None.
 
   EXAMPLES
   > consumeFunc("sina") = ("", "sina")
@@ -605,7 +599,7 @@ def consumeVar(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "<consumeVar> expects a string as an input."
+  assert isinstance(inputStr, str), "'consumeVar' expects a string as an input."
 
   OUTPUT_FAILURE = ("", inputStr)
   reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
@@ -783,14 +777,15 @@ def consumeInfix(inputStr) :
   """
   Consumes the leading infix operator in a string.
 
-  If "inputStr" is a string starting with an infix operator, the tuple (op, rem) is 
+  If 'inputStr' is a string starting with an infix operator, the tuple (op, rem) is 
   returned, where:
-  - "op" is the matching infix operator name
-  - "rem" is the rest of the string.
+  - 'op' is the matching infix operator name
+  - 'rem' is the rest of the string.
   
   so that inputStr = op + rem
 
-  If "inputStr" does not start with a known infix operator, the tuple ("", inputStr) is returned.
+  If 'inputStr' does not start with a known infix operator, the tuple 
+  ("", inputStr) is returned instead.
 
   The list of available infix operators is fetched from 'symbols.INFIX'
 
@@ -802,7 +797,7 @@ def consumeInfix(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "<consumeInfix> expects a string as an input."
+  assert isinstance(inputStr, str), "'consumeInfix' expects a string as an input."
 
   infixList = [op["name"] for op in symbols.INFIX]
 
@@ -1049,27 +1044,27 @@ if (__name__ == '__main__') :
   # Disable the babbling mode while doing the unit tests
   VERBOSE_MODE = False
 
-  assert(sanityCheck("oni_giri*cos(2x+pi") == CHECK_SUCCESS)
-  assert(sanityCheck("input Str") == CHECK_SUCCESS)
-  assert(sanityCheck("input Str2.1(a+b)|x|") == CHECK_FAILED)
-  assert(sanityCheck("$inputStr") == CHECK_FAILED)
-  assert(sanityCheck("µinputStr") == CHECK_FAILED)
-  assert(sanityCheck("in#putStr") == CHECK_FAILED)
-  assert(sanityCheck("inputStr%") == CHECK_FAILED)
-  assert(sanityCheck("inpuétStr") == CHECK_FAILED)
-  assert(sanityCheck("inpuàtStr") == CHECK_FAILED)
-  print("- Passed: <sanityCheck>")
+  assert(sanityCheck("oni_giri*cos(2x+pi") == True)
+  assert(sanityCheck("input Str") == True)
+  assert(sanityCheck("input Str2.1(a+b)|x|") == False)
+  assert(sanityCheck("$inputStr") == False)
+  assert(sanityCheck("µinputStr") == False)
+  assert(sanityCheck("in#putStr") == False)
+  assert(sanityCheck("inputStr%") == False)
+  assert(sanityCheck("inpuétStr") == False)
+  assert(sanityCheck("inpuàtStr") == False)
+  print("- Self-test passed: 'sanityCheck'")
 
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == CHECK_SUCCESS)
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi(") == CHECK_SUCCESS)
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi()))") == CHECK_FAILED)
-  assert(bracketBalanceCheck("|3x+6|.2x") == CHECK_SUCCESS)
-  print("- Passed: <bracketBalanceCheck>")
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == True)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi(") == True)
+  assert(bracketBalanceCheck("oni_giri*cos(2x+pi()))") == False)
+  assert(bracketBalanceCheck("|3x+6|.2x") == True)
+  print("- Self-test passed: 'bracketBalanceCheck'")
 
-  assert(firstOrderCheck("sin(2..1x)") == CHECK_FAILED)
-  assert(firstOrderCheck("1+Q(2,)") == CHECK_FAILED)
-  assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == CHECK_FAILED)
-  print("- Passed: <firstOrderCheck>")
+  assert(firstOrderCheck("sin(2..1x)") == False)
+  assert(firstOrderCheck("1+Q(2,)") == False)
+  assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
+  print("- Self-test passed: 'firstOrderCheck'")
 
   assert(consumeConst("pi") == ("pi", ""))
   assert(consumeConst("inf") == ("inf", ""))
@@ -1085,7 +1080,7 @@ if (__name__ == '__main__') :
   assert(consumeConst("pir*12") == ("", "pir*12"))
   assert(consumeConst("pi*r*12") == ("pi", "*r*12"))
   assert(consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
-  print("- Passed: <consumeConst>")
+  print("- Self-test passed: 'consumeConst'")
 
   assert(consumeNumber("_1") == ("", "_1"))
   assert(consumeNumber("_") == ("", "_"))
@@ -1102,7 +1097,7 @@ if (__name__ == '__main__') :
   assert(consumeNumber(" 64") == ("", " 64"))
   assert(consumeNumber("x86") == ("", "x86"))
   assert(consumeNumber("3_x") == ("3", "_x"))     # Rule R5.4
-  print("- Passed: <consumeNumber>")
+  print("- Self-test passed: 'consumeNumber'")
 
   assert(consumeFunc("sina") == ("", "sina"))
   assert(consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
@@ -1111,7 +1106,7 @@ if (__name__ == '__main__') :
   assert(consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
   assert(consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
   assert(consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
-  print("- Passed: <consumeFunc>")
+  print("- Self-test passed: 'consumeFunc'")
 
   assert(consumeVar("x") == ("x", ""))
   assert(consumeVar("1") == ("", "1"))
@@ -1142,12 +1137,12 @@ if (__name__ == '__main__') :
   assert(consumeVar(".1") == ("", ".1"))
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
   assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
-  #assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
+  assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
   #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))      # Rule R5.X
   #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
   #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))
   #assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5._ and needs a fix
-  print("- Passed: <consumeVar>")
+  print("- Self-test passed: 'consumeVar'")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
   assert(consumeInfix("**2+1") == ("*", "*2+1"))
@@ -1155,7 +1150,7 @@ if (__name__ == '__main__') :
   assert(consumeInfix("x-y") == ("", "x-y"))
   assert(consumeInfix("-2x+y") == ("-", "2x+y"))
   assert(consumeInfix("^-3") == ("^", "-3"))
-  print("- Passed: <consumeInfix>")
+  print("- Self-test passed: 'consumeInfix'")
   
   # TODO: check some tokenisations
   tokenList = [
@@ -1173,7 +1168,7 @@ if (__name__ == '__main__') :
   
   # TODO: trigger all the error cases in "secondOrderCheck"
   # secondOrderCheck([Token("sin")])
-  print("- TODO: <secondOrderCheck>")
+  print("- TODO: 'secondOrderCheck'")
   
   print()
   
