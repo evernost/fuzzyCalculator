@@ -36,7 +36,6 @@ BINARISE_FAILURE = -1
 
 
 
-
 class Binary :
   """
   DESCRIPTION
@@ -789,15 +788,15 @@ class Binary :
   # ---------------------------------------------------------------------------
   # METHOD: Binary.__str__ (print overloading)
   # ---------------------------------------------------------------------------
-  def __str__(self) :
-    return str(self.stack)
+  # def __str__(self) :
+  #   return str(self.stack)
   
-  def __repr__(self) :
-    return str(self.stack)
+  # def __repr__(self) :
+  #   return str(self.stack)
   
-  def getOverviewStr(self) :
-    s = [t.getOverviewStr() for t in self.stack]
-    return str(s)
+  # def getOverviewStr(self) :
+  #   s = [t.getOverviewStr() for t in self.stack]
+  #   return str(s)
   
   
   

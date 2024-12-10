@@ -123,6 +123,9 @@ class Token :
       for c in CONSTANTS :
         if (name == c["name"]) :
           self.value = c["value"]
+          if not(value is None) :
+            print("[WARNING] Non-empty field for 'value' is ignored when creating a constant.")
+          
     
     elif (name in self.functionsList) :
       self.type     = "FUNCTION"
@@ -229,4 +232,13 @@ class Token :
 # Main (unit tests)
 # =============================================================================
 if (__name__ == '__main__') :
-  print("[INFO] There are no unit tests available for the package <symbols.py>")
+  print("[INFO] Library called as main: running unit tests...")
+  print()
+  
+  T1 = Token("x", -1.0)
+  assert(T1.name == "x")
+  assert(T1.value == -1.0)
+
+  c = Token("pi", -1.0)
+
+
