@@ -126,7 +126,6 @@ class Token :
           if not(value is None) :
             print("[WARNING] Non-empty field for 'value' is ignored when creating a constant.")
           
-    
     elif (name in self.functionsList) :
       self.type     = "FUNCTION"
       self.name     = name
@@ -214,15 +213,19 @@ class Token :
   # METHOD: Token.__setattr__ (generic attribute setter)
   # ---------------------------------------------------------------------------
   def __setattr__(self, attrName, attrValue):
+    """
+    Function is called every time an attribute is set.
+    For the "number" Token, assigning 'value' automatically changes its name.
+    """
+    
     if (attrName == "value") :
-      
-      # In case the token is a number, we want its attributes to change 
-      # automatically as the value is changed.
       if (self.type == "NUMBER") :
         super().__setattr__("value", attrValue)
         super().__setattr__("name", str(attrValue))
         super().__setattr__("dispStr", f"NUM:'{attrValue}'")
-        
+      else :
+        super().__setattr__(attrName, attrValue)
+
     else :
       super().__setattr__(attrName, attrValue)
 
@@ -233,12 +236,16 @@ class Token :
 # =============================================================================
 if (__name__ == '__main__') :
   print("[INFO] Library called as main: running unit tests...")
-  print()
   
   T1 = Token("x", -1.0)
   assert(T1.name == "x")
   assert(T1.value == -1.0)
+  print("- Self-test passed: number token")
 
-  c = Token("pi", -1.0)
+  T2 = Token("pi")
+  assert(T2.value == math.pi)   # Comparing two floats like that is not very clean...
+  T3 = Token("pi", -1.0)
+  print("- Self-test passed: constant token")
+  
 
 
