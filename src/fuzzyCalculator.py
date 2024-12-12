@@ -141,13 +141,12 @@ from enum import Enum
 
 
 # =============================================================================
-# Constant pool
+# Constants pool
 # =============================================================================
 class CalcStatus(Enum) :
   INIT = 0
   COMPILE_OK = 1
   COMPILE_FAILED = 2
-
 
 
 
@@ -178,7 +177,6 @@ class Calc :
 
     self.expr = expr
     
-    # Run some basic checks
     checkPassed = qParser.sanityCheck(self.expr)
     if not(checkPassed) :
       print("[ERROR] Parser failed due to an error in the sanity check.")
@@ -214,14 +212,10 @@ class Calc :
     # STEP 4: nest away operators with higher precedence
     B.nest()
     
-    # STEP 6: evaluate!
-    #out = B.eval()
+    self.status = CalcStatus.COMPILE_OK
+    
+    
 
-    # TODO: update the internal status
-    #self.status = ...
-  
-  
-  
   # ---------------------------------------------------------------------------
   # METHOD: Calc.eval()
   # ---------------------------------------------------------------------------

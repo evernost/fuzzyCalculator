@@ -36,7 +36,7 @@ import src.variable as variable
 # [EXAMPLE 1] A basic scalar operation
 # -----------------------------------------------------------------------------
 fcalc = fuzzyCalculator.Calc()
-fcalc.input("1234*5678-9876")
+fcalc.input("12*34-56")
 fcalc.compile()
 fcalc.print()
 
