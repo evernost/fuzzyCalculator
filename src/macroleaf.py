@@ -144,9 +144,9 @@ class Macroleaf :
         elif (not(lastArg) and (len(self.args[n].remainder) == 0)) :
           
           if (ret != binary.BINARISE_SUCCESS_WITH_REMAINDER) :
-            print("[DEBUG] Error: binarisation returned an incorrect value.")
+            print("[ERROR] Macroleaf._buildArgs(): binarisation returned an incorrect value.")
           
-          print("[ERROR] Internal error: arguments are expected, but there a no Tokens left to process.")
+          print("[ERROR] Macroleaf._buildArgs(): arguments are expected, but there a no Tokens left to process.")
           return binary.BINARISE_FAILURE
         
         # Binarisation terminated successfully. 
@@ -161,14 +161,14 @@ class Macroleaf :
 
     # No token to process      
     else :
-      print("[WARNING] Call to <_buildStack> with an empty list of Token is not supposed to happen.")
+      print("[WARNING] Macroleaf._buildArgs() with an empty list of Token is not supposed to happen.")
       self.remainder = []
       return binary.BINARISE_SUCCESS
 
 
 
   # -----------------------------------------------------------------------------
-  # METHOD: Macroleaf.sanityCheck
+  # METHOD: Macroleaf.sanityCheck()
   # -----------------------------------------------------------------------------
   def sanityCheck(self) :
     """
@@ -179,7 +179,7 @@ class Macroleaf :
     todo
     """
 
-    print("<macroleaf.sanityCheck> is todo!")
+    print("[WARNING] Macroleaf.sanityCheck() is todo!")
 
 
 
@@ -190,8 +190,9 @@ class Macroleaf :
     """
     Calls the "nest()" method of each Binary object in the "args" list.
     """
+
     for n in range(self.nArgs) :
-      print(f"[DEBUG] Nesting argument {n+1}/{self.nArgs}...")
+      print(f"[DEBUG] Macroleaf.nest(): nesting argument {n+1}/{self.nArgs}...")
       self.args[n].nest()
 
 

@@ -144,11 +144,7 @@ class Binary :
     
     # Init with empty list of tokens. 
     else :
-      print("[DEBUG] Warning: this section is not supposed to be called.")
-      # self.context = "SUB"      
-      # self.nNodes = 0
-      # self.nLeaf = 0
-      # self.nOps = 0
+      print("[ERROR] Binary.__init__: this section should not have been reached (empty list of Tokens)")
       
 
 
@@ -323,7 +319,7 @@ class Binary :
       if (self.stack[0].type == "INFIX") :
         if (self.stack[0].name == "-") :
           self.stack = [symbols.Token("0")] + self.stack
-          print("[DEBUG] Added an implicit zero.")
+          print("[DEBUG] Binary._explicitZeros(): added an implicit zero.")
 
     # STEP 2: detect the pattern recursively in the macroleaves
     # for node in self.stack :
@@ -371,12 +367,14 @@ class Binary :
             
             # Guard
             if ((n+2) > (nElements-1)) :
-              print("[ERROR] Premature end; it should have been caught before calling <_minusAsOpp>!")
+              print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
+              exit()
             
             M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
             newStack.append(eltA)
             newStack.append(M)
             n += 3
+            print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
 
         # ------------------------------------------------
         # Detect any other combination of an infix and "-"
@@ -387,16 +385,17 @@ class Binary :
 
             # Guard
             if ((n+2) > (nElements-1)) :
-              print("[ERROR] Premature end; it should have been caught before calling <_minusAsOpp>!")
+              print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
               exit()
 
             M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
             newStack.append(eltA)
             newStack.append(M)
             n += 3
+            print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
 
           else :
-            print("[ERROR] Invalid combination of infixes; it should have been caught before calling <_minusAsOpp>!")
+            print("[ERROR] Invalid combination of infixes; it should have been caught before calling 'Binary._minusAsOpp()'")
             exit()
 
         # ---------------
@@ -729,7 +728,7 @@ class Binary :
       return leaf.eval()
     
     else :
-      print(f"[DEBUG] Internal error: expected a leaf, but got a Token of type '{leaf.type}' instead.")
+      print(f"[ERROR] Binary._evalLeaf(): expected a leaf, but got a Token of type '{leaf.type}' instead.")
     
   
   
@@ -744,16 +743,16 @@ class Binary :
     
     # Checks: make sure each argument is of the right type
     if not(leftLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
-      print(f"[DEBUG] Error: in _evalOp, 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
+      print(f"[ERROR] Binary._evalOp(): 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
         
     if not(rightLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
-      print(f"[DEBUG] Error: in _evalOp, 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
+      print(f"[ERROR] Binary._evalOp(): 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
 
     if (op.type != "INFIX") :
       if hasattr(op, "name") :
-        print(f"[DEBUG] Error: '{op.name}' is not a valid infix operator.")
+        print(f"[ERROR] Binary._evalOp(): '{op.name}' is not a valid infix operator.")
       else :
-        print(f"[DEBUG] Error: while evaluating, got an invalid infix operator.")
+        print(f"[ERROR] Binary._evalOp(): while evaluating, got an invalid infix operator.")
         
     # Evaluation of each argument of the operator
     leftArg = self._evalLeaf(leftLeaf)
@@ -784,7 +783,7 @@ class Binary :
       return ((a*b)/(a+b))
 
     else :      
-      print(f"[DEBUG] Error in '_evalOp': unknown infix operator '{op.name}'.")
+      print(f"[ERROR] Binary._evalOp(): unknown infix operator '{op.name}'.")
   
   
 

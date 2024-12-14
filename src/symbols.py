@@ -156,13 +156,13 @@ class Token :
       self.type     = "BRKT_OPEN"
       self.name     = name
       self.nArgs    = 0
-      self.dispStr  = f"BRKT:'('"
+      self.dispStr  = f"'('"
 
     elif (name == ")") :
       self.type     = "BRKT_CLOSE"
       self.name     = name
       self.nArgs    = 0
-      self.dispStr  = f"BRKT:')'"
+      self.dispStr  = f"')'"
 
     elif (name == ",") :
       self.type     = "COMMA"

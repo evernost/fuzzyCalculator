@@ -163,6 +163,8 @@ class Calc :
     self.variables  = []
     self.status     = CalcStatus.INIT
 
+    self.binary = None
+
 
 
   # ---------------------------------------------------------------------------
@@ -179,17 +181,17 @@ class Calc :
     
     checkPassed = qParser.sanityCheck(self.expr)
     if not(checkPassed) :
-      print("[ERROR] Parser failed due to an error in the sanity check.")
+      print("[ERROR] Parser halted due to an error in the sanity check.")
       exit()
       
     checkPassed = qParser.bracketBalanceCheck(self.expr)
     if not(checkPassed) :
-      print("[ERROR] Parser failed due to an error in the bracket balance.")
+      print("[ERROR] Parser halted due to an error in the bracket balance.")
       exit()
       
     checkPassed = qParser.firstOrderCheck(self.expr)
     if not(checkPassed) :
-      print("[ERROR] Parser failed due to an error in the first order check.")
+      print("[ERROR] Parser halted due to an error in the first order check.")
       exit()
 
 
@@ -198,31 +200,34 @@ class Calc :
   # METHOD: Calc.compile()
   # ---------------------------------------------------------------------------
   def compile(self) :
-  
+    """
+    Compiles the expression that has been set using 'input()'.
+    Compilation process consists in:
+    - STEP 1: rewrite the expression as a list of tokens
+    - STEP 2: detect and add the implicit multiplication tokens
+    - STEP 3: create a binary object from the list of tokens
+    - STEP 4: nest away operators with higher precedence so that they are 
+    evaluated first.
+    The functions does not return anything, it populates the fields 'tokens'
+    and 'binary', and updates the status.
+    """
     
-    # STEP 1: rewrite the expression as a list of tokens
-    tokenList = qParser.tokenise(self.expr)
-    
-    # STEP 2: detect and add the implicit multiplication tokens
-    tokenListFull = qParser.explicitMult(tokenList)
-    
-    # STEP 3: create a binary object from the list of tokens
-    B = binary.Binary(tokenListFull)
-  
-    # STEP 4: nest away operators with higher precedence
-    B.nest()
+    self.tokens = qParser.tokenise(self.expr)
+    self.tokens = qParser.explicitMult(self.tokens)
+    self.binary = binary.Binary(self.tokens)
+    self.binary.nest()
     
     self.status = CalcStatus.COMPILE_OK
     
     
 
   # ---------------------------------------------------------------------------
-  # METHOD: Calc.eval()
+  # METHOD: Calc.print()
   # ---------------------------------------------------------------------------
-  def eval(self) :
+  def print(self) :
     """
     For a scalar expression (no variables): evaluates the expression, returns
-    the value.
+    the result.
     
     For an expression with variables: draws one occurence of the variables, 
     evaluates the expression and returns the value.
@@ -230,8 +235,13 @@ class Calc :
     For a more complete evaluation, please refer to the 'sim' method.
     """
     
+    if (len(self.expr) == 0) :
+      print("[ERROR] Please set an expression first using 'FuzzyCalculator.input()'")
+      exit()
+
     if (self.status != CalcStatus.COMPILE_OK) :
-      print("[ERROR] Please compile an expression before evaluating it.")
+      print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before evaluating it.")
+      exit()
     
     else :
       print("todo")
@@ -241,13 +251,17 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.print()
   # ---------------------------------------------------------------------------
-  def print(self) :
-    """
-    Prints the result of 'eval()' along with some useful information depending 
-    on the simulation that has been run.
-    """
+  # def print(self) :
+  #   """
+  #   Prints the result of 'eval()' along with some useful information depending 
+  #   on the simulation that has been run.
+  #   """
     
-    print("todo")
+  #   if (self.status != CalcStatus.COMPILE_OK) :
+  #     print("[ERROR] Please compile an expression before evaluating it.")
+    
+  #   else :
+  #     out = B.eval()
 
     
     

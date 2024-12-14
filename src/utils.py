@@ -66,8 +66,8 @@ def split(inputStr, n) :
   """  
   
   # Input guard
-  assert isinstance(inputStr, str), "<split> first argument must be a string."
-  assert isinstance(n, int), "<split> second argument must be an integer."
+  assert isinstance(inputStr, str), "First argument in 'split' must be a string."
+  assert isinstance(n, int), "Second argument in 'split' must be an integer."
   
   if not(inputStr) :
     return ("", "")
@@ -194,7 +194,7 @@ def isLegalVariableName(inputStr) :
   """
   
   # Input guard
-  assert isinstance(inputStr, str), "<isLegalVariableName> expects a string as an input."
+  assert isinstance(inputStr, str), "'isLegalVariableName' expects a string as an input."
 
   # Filter out reserved names
   if (inputStr in ([x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS])) :
