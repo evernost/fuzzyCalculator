@@ -78,10 +78,12 @@ Sorted by increasing effort:
 
 
 ## What is the development status?
-So far, it has been tested **successfully** on various expressions with scalars (see unit tests).
+So far, it has been tested **successfully** on various expressions with scalars (see unit tests in ``src/qParser.py```).
 
-What is remaining:
-- solve bugs with the constants
-- add support for variables and attach them the appropriate random generator
+Remaining: 
+- wrap all the complexity in a 'Calculator' object with high-level functions that are more user friendly
+- handle the variables (detect them, link them with the user variable declarations)
+- run the Monte-Carlo simulations
+- add plots
 
 
