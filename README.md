@@ -80,10 +80,10 @@ Sorted by increasing effort:
 ## What is the development status?
 So far, it has been tested **successfully** on various expressions with scalars (see unit tests in ``src/qParser.py```).
 
-Remaining: 
-- wrap all the complexity in a 'Calculator' object with high-level functions that are more user friendly
-- handle the variables (detect them, link them with the user variable declarations)
-- run the Monte-Carlo simulations
-- add plots
+Remaining tasks: 
+- [ ] Wrap the complexity in a 'Calculator' object (high-level and user-friendly functions)
+- [ ] Add a proper variable detection (parser) and declaration (user)
+- [ ] Add the Monte-Carlo simulator
+- [ ] Plot the simulation results
 
 
