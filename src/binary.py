@@ -448,19 +448,20 @@ class Binary :
     
     # CHECK 1: number of nodes must be even.
     if ((self.nNodes % 2) == 0) :
-      print("[ERROR] Number of nodes shall be even at that point!")
+      print(f"[ERROR] Binary.nest(): cannot nest an even number of nodes (size = {self.nNodes})")
+      exit()
 
     # CHECK 2: nodes in the stack (top level and macros) must follow a 'L op L ... op L' pattern
     nInfix = 0
     for (n, element) in enumerate(self.stack) :        
       if ((n % 2) == 0) :
         if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
-          print("[ERROR] The expression to nest does not follow the pattern [L op L op ...]")
+          print("[ERROR] Binary.nest(): the expression does not follow the pattern [L op L op ...] (ERR_NOT_A_LEAF)")
           exit()
 
       else :
         if (element.type != "INFIX") :
-          print("[ERROR] The expression to nest does not follow the pattern [L op L op ...]")
+          print("[ERROR] Binary.nest(): the expression to nest does not follow the pattern [L op L op ...] (ERR_NOT_AN_INFIX)")
           exit()
 
         else :
@@ -478,7 +479,7 @@ class Binary :
       
       # STEP 1: look for the infix of highest priority in [L op L op L ...]
       (minPriority, maxPriority) = self._getPriorityRange()
-      print(f"[DEBUG] Priority range = ({minPriority}, {maxPriority})")
+      print(f"[DEBUG] Binary.nest(): priority range = ({minPriority}, {maxPriority})")
       
       # Call to "nest()" is necessary if there are 2 different levels of priority
       while (maxPriority != minPriority) :

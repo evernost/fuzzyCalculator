@@ -39,7 +39,7 @@ fcalc = fuzzyCalculator.Calc()
 fcalc.input("12*34-56")
 fcalc.compile()
 fcalc.print()
-
+print("")
 
 
 # -----------------------------------------------------------------------------
@@ -49,6 +49,7 @@ fcalc = fuzzyCalculator.Calc()
 fcalc.input("-2cos(1.5pi)")
 fcalc.compile()
 fcalc.print()
+print("")
 
 
 
@@ -56,19 +57,18 @@ fcalc.print()
 # [EXAMPLE 3] Your first syntax error
 # -----------------------------------------------------------------------------
 fcalc = fuzzyCalculator.Calc()
-fcalc.input("x-3*")
+fcalc.input("x-3*y+z1/")
 fcalc.compile()
 fcalc.print()
+print("")
 
 
 
 # -----------------------------------------------------------------------------
 # [EXAMPLE 4] Adding lengths with uncertainties
 # -----------------------------------------------------------------------------
-
-# a = 1.0 +/- 0.1
-a = variable.rand(center = 1.0, err = 0.1)
-b = variable.rand(center = 1.0, err = 0.1)
+a = variable.rand(center = 1.0, err = 0.1)        # a = 1.0 +/- 0.1 (uniform)
+b = variable.rand(center = 1.0, err = 0.1)        # b = 1.0 +/- 0.1 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare(a)
@@ -77,6 +77,7 @@ fcalc.compile("a+b")
 fcalc.setMode("MAX_RANGE")
 fcalc.sim(nPts = 1000)
 fcalc.print()
+print("")
 
 
 
@@ -101,7 +102,6 @@ fcalc.print()
 # -----------------------------------------------------------------------------
 # [EXAMPLE 5] Fuzzy calculation: period of a pendulum
 # -----------------------------------------------------------------------------
-
 l = variable.rand(val = 1.0, tol = 0.05)
 g = variable.rand(val = 9.81, tol = 0.05)
 
@@ -147,7 +147,7 @@ y = variable.rand(min = -1.0, max = 1.0)
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([x, y])
 fcalc.compile("sin(2*pi*x + cos(y)")
-fcalc.setMode("CONF95")
+fcalc.setMode("DIST_95")
 fcalc.sim(nPts = 1000)
 fcalc.print()
 
@@ -165,7 +165,7 @@ z3 = variable.randn(val = 10, tol98 = 0.5)
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([z1, z2, z3])
 fcalc.compile("(z1^2)-(z2^2) + z3^2")
-fcalc.setMode("CONF99")
+fcalc.setMode("DIST_99")
 fcalc.sim(nPts = 1000)
 fcalc.print()
 

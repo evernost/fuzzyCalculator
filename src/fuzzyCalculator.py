@@ -147,6 +147,7 @@ class CalcStatus(Enum) :
   INIT = 0
   COMPILE_OK = 1
   COMPILE_FAILED = 2
+  SIM_OK = 3
 
 
 
@@ -165,6 +166,7 @@ class Calc :
 
     self.binary = None
 
+    self.hasVariables = False
 
 
   # ---------------------------------------------------------------------------
@@ -194,6 +196,8 @@ class Calc :
       print("[ERROR] Parser halted due to an error in the first order check.")
       exit()
 
+    print(f"[INFO] Input set to '{self.expr}'")
+
 
 
   # ---------------------------------------------------------------------------
@@ -212,12 +216,22 @@ class Calc :
     and 'binary', and updates the status.
     """
     
+    # STEP 1: tokenise
     self.tokens = qParser.tokenise(self.expr)
-    self.tokens = qParser.explicitMult(self.tokens)
-    self.binary = binary.Binary(self.tokens)
+    tokensFull = qParser.explicitMult(self.tokens)
+    self.variables = qParser.getVariables(tokensFull)
+
+    # STEP 2: binarise
+    self.binary = binary.Binary(tokensFull)
+    if (self.binary.status == binary.BINARISE_FAILURE) :
+      print("[ERROR] Compilation failed: unable to binarise.")
+      exit()
+    
+    # STEP 3: embed sections of higher precedence in a Macroleaf (nesting)
     self.binary.nest()
     
     self.status = CalcStatus.COMPILE_OK
+    print("[INFO] Compile OK.")
     
     
 
@@ -243,8 +257,14 @@ class Calc :
       print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before evaluating it.")
       exit()
     
+    if (self.hasVariables and (self.status != CalcStatus.SIM_OK)) :
+      print("[WARNING] Expression has random variables: 'print' returns only the value of one single draw.")
+
     else :
-      print("todo")
+      if not(self.hasVariables) :
+        print("[INFO] Running in scalar mode.")
+      out = self.binary.eval()
+      print(f"[OUTPUT] {self.expr} = {out}")
     
 
 

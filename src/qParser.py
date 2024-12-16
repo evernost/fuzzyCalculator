@@ -863,7 +863,7 @@ def tokenise(inputStr) :
       inputStr = tailFunction
 
     elif (variable != "") :
-      print(f"[DEBUG] Found variable: '{variable}'")
+      #print(f"[DEBUG] Found variable: '{variable}'")
       tokenList.append(symbols.Token(variable))
       inputStr = tailVariable
       
@@ -892,6 +892,25 @@ def tokenise(inputStr) :
         exit()
 
   return tokenList
+
+
+
+# -----------------------------------------------------------------------------
+# FUNCTION: getVariables(tokenList)
+# -----------------------------------------------------------------------------
+def getVariables(tokenList) :
+  """
+  Returns the list of variables found in the list of Tokens.
+  """
+
+  varList = []
+
+  for t in tokenList :
+    if (t.type == "VAR") :
+      print(f"{t.name}")
+      varList.append(t.name)
+
+  return varList
 
 
 
@@ -957,9 +976,6 @@ def explicitMult(tokenList) :
   DESCRIPTION
   Detects and expands implicit multiplications in a list of tokens.
   Returns the same list with the multiplication tokens explicited at the right place.
-
-  EXAMPLES
-  todo
   """
   
   nTokens = len(tokenList)
@@ -988,7 +1004,7 @@ def explicitMult(tokenList) :
         output.append(symbols.Token("*"))
 
       # Example: "(x+1)pi"
-      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "CONST")) :
+      elif ((T1.type, T2.type) == ("BRKT_CLOSE", "CONSTANT")) :
         output.append(symbols.Token("*"))
 
       # Example: "(x+1)cos(y)"
@@ -1008,7 +1024,7 @@ def explicitMult(tokenList) :
         output.append(symbols.Token("*"))
 
       # Example: "2pi"
-      elif ((T1.type, T2.type) == ("NUMBER", "CONST")) :
+      elif ((T1.type, T2.type) == ("NUMBER", "CONSTANT")) :
         output.append(symbols.Token("*"))
 
       # Example: "2exp(t)"
@@ -1139,10 +1155,12 @@ if (__name__ == '__main__') :
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
   assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
   assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
-  #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))      # Rule R5.X
-  #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
-  #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))
-  #assert(consumeVar("x3y") == ("x3", "y"))              # Rule R5.6 -> "consumeVar" does not work according to R5._ and needs a fix
+  
+  # The following should work, but doesn't. Needs a fix.
+  #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))       # FAILS
+  #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))   # FAILS
+  #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))     # FAILS
+  #assert(consumeVar("x3y") == ("x3", "y"))                       # FAILS
   print("- Self-test passed: 'consumeVar'")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
@@ -1194,12 +1212,14 @@ if (__name__ == '__main__') :
     ("12//100",           12*100/(12+100)),
     ("4.7 + 10//100",     4.7+(10*100/(10+100))),
     ("-(-3+9)/(1+2)",     -(-3+9)/(1+2)),
+    ("-2cos(1.5pi)",      -2*np.cos(1.5*np.pi)),
+    ("3cos(2*pi/10)",     3*np.cos(2*np.pi/10)),
     ("-abs(-15*7)/5",     -105/5),
     ("sin(2*pi*0.1",      np.sin(2*np.pi*0.1)),
     ("1.0//2.5",          1.0*2.5/(1.0+2.5)),
     ("10//100+1",         ((10*100)/(10+100)) + 1),
     ("1+cos(exp(pi*3))",  1 + np.cos(np.exp(3*np.pi))),
-    ("1+cos(exp(pi*3))/tan(0.1/2)",  1 + np.cos(np.exp(3*np.pi))/np.tan(0.1/2))
+    ("1+cos(exp(pi*3))/tan(0.1/2)", 1 + np.cos(np.exp(3*np.pi))/np.tan(0.1/2))
   ]
 
   for (n, vect) in enumerate(testVect) :
