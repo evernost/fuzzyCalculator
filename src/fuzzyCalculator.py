@@ -161,13 +161,31 @@ class Calc :
   # ---------------------------------------------------------------------------
   def __init__(self) :
     self.expr       = ""
-    self.variables  = []
     self.status     = CalcStatus.INIT
 
     self.binary = None
 
-    self.hasVariables = False
+    self.varDeclared  = []
+    self.varDetected  = []
+    self.exprHasVariables = False
 
+    # self._clearInputs()
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc._clearInputs()
+  # ---------------------------------------------------------------------------
+  # def _clearInputs(self) :
+  #   """
+    
+  #   """
+
+  #   self.expr       = ""
+  #   self.variables  = []
+  #   self.status     = CalcStatus.INIT
+    
+    
 
   # ---------------------------------------------------------------------------
   # METHOD: Calc.input(string)
@@ -219,21 +237,44 @@ class Calc :
     # STEP 1: tokenise
     self.tokens = qParser.tokenise(self.expr)
     tokensFull = qParser.explicitMult(self.tokens)
-    self.variables = qParser.getVariables(tokensFull)
+    
+    # STEP 2: list detected variables
+    self.varDetected = qParser.getVariables(tokensFull)
 
-    # STEP 2: binarise
+    # STEP 3: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
       print("[ERROR] Compilation failed: unable to binarise.")
       exit()
     
-    # STEP 3: embed sections of higher precedence in a Macroleaf (nesting)
+    # STEP 4: embed sections of higher precedence in a Macroleaf (nesting)
     self.binary.nest()
     
+    # STEP 5: check if all variables are declared
+    
+
+
+
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
     
+
     
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.declare()
+  # ---------------------------------------------------------------------------
+  def declare(self, var) :
+    """
+    Declares a variable
+    """
+    
+    if not(isinstance(var, list)) :
+      self.varDeclared.append(var)
+    
+    else :
+      self.varDeclared += var
+    
+
 
   # ---------------------------------------------------------------------------
   # METHOD: Calc.print()
@@ -257,33 +298,16 @@ class Calc :
       print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before evaluating it.")
       exit()
     
-    if (self.hasVariables and (self.status != CalcStatus.SIM_OK)) :
+    if (self.exprHasVariables and (self.status != CalcStatus.SIM_OK)) :
       print("[WARNING] Expression has random variables: 'print' returns only the value of one single draw.")
 
     else :
-      if not(self.hasVariables) :
+      if not(self.exprHasVariables) :
         print("[INFO] Running in scalar mode.")
       out = self.binary.eval()
       print(f"[OUTPUT] {self.expr} = {out}")
     
 
-
-  # ---------------------------------------------------------------------------
-  # METHOD: Calc.print()
-  # ---------------------------------------------------------------------------
-  # def print(self) :
-  #   """
-  #   Prints the result of 'eval()' along with some useful information depending 
-  #   on the simulation that has been run.
-  #   """
-    
-  #   if (self.status != CalcStatus.COMPILE_OK) :
-  #     print("[ERROR] Please compile an expression before evaluating it.")
-    
-  #   else :
-  #     out = B.eval()
-
-    
     
   # ---------------------------------------------------------------------------
   # METHOD: Calc.sim()

@@ -4,7 +4,7 @@
 # Module name     : variable
 # File name       : variable.py
 # File type       : Python script (Python 3.10 or greater)
-# Purpose         : 
+# Purpose         : 'Variable' object definition
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
 # -----------------------------------------------------------------------------
@@ -50,13 +50,23 @@ class Variable :
   # METHOD: Variable.__init__ (constructor)
   # ---------------------------------------------------------------------------
   def __init__(self, **kwargs) :
+    
+    if not("name" in kwargs) :
+      print("[ERROR] A variable must be declared with a name.")
+      exit()
+    
+    
+    
     if (("min" in kwargs) and ("max" in kwargs)) : 
       self.specType = "RANGE"
       self.min = kwargs["min"]
       self.max = kwargs["max"]
       
       
-    print("TODO")
+    print("[WARNING] Variable.__init__() is TODO!")
+
+
+
 
   # ---------------------------------------------------------------------------
   # METHOD: Variable.XXX

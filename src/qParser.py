@@ -863,7 +863,6 @@ def tokenise(inputStr) :
       inputStr = tailFunction
 
     elif (variable != "") :
-      #print(f"[DEBUG] Found variable: '{variable}'")
       tokenList.append(symbols.Token(variable))
       inputStr = tailVariable
       
@@ -907,7 +906,7 @@ def getVariables(tokenList) :
 
   for t in tokenList :
     if (t.type == "VAR") :
-      print(f"{t.name}")
+      print(f"[DEBUG] Found variable: '{t.name}'")
       varList.append(t.name)
 
   return varList

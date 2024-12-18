@@ -4,7 +4,7 @@
 # Module name     : binary
 # File name       : binary.py
 # File type       : Python script (Python 3.10 or greater)
-# Purpose         : Binary object definition
+# Purpose         : 'Binary' object definition
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : Saturday, 1 June 2024
 # -----------------------------------------------------------------------------

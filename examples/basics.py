@@ -56,26 +56,27 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 3] Your first syntax error
 # -----------------------------------------------------------------------------
-fcalc = fuzzyCalculator.Calc()
-fcalc.input("x-3*y+z1/")
-fcalc.compile()
-fcalc.print()
-print("")
+# fcalc = fuzzyCalculator.Calc()
+# fcalc.input("x-3*y+z1/")
+# fcalc.compile()
+# fcalc.print()
+# print("")
 
 
 
 # -----------------------------------------------------------------------------
 # [EXAMPLE 4] Adding lengths with uncertainties
 # -----------------------------------------------------------------------------
-a = variable.rand(center = 1.0, err = 0.1)        # a = 1.0 +/- 0.1 (uniform)
-b = variable.rand(center = 1.0, err = 0.1)        # b = 1.0 +/- 0.1 (uniform)
+a = variable.rand(name = "a", center = 1.0, err = 0.1)        # a = 1.0 +/- 0.1 (uniform)
+b = variable.rand(name = "b", center = 1.0, err = 0.1)        # b = 1.0 +/- 0.1 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare(a)
 fcalc.declare(b)
-fcalc.compile("a+b")
-fcalc.setMode("MAX_RANGE")
+fcalc.input("a+b")
+fcalc.compile()
 fcalc.sim(nPts = 1000)
+fcalc.setMode("MAX_RANGE")
 fcalc.print()
 print("")
 
