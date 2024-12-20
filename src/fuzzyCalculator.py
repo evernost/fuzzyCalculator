@@ -251,21 +251,23 @@ class Calc :
     self.binary.nest()
     
     # STEP 5: check if all variables are declared
+    self._variableDeclarationCheck()
+
+
     
-
-
-
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
     
 
     
   # ---------------------------------------------------------------------------
-  # METHOD: Calc.declare()
+  # METHOD: Calc.declare('variable' Object)
   # ---------------------------------------------------------------------------
   def declare(self, var) :
     """
-    Declares a variable
+    Declares a variable to the compiler.
+    'var' must be a Variable Object.
+    Variable can be either a single variable object, or a list of them.
     """
     
     if not(isinstance(var, list)) :
@@ -274,6 +276,17 @@ class Calc :
     else :
       self.varDeclared += var
     
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc._variableDeclarationCheck()
+  # ---------------------------------------------------------------------------
+  def _variableDeclarationCheck(self) :
+    """
+    
+    """
+    
+    if (len(self.varDeclared) < len(self.varDetected)) :
+      print("[ERROR]")
 
 
   # ---------------------------------------------------------------------------
