@@ -251,10 +251,8 @@ class Calc :
     self.binary.nest()
     
     # STEP 5: check if all variables are declared
-    self._variableDeclarationCheck()
+    ret = self._varDeclarationCheck()
 
-
-    
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
     
@@ -263,30 +261,44 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.declare('variable' Object)
   # ---------------------------------------------------------------------------
-  def declare(self, var) :
+  def declare(self, vars) :
     """
     Declares a variable to the compiler.
     'var' must be a Variable Object.
     Variable can be either a single variable object, or a list of them.
     """
     
-    if not(isinstance(var, list)) :
-      self.varDeclared.append(var)
+    if not(isinstance(vars, list)) :
+      self.varDeclared.append(vars.name)
     
     else :
-      self.varDeclared += var
+      varNames = [v.name for v in vars]
+      self.varDeclared += varNames
     
 
+
   # ---------------------------------------------------------------------------
-  # METHOD: Calc._variableDeclarationCheck()
+  # METHOD: Calc._varDeclarationCheck()
   # ---------------------------------------------------------------------------
-  def _variableDeclarationCheck(self) :
+  def _varDeclarationCheck(self) :
+    """
+    Checks that all the variables detected in the expression are declared.
+    Returns a warning if variables are declared but not detected.
     """
     
-    """
-    
-    if (len(self.varDeclared) < len(self.varDetected)) :
-      print("[ERROR]")
+    ret = True
+    for varDec in self.varDeclared :
+      if not(varDec in self.varDetected) :
+        print(f"[WARNING] Variable is declared, but not used/detected: '{varDec}'")
+
+    for varDet in self.varDetected :
+      if not(varDet in self.varDeclared) :
+        print(f"[ERROR] Undeclared variable: '{varDet}'")
+        exit()
+        ret = False
+
+    return ret
+
 
 
   # ---------------------------------------------------------------------------

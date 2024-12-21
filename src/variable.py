@@ -54,6 +54,8 @@ class Variable :
     if not("name" in kwargs) :
       print("[ERROR] A variable must be declared with a name.")
       exit()
+    else :
+      self.name = kwargs["name"]
     
     
     
