@@ -34,6 +34,10 @@ def scalar(**kwargs) :
 
 
 def rand(**kwargs) :
+    
+  if (("center" in kwargs) and ("err" in kwargs)) :
+    print(f"[INFO]Creating a uniform variable for '{kwargs['name']}'")
+  
   return Variable(randType = "UNIFORM", **kwargs)
 
 
