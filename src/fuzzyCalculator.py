@@ -214,7 +214,7 @@ class Calc :
       print("[ERROR] Parser halted due to an error in the first order check.")
       exit()
 
-    print(f"[INFO] Input set to '{self.expr}'")
+    print(f"[INFO] Calculator: input set to '{self.expr}'")
 
 
 
@@ -250,9 +250,10 @@ class Calc :
     # STEP 4: embed sections of higher precedence in a Macroleaf (nesting)
     self.binary.nest()
     
-    # STEP 5: check if all variables are declared
+    # STEP 5: check if all detected variables are declared
     ret = self._varDeclarationCheck()
 
+    # If the app made it up to here, compile is OK.
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
     
@@ -339,7 +340,10 @@ class Calc :
   # ---------------------------------------------------------------------------
   def sim(self, nPts = 1000, mode = "MAX_RANGE") :
     """
-    todo!
+    Runs the Monte-Carlo simulation of the compiled expression.
+    Simulation modes: 
+    - MAX_RANGE: returns the min/max value reached by the expression
+    - 
     """
     
     print("todo")

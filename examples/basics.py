@@ -67,16 +67,15 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 4] Adding lengths with uncertainties
 # -----------------------------------------------------------------------------
-a = variable.rand(name = "a", center = 1.0, err = 0.1)        # a = 1.0 +/- 0.1 (uniform)
-b = variable.rand(name = "b", center = 1.0, err = 0.1)        # b = 1.0 +/- 0.1 (uniform)
+var_a = variable.rand(name = "a", val = 1.0, abs = 0.1)  # a = 1.0 +/- 0.1 (uniform)
+var_b = variable.rand(name = "b", val = 1.0, abs = 0.1)  # b = 1.0 +/- 0.1 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
-fcalc.declare(a)
-fcalc.declare(b)
+fcalc.declare(var_a)
+fcalc.declare(var_b)
 fcalc.input("a+b")
 fcalc.compile()
 fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
-# fcalc.setMode("MAX_RANGE")
 fcalc.print()
 print("")
 
@@ -85,30 +84,25 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 5] Pythagoras' theorem with uncertainties
 # -----------------------------------------------------------------------------
-
-# a = 1.0 +/- 0.1
-a = variable.rand(center = 3.0, err = 0.1)
-b = variable.rand(center = 4.0, err = 0.1)
+var_a = variable.rand(name = "a", val = 3.0, abs = 0.1)  # a = 3.0 +/- 0.1 (uniform)
+var_b = variable.rand(name = "b", val = 4.0, abs = 0.1)  # b = 4.0 +/- 0.1 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
-fcalc.declare(a)
-fcalc.declare(b)
+fcalc.declare([var_a, var_b])
 fcalc.compile("sqrt(a^2+b^2)")
-fcalc.setMode("MAX_RANGE")
-fcalc.sim(nPts = 1000)
+fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
 fcalc.print()
 
 
 
 # -----------------------------------------------------------------------------
-# [EXAMPLE 5] Fuzzy calculation: period of a pendulum
+# [EXAMPLE 6] Fuzzy calculation: period of a pendulum
 # -----------------------------------------------------------------------------
-l = variable.rand(val = 1.0, tol = 0.05)
-g = variable.rand(val = 9.81, tol = 0.05)
+var_l = variable.rand(name = "l", val = 1.0, abs = 0.05)
+var_g = variable.rand(name = "g", val = 9.81, abs = 0.05)
 
 fcalc = fuzzyCalculator.Calc()
-fcalc.declare(l)
-fcalc.declare(g)
+fcalc.declare([var_l, var_g])
 fcalc.compile("2pi*sqrt(l/g)")
 fcalc.setMode("MAX_RANGE")
 fcalc.sim(nPts = 1000)
@@ -117,7 +111,7 @@ fcalc.print()
 
 
 # -----------------------------------------------------------------------------
-# [EXAMPLE 6] Fuzzy calculation: resistors in parallel
+# [EXAMPLE 7] Fuzzy calculation: resistors in parallel
 # -----------------------------------------------------------------------------
 
 # 10 Ohms resistance with 5% tolerance (uniform)
@@ -135,7 +129,7 @@ fcalc.print()
 
 
 # -----------------------------------------------------------------------------
-# [EXAMPLE 6] Fuzzy calculation
+# [EXAMPLE 8] Fuzzy calculation
 # -----------------------------------------------------------------------------
 
 # Variable with center value and uncertainty: x = 1.0 +/- 0.1
