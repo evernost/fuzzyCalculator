@@ -92,22 +92,63 @@ def rand(**kwargs) :
   """
   
   if not("name" in kwargs) :
-    print("[ERROR] A variable must be declared with a name.")
+    print("[ERROR] Variable.rand(): a variable must be declared with a name.")
+    exit()
+  else :
+    varName = kwargs["name"]
+
+  if not("val" in kwargs) :
+    print("[ERROR] Variable.rand(): a variable must be given a center value 'val'.")
     exit()
 
-  if (("center" in kwargs) and ("err" in kwargs)) :
+  if ("abs" in kwargs) :
+    if (kwargs["abs"] < 0) :
+      print("[ERROR] Variable.rand(): the absolute uncertainty cannot be negative.")
+      exit()
+
+    if ("rel" in kwargs) :
+      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative margin.")
+      exit()
+  
+    varMin = kwargs["val"] - kwargs["abs"]
+    varMax = kwargs["val"] + kwargs["abs"]
     print(f"[INFO] Creating a uniform variable for '{kwargs['name']}'")
   
+  if ("unit" in kwargs) :
+    varUnit = kwargs["unit"]
+  else :
+    varUnit = ""
+
+  return Variable(randType = "UNIFORM", min = varMin, max = varMax, unit = varUnit, name = varName)
 
 
 
 
 
-  return Variable(randType = "UNIFORM", **kwargs)
 
 
 def randn(**kwargs) :
-  return Variable(randType = "GAUSSIAN", **kwargs)
+  """
+  Creates a gaussian random variable.
+
+  The function returns a 'Variable' object. 
+  It can be stored under any name you like, it does not really matter.
+  
+  Example: var_height = variable.rand(name = "height")
+
+  Only the 'name' field matters because it declares the actual 
+  name under which the variable appears in the math expression.
+  
+  Arguments: 
+  
+
+  """
+  
+  varMean = 0
+  varStd = 0
+  
+  
+  return Variable(randType = "GAUSSIAN", mean = varMean, std = varStd)
 
 
 
@@ -120,19 +161,20 @@ class Variable :
   # ---------------------------------------------------------------------------
   def __init__(self, **kwargs) :
     
-    if not("name" in kwargs) :
-      print("[ERROR] A variable must be declared with a name.")
-      exit()
-    else :
+    if (kwargs["randType"] == "UNIFORM") :
+      self.type = kwargs["randType"]
       self.name = kwargs["name"]
-    
-    
-    
-    if (("min" in kwargs) and ("max" in kwargs)) : 
-      self.specType = "RANGE"
       self.min = kwargs["min"]
       self.max = kwargs["max"]
       
+    elif (kwargs["randType"] == "GAUSSIAN") :
+      self.type = kwargs["randType"]
+      self.mean = kwargs["mean"]
+      self.std = kwargs["std"]
+    
+    else :
+      print("[ERROR] Variable.__init__(): unknown randType.")
+      exit()
       
     print("[WARNING] Variable.__init__() is TODO!")
 
@@ -140,6 +182,11 @@ class Variable :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Variable.XXX
+  # METHOD: Variable.draw()
   # ---------------------------------------------------------------------------
-  
+  def draw(self) :
+    """
+    Draws one value according to the variable's law.
+    """
+
+    print("[WARNING] Variable.draw() is TODO!")

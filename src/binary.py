@@ -721,9 +721,9 @@ class Binary :
     
     elif (leaf.type == "VAR") :
      
-      # Fetch the variable and its value from <lookUpTable>
-      # todo!
-      input(f"Assign value to variable '{leaf.name}': ")
+      # Fetch the variable and its value from 'lookUpTable'
+      print(f"[DEBUG] Looking for a variable '{leaf.name}' in the lookup table...")
+      # input(f"Assign value to variable '{leaf.name}': ")
 
     elif (leaf.type == "MACRO") :
       return leaf.eval()

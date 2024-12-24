@@ -68,7 +68,7 @@ print("")
 # [EXAMPLE 4] Adding lengths with uncertainties
 # -----------------------------------------------------------------------------
 var_a = variable.rand(name = "a", val = 1.0, abs = 0.1)  # a = 1.0 +/- 0.1 (uniform)
-var_b = variable.rand(name = "b", val = 1.0, abs = 0.1)  # b = 1.0 +/- 0.1 (uniform)
+var_b = variable.rand(name = "b", val = 2.0, abs = 0.5)  # b = 2.0 +/- 0.5 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare(var_a)
