@@ -69,9 +69,11 @@ print("")
 # -----------------------------------------------------------------------------
 var_a = variable.rand(name = "a", val = 1.0, abs = 0.1)  # a = 1.0 +/- 0.1 (uniform)
 var_b = variable.rand(name = "b", val = 2.0, abs = 0.5)  # b = 2.0 +/- 0.5 (uniform)
+var_c = variable.rand(name = "c", val = 2.0, abs = 0.5)
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare(var_a)
+fcalc.declare([var_a, var_c])
 fcalc.declare(var_b)
 fcalc.input("a+b")
 fcalc.compile()

@@ -631,28 +631,21 @@ class Binary :
   # ---------------------------------------------------------------------------
   def setVariables(self, variables) :
     """
-    DESCRIPTION
-    Declares the variables and their values to the parser.
+    Copies the list of variables (declared in the parser) in the Binary object
+    so that the object becomes aware of the existing variables and may call 
+    their methods.
     
-    This function must be called before any evaluation.
-    
-    The variables are given as a dictionary that pairs the variable name with 
-    either a number (fixed variables) or a generator (random variables)
-    
-    EXAMPLES
-    variables = {
-      "R1": 10000.0, 
-      "R2": variable.Scalar(10.0, "k"),
-      "R3": variable.rand(val = 10, tol = 0.05)
-    }
+    This function must be called before Binary.eval()
+
+    The variables must be provided as a list of 'Variable' objects.
     """
     
     self.lookUpTable = variables
     
-    # Propagate the <lookUpTable> to the macroleaves
+    # Propagate the 'lookUpTable' to the macroleaves
     for element in self.stack :
       if (element.type == "MACRO") :
-        element.setVariables(lookUpTable)
+        element.setVariables(self.lookUpTable)
 
 
 
@@ -662,13 +655,14 @@ class Binary :
   def eval(self, stack = []) :
     """
     Evaluates the stack in the Binary object.
-    A specific stack can be given as argument, but this mode is usually used
-    by the internal machinery.
     
-    The Binary object must have been nested prior to calling this function.
-    
-    The list of variables and their value must be initialized using <setVariables>
-    before calling this function.
+    Before calling this function:
+    - the Binary object must be nested: Binary.nest()
+    - the list of variables must be initialized: Binary.setVariables()
+
+    A specific stack can be given as argument, but this reserved for internal use.
+    The 'proper' use is to process the internal stack directly. 
+    There is no real point in processing a custom stack. 
 
     Undeclared variables will return an error.
     """

@@ -144,10 +144,10 @@ from enum import Enum
 # Constants pool
 # =============================================================================
 class CalcStatus(Enum) :
-  INIT = 0
-  COMPILE_OK = 1
-  COMPILE_FAILED = 2
-  SIM_OK = 3
+  INIT            = 0
+  COMPILE_OK      = 1
+  COMPILE_FAILED  = 2
+  SIM_OK          = 3
 
 
 
@@ -165,8 +165,10 @@ class Calc :
 
     self.binary = None
 
-    self.varDeclared  = []
-    self.varDetected  = []
+    self.varNamesDeclared  = []
+    self.varNamesDetected  = []
+    self.vars = []
+
     self.exprHasVariables = False
 
     # self._clearInputs()
@@ -230,6 +232,8 @@ class Calc :
     - STEP 3: create a binary object from the list of tokens
     - STEP 4: nest away operators with higher precedence so that they are 
     evaluated first.
+    - STEP 5: TODO
+    - STEP 6: TODO
     The functions does not return anything, it populates the fields 'tokens'
     and 'binary', and updates the status.
     """
@@ -239,19 +243,22 @@ class Calc :
     tokensFull = qParser.explicitMult(self.tokens)
     
     # STEP 2: list detected variables
-    self.varDetected = qParser.getVariables(tokensFull)
+    self.varNamesDetected = qParser.getVariables(tokensFull)
 
     # STEP 3: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
       print("[ERROR] Compilation failed: unable to binarise.")
       exit()
-    
-    # STEP 4: embed sections of higher precedence in a Macroleaf (nesting)
+
+    # STEP 4: embed higher priority operations in a Macroleaf (nesting)
     self.binary.nest()
     
     # STEP 5: check if all detected variables are declared
     ret = self._varDeclarationCheck()
+
+    # STEP 6: declare the variables to the nodes
+    self.binary.setVariables(self.varNamesDeclared)
 
     # If the app made it up to here, compile is OK.
     self.status = CalcStatus.COMPILE_OK
@@ -260,7 +267,7 @@ class Calc :
 
     
   # ---------------------------------------------------------------------------
-  # METHOD: Calc.declare('variable' Object)
+  # METHOD: Calc.declare('variable' Object / list of 'variable' Object)
   # ---------------------------------------------------------------------------
   def declare(self, vars) :
     """
@@ -270,13 +277,21 @@ class Calc :
     """
     
     if not(isinstance(vars, list)) :
-      self.varDeclared.append(vars.name)
+      if not(vars.name in self.varNamesDeclared) :
+        self.varNamesDeclared.append(vars.name)
+        self.vars.append(vars)
+      else :
+        print(f"[INFO] Calc.declare(): skipping declaration of '{vars.name}' (already declared)")
     
     else :
-      varNames = [v.name for v in vars]
-      self.varDeclared += varNames
+      for v in vars :
+        if not(v.name in self.varNamesDeclared) :
+          self.varNamesDeclared += v.name
+          self.vars.append(v)
+        else :
+          print(f"[INFO] Calc.declare(): skipping declaration of '{v.name}' (already declared)")
+      
     
-
 
   # ---------------------------------------------------------------------------
   # METHOD: Calc._varDeclarationCheck()
@@ -288,12 +303,12 @@ class Calc :
     """
     
     ret = True
-    for varDec in self.varDeclared :
-      if not(varDec in self.varDetected) :
+    for varDec in self.varNamesDeclared :
+      if not(varDec in self.varNamesDetected) :
         print(f"[WARNING] Variable is declared, but not used/detected: '{varDec}'")
 
-    for varDet in self.varDetected :
-      if not(varDet in self.varDeclared) :
+    for varDet in self.varNamesDetected :
+      if not(varDet in self.varNamesDeclared) :
         print(f"[ERROR] Undeclared variable: '{varDet}'")
         exit()
         ret = False

@@ -906,8 +906,11 @@ def getVariables(tokenList) :
 
   for t in tokenList :
     if (t.type == "VAR") :
-      print(f"[DEBUG] Found variable: '{t.name}'")
-      varList.append(t.name)
+      print(f"[DEBUG] Variable found by the parser: '{t.name}'")
+      
+      # Declare new variables only
+      if not(t.name in varList) :
+        varList.append(t.name)
 
   return varList
 

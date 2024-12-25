@@ -198,6 +198,28 @@ class Macroleaf :
 
 
   # ---------------------------------------------------------------------------
+  # METHOD: Macroleaf.setVariables()
+  # ---------------------------------------------------------------------------
+  def setVariables(self, variables) :
+    """
+    Copies the list of variables (declared in the parser) in the Macroleaf object
+    so that the object becomes aware of the existing variables and may call 
+    their methods.
+    
+    This function must be called before Macroleaf.eval()
+
+    The variables must be provided as a list of 'Variable' objects.
+    """
+    
+    self.lookUpTable = variables
+    
+    # Propagate the 'lookUpTable' to the macroleaves
+    for element in self.args :
+      element.setVariables(self.lookUpTable)
+
+
+
+  # ---------------------------------------------------------------------------
   # METHOD: Macroleaf.eval()
   # ---------------------------------------------------------------------------
   def eval(self) :
