@@ -319,7 +319,7 @@ class Binary :
       if (self.stack[0].type == "INFIX") :
         if (self.stack[0].name == "-") :
           self.stack = [symbols.Token("0")] + self.stack
-          print("[DEBUG] Binary._explicitZeros(): added an implicit zero.")
+          # print("[DEBUG] Binary._explicitZeros(): added an implicit zero.")
 
     # STEP 2: detect the pattern recursively in the macroleaves
     # for node in self.stack :
@@ -443,7 +443,7 @@ class Binary :
     Associativity strategy are detailed in [R10].
     
     Note: minus signs '-' must have been balanced prior to calling this function
-    (function <balanceMinus>)
+    (function 'balanceMinus')
     """
     
     # CHECK 1: number of nodes must be even.
@@ -479,7 +479,7 @@ class Binary :
       
       # STEP 1: look for the infix of highest priority in [L op L op L ...]
       (minPriority, maxPriority) = self._getPriorityRange()
-      print(f"[DEBUG] Binary.nest(): priority range = ({minPriority}, {maxPriority})")
+      # print(f"[DEBUG] Binary.nest(): priority range = ({minPriority}, {maxPriority})")
       
       # Call to "nest()" is necessary if there are 2 different levels of priority
       while (maxPriority != minPriority) :

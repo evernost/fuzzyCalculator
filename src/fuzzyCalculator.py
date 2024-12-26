@@ -190,9 +190,9 @@ class Calc :
     
 
   # ---------------------------------------------------------------------------
-  # METHOD: Calc.input(string)
+  # METHOD: Calc._setInput(string)
   # ---------------------------------------------------------------------------
-  def input(self, expr) :
+  def _setInput(self, expr) :
     """
     Sets the expression to be analysed by the parser.
     As it is set, some first basic checks are run on the expression to make 
@@ -216,53 +216,63 @@ class Calc :
       print("[ERROR] Parser halted due to an error in the first order check.")
       exit()
 
-    print(f"[INFO] Calculator: input set to '{self.expr}'")
+    # print(f"[INFO] Calculator: input set to '{self.expr}'")
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Calc.compile()
   # ---------------------------------------------------------------------------
-  def compile(self) :
+  def compile(self, input) :
     """
-    Compiles the expression that has been set using 'input()'.
+    Compiles the expression given as a string.
     Compilation process consists in:
-    - STEP 1: rewrite the expression as a list of tokens
-    - STEP 2: detect and add the implicit multiplication tokens
-    - STEP 3: create a binary object from the list of tokens
-    - STEP 4: nest away operators with higher precedence so that they are 
-    evaluated first.
-    - STEP 5: TODO
-    - STEP 6: TODO
-    The functions does not return anything, it populates the fields 'tokens'
-    and 'binary', and updates the status.
+    - STEP 1: basic checks of the expression
+    - STEP 2: rewrite the expression as a list of tokens
+    - STEP 3: detect and add the implicit multiplication tokens
+    - STEP 4: list the variables detected in the expression
+    - STEP 5: create a binary object from the list of tokens
+    - STEP 6: nest away operators with higher precedence in macroleaves
+    - STEP 7: propagate the user-declared variables to the nested binary objects
+    - STEP 8: pack the result in a variable, return it to the user.
+    
+    Packing the output in a 'Variable' object gives the possibility to further
+    use the expression in another expression ('expression composition')
     """
     
-    # STEP 1: tokenise
+    # STEP 1: first checks
+    self._setInput(input)
+
+    # STEP 2: tokenise
     self.tokens = qParser.tokenise(self.expr)
+    
+    # STEP 3: add implicit tokens (like multiplication)
     tokensFull = qParser.explicitMult(self.tokens)
     
-    # STEP 2: list detected variables
+    # STEP 4: list detected variables
     self.varNamesDetected = qParser.getVariables(tokensFull)
 
-    # STEP 3: binarise
+    # STEP 5: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
       print("[ERROR] Compilation failed: unable to binarise.")
       exit()
 
-    # STEP 4: embed higher priority operations in a Macroleaf (nesting)
+    # STEP 5: embed higher priority operations in a Macroleaf (nesting)
     self.binary.nest()
     
-    # STEP 5: check if all detected variables are declared
+    # STEP 6: check if all detected variables are declared
     ret = self._varDeclarationCheck()
 
-    # STEP 6: declare the variables to the nodes
+    # STEP 7: propagate the user-declared variables to the internal nodes
     self.binary.setVariables(self.varNamesDeclared)
 
     # If the app made it up to here, compile is OK.
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
+
+    # STEP 8: pack the result in a 'Variable' object
+    #return var
     
 
     
@@ -358,10 +368,10 @@ class Calc :
     Runs the Monte-Carlo simulation of the compiled expression.
     Simulation modes: 
     - MAX_RANGE: returns the min/max value reached by the expression
-    - 
+    - QUANTILE_95: returns the min/max value between the 5th and 95th decile
     """
     
-    print("todo")
+    print("[DEBUG] Calc.sim() is TODO.")
 
 
 

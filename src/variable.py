@@ -112,7 +112,7 @@ def rand(**kwargs) :
   
     varMin = kwargs["val"] - kwargs["abs"]
     varMax = kwargs["val"] + kwargs["abs"]
-    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}'")
+    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (min = {varMin}, max = {varMax})")
   
   if ("unit" in kwargs) :
     varUnit = kwargs["unit"]
@@ -176,7 +176,7 @@ class Variable :
       print("[ERROR] Variable.__init__(): unknown randType.")
       exit()
       
-    print("[WARNING] Variable.__init__() is TODO!")
+    # print("[WARNING] Variable.__init__() is TODO!")
 
 
 

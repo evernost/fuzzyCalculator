@@ -192,7 +192,7 @@ class Macroleaf :
     """
 
     for n in range(self.nArgs) :
-      print(f"[DEBUG] Macroleaf.nest(): nesting argument {n+1}/{self.nArgs}...")
+      # print(f"[DEBUG] Macroleaf.nest(): nesting argument {n+1}/{self.nArgs}...")
       self.args[n].nest()
 
 

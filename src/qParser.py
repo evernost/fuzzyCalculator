@@ -975,7 +975,6 @@ def secondOrderCheck(tokenList) :
 # ---------------------------------------------------------------------------
 def explicitMult(tokenList) :
   """
-  DESCRIPTION
   Detects and expands implicit multiplications in a list of tokens.
   Returns the same list with the multiplication tokens explicited at the right place.
   """
