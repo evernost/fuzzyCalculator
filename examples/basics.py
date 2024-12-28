@@ -79,6 +79,7 @@ fcalc.declare([var_a, var_b])
 fcalc.compile("sqrt(a^2+b^2)")
 fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
 fcalc.print()
+print("")
 
 
 
@@ -93,6 +94,7 @@ fcalc.declare([var_l, var_g])
 fcalc.compile("2pi*sqrt(l/g)")
 fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
 fcalc.print()
+print("")
 
 
 
@@ -109,6 +111,7 @@ fcalc.declare([var_R1, var_R2])
 fcalc.compile("R1//R2")
 fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
 fcalc.print()
+print("")
 
 
 

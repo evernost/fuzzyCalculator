@@ -265,7 +265,7 @@ class Calc :
     ret = self._varDeclarationCheck()
 
     # STEP 7: propagate the user-declared variables to the internal nodes
-    self.binary.setVariables(self.varNamesDeclared)
+    self.binary.setVariables(self.vars)
 
     # If the app made it up to here, compile is OK.
     self.status = CalcStatus.COMPILE_OK
@@ -328,6 +328,25 @@ class Calc :
 
 
   # ---------------------------------------------------------------------------
+  # METHOD: Calc.clearCache()
+  # ---------------------------------------------------------------------------
+  def clearCache(self) :
+    """
+    Clears the cache for all variables.
+    
+    Within one simulation, the call to 'eval()' of a given variable always
+    returns the same value. This preserves consistency of the variable value
+    accross multiple occurences in the same expression.
+    Example: expr = "a+a", you don't want to draw 2 different values for 'a'.
+    So the first call is evaluated, the second is read from cache.
+    """
+    
+    for v in self.vars :
+      v.clearCache()
+
+
+
+  # ---------------------------------------------------------------------------
   # METHOD: Calc.print()
   # ---------------------------------------------------------------------------
   def print(self) :
@@ -363,16 +382,33 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.sim()
   # ---------------------------------------------------------------------------
-  def sim(self, nPts = 1000, mode = "MAX_RANGE") :
+  def sim(self, nPts = 1000, mode = "MIN_MAX", seed = 0) :
     """
     Runs the Monte-Carlo simulation of the compiled expression.
+
     Simulation modes: 
-    - MAX_RANGE: returns the min/max value reached by the expression
-    - QUANTILE_95: returns the min/max value between the 5th and 95th decile
+    - MIN_MAX: returns the min/max value reached by the expression
+    - QUANTILE_95: returns the min/max value between the 5th and 95th quantile
+    - QUANTILE_98: returns the min/max value between the 2nd and 98th quantile
+    - QUANTILE_99: returns the min/max value between the 1st and 99th quantile
     """
     
-    print("[DEBUG] Calc.sim() is TODO.")
+    for n in range(nPts) :  
+      ret = self.binary.eval()
+      self.clearCache()
 
+      if (n == 0) :
+        outMin = ret
+        outMax = ret
+      
+      else :
+        if (ret < outMin) :
+          outMin = ret
+
+        if (ret > outMax) :
+          outMax = ret
+
+    print(f"min = {outMin}, max = {outMax}")
 
 
 # =============================================================================

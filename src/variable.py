@@ -21,7 +21,8 @@
 # =============================================================================
 # External libs
 # =============================================================================
-# None.
+import random
+
 
 
 # -----------------------------------------------------------------------------
@@ -114,6 +115,19 @@ def rand(**kwargs) :
     varMax = kwargs["val"] + kwargs["abs"]
     print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (min = {varMin}, max = {varMax})")
   
+  if ("rel" in kwargs) :
+    if (kwargs["rel"] < 0) :
+      print("[ERROR] Variable.rand(): the relative uncertainty cannot be negative.")
+      exit()
+
+    if ("abs" in kwargs) :
+      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative margin.")
+      exit()
+  
+    varMin = kwargs["val"]*(1.0 - kwargs["rel"])
+    varMax = kwargs["val"]*(1.0 + kwargs["rel"])
+    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (min = {varMin}, max = {varMax})")
+
   if ("unit" in kwargs) :
     varUnit = kwargs["unit"]
   else :
@@ -161,16 +175,19 @@ class Variable :
   # ---------------------------------------------------------------------------
   def __init__(self, **kwargs) :
     
+    self.hasCache = False
+    self.outputCache = 0.0
+
     if (kwargs["randType"] == "UNIFORM") :
       self.type = kwargs["randType"]
       self.name = kwargs["name"]
-      self.min = kwargs["min"]
-      self.max = kwargs["max"]
+      self.min  = kwargs["min"]
+      self.max  = kwargs["max"]
       
     elif (kwargs["randType"] == "GAUSSIAN") :
       self.type = kwargs["randType"]
       self.mean = kwargs["mean"]
-      self.std = kwargs["std"]
+      self.std  = kwargs["std"]
     
     else :
       print("[ERROR] Variable.__init__(): unknown randType.")
@@ -181,11 +198,32 @@ class Variable :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Variable.draw()
+  # METHOD: Variable.eval()
   # ---------------------------------------------------------------------------
-  def draw(self) :
+  def eval(self) :
     """
     Draws one value according to the variable's law.
     """
 
-    print("[WARNING] Variable.draw() is TODO!")
+    if self.hasCache :
+      return self.outputCache
+    
+    else :
+      val = random.uniform(self.min, self.max)
+      self.hasCache = True
+      self.outputCache = val
+      return val
+    
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Variable.eval()
+  # ---------------------------------------------------------------------------
+  def clearCache(self) :
+    """
+    TODO
+    """
+
+    self.hasCache = False
+    self.outputCache = 0.0
+    

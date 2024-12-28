@@ -647,6 +647,7 @@ class Binary :
       if (element.type == "MACRO") :
         element.setVariables(self.lookUpTable)
 
+    print("[DEBUG] Variables propagated to the binary structure.")
 
 
   # ---------------------------------------------------------------------------
@@ -705,19 +706,17 @@ class Binary :
     """
     Evaluates a Token (variable, constant, number) or a Macroleaf.
     Returns a scalar.
-
-    EXAMPLES
-    todo
     """
     
     if (leaf.type in ["CONSTANT", "NUMBER"]) :
       return leaf.value
     
     elif (leaf.type == "VAR") :
-     
-      # Fetch the variable and its value from 'lookUpTable'
-      print(f"[DEBUG] Looking for a variable '{leaf.name}' in the lookup table...")
-      # input(f"Assign value to variable '{leaf.name}': ")
+      for v in self.lookUpTable :
+        if (leaf.name == v.name) :
+          ret = v.eval()
+          # print(f"[DEBUG] Variable '{v.name}' found, returned: {ret}")
+          return ret
 
     elif (leaf.type == "MACRO") :
       return leaf.eval()
@@ -741,7 +740,7 @@ class Binary :
       print(f"[ERROR] Binary._evalOp(): 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
         
     if not(rightLeaf.type in ["NUMBER", "CONSTANT", "VAR", "MACRO"]) :
-      print(f"[ERROR] Binary._evalOp(): 'leftLeaf' must be a leaf, got a type '{leftLeaf.type}' instead.")
+      print(f"[ERROR] Binary._evalOp(): 'rightLeaf' must be a leaf, got a type '{rightLeaf.type}' instead.")
 
     if (op.type != "INFIX") :
       if hasattr(op, "name") :
@@ -778,7 +777,7 @@ class Binary :
       return ((a*b)/(a+b))
 
     else :      
-      print(f"[ERROR] Binary._evalOp(): unknown infix operator '{op.name}'.")
+      print(f"[ERROR] Binary._evalOp(): unknown or unsupported infix operator '{op.name}'.")
   
   
 
