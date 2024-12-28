@@ -1156,6 +1156,7 @@ if (__name__ == '__main__') :
   assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
   assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
   assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
+  assert(consumeVar("R1//R2") == ("R1", "//R2"))
   
   # The following should work, but doesn't. Needs a fix.
   #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))       # FAILS

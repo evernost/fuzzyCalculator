@@ -174,7 +174,7 @@ class Binary :
     - when a closing parenthesis is found, it closes the Macroleaf (end of sub-expression)
     Binarisation stops here. 
     
-    See <macroleaf.py> for more details.
+    See 'macroleaf.py' for more details.
     """
     
     buffer = tokenList.copy()
@@ -647,7 +647,8 @@ class Binary :
       if (element.type == "MACRO") :
         element.setVariables(self.lookUpTable)
 
-    print("[DEBUG] Variables propagated to the binary structure.")
+    # print("[DEBUG] Variables propagated to the binary structure.")
+
 
 
   # ---------------------------------------------------------------------------

@@ -151,17 +151,17 @@ fcalc.print()
 # -----------------------------------------------------------------------------
 # [EXAMPLE 9] Fuzzy calculation: composing expressions
 # -----------------------------------------------------------------------------
-# Coming soon.
-fcalc = fuzzyCalculator.Calc()
+# Under construction! Coming soon.
+# fcalc = fuzzyCalculator.Calc()
 
-var_Re = variable.rand(name = "Re", val = 100, abs = 0.05, unit = "ohm")
-var_Ic = variable.rand(name = "Ic", val = 10, abs = 0.05, unit = "mA")
-var_Vt = variable.rand(name = "Vt", val = 26, abs = 0.05, unit = "mV")
-fcalc.declare([var_Re, var_Ic, var_Vt])
+# var_Re = variable.rand(name = "Re", val = 100, abs = 0.05, unit = "ohm")
+# var_Ic = variable.rand(name = "Ic", val = 10, abs = 0.05, unit = "mA")
+# var_Vt = variable.rand(name = "Vt", val = 26, abs = 0.05, unit = "mV")
+# fcalc.declare([var_Re, var_Ic, var_Vt])
 
-var_gm = fcalc.compile("Ic/Vt")
-fcalc.sim(nPts = 1000)
-fcalc.print()
+# var_gm = fcalc.compile("Ic/Vt")
+# fcalc.sim(nPts = 1000)
+# fcalc.print()
 
 
 

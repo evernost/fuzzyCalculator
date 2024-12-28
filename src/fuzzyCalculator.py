@@ -286,20 +286,20 @@ class Calc :
     Variable can be either a single variable object, or a list of them.
     """
     
-    if not(isinstance(vars, list)) :
+    if isinstance(vars, list) :
+      for v in vars :
+        if not(v.name in self.varNamesDeclared) :
+          self.varNamesDeclared.append(v.name)
+          self.vars.append(v)
+        else :
+          print(f"[INFO] Calc.declare(): skipping declaration of '{v.name}' (already declared)")
+      
+    else :
       if not(vars.name in self.varNamesDeclared) :
         self.varNamesDeclared.append(vars.name)
         self.vars.append(vars)
       else :
         print(f"[INFO] Calc.declare(): skipping declaration of '{vars.name}' (already declared)")
-    
-    else :
-      for v in vars :
-        if not(v.name in self.varNamesDeclared) :
-          self.varNamesDeclared += v.name
-          self.vars.append(v)
-        else :
-          print(f"[INFO] Calc.declare(): skipping declaration of '{v.name}' (already declared)")
       
     
 
