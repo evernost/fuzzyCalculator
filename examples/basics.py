@@ -71,8 +71,8 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 4] Pythagoras' theorem with uncertainties
 # -----------------------------------------------------------------------------
-var_a = variable.rand(name = "a", val = 3.0, rel = 0.1)  # a = 3.0 +/- 0.1 (uniform)
-var_b = variable.rand(name = "b", val = 4.0, rel = 0.1)  # b = 4.0 +/- 0.1 (uniform)
+var_a = variable.rand(name = "a", val = 3.0, abs = 0.1)  # a = 3.0 +/- 0.1 (uniform)
+var_b = variable.rand(name = "b", val = 4.0, abs = 0.1)  # b = 4.0 +/- 0.1 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_a, var_b])
@@ -86,13 +86,13 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 5] Fuzzy calculation: period of a pendulum
 # -----------------------------------------------------------------------------
-var_l = variable.rand(name = "l", val = 1.0, rel = 0.005)   # l = 1m +/- 1cm
-var_g = variable.rand(name = "g", val = 9.81, rel = 0.05)   # g = 9.81 m/s2 +/- 0.05 m/s2 
+var_l = variable.rand(name = "l", val = 1.0, abs = 0.005)   # l = 1m +/- 5mm
+var_g = variable.rand(name = "g", val = 9.81, abs = 0.05)   # g = 9.81 m/s2 +/- 0.05 m/s2 
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_l, var_g])
 fcalc.compile("2pi*sqrt(l/g)")
-fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
+fcalc.sim(nPts = 10000, mode = "MAX_RANGE")
 fcalc.print()
 print("")
 
@@ -103,8 +103,8 @@ print("")
 # -----------------------------------------------------------------------------
 
 # 10 kOhms resistances with 5% tolerance
-var_R1 = variable.rand(name = "R1", val = 10, abs = 0.05, unit = "kohm")
-var_R2 = variable.rand(name = "R2", val = 10, abs = 0.05, unit = "kohm")
+var_R1 = variable.rand(name = "R1", val = 10, rel = 0.05, unit = "kohm")
+var_R2 = variable.rand(name = "R2", val = 15, rel = 0.05, unit = "kohm")
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_R1, var_R2])
@@ -159,7 +159,8 @@ fcalc.print()
 # var_Vt = variable.rand(name = "Vt", val = 26, abs = 0.05, unit = "mV")
 # fcalc.declare([var_Re, var_Ic, var_Vt])
 
-# var_gm = fcalc.compile("Ic/Vt")
+# var_gm = fcalc.compileToVar("Ic/Vt", name = "gm")
+# fcalc.compile("Ic/Vt")
 # fcalc.sim(nPts = 1000)
 # fcalc.print()
 

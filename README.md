@@ -61,7 +61,8 @@ It is worth mentionning that the built-in parser preserves the order of the inpu
 ## TODO / Ideas
 Sorted by increasing effort:
 - add a pretty print for the 'binary tree' to check/debug the parser's interpretation
-- add variable composition
+- add support for units (consistency check, display output in the right units, etc.)
+- add possibility to compose expressions
 - add support for scientific notation
 - add support for thousands delimitation using "_": ```"3_141_592"``` vs ```"3141592"```
 - add support for special characters (```π```?)
@@ -84,7 +85,7 @@ So far, it has been tested **successfully** on various expressions with scalars 
 Remaining tasks: 
 - [X] Wrap the complexity in a 'Calculator' object (high-level and user-friendly functions)
 - [X] Add a proper variable detection (parser) and declaration (user)
-- [ ] Link the detected variable with the 'Variable' objects
+- [X] Link the detected variable with the 'Variable' objects
 - [ ] Add the Monte-Carlo simulator
 - [ ] Plot the simulation results
 - [ ] Add expression composition

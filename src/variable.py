@@ -108,7 +108,7 @@ def rand(**kwargs) :
       exit()
 
     if ("rel" in kwargs) :
-      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative margin.")
+      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative uncertainty.")
       exit()
   
     varMin = kwargs["val"] - kwargs["abs"]
@@ -121,7 +121,7 @@ def rand(**kwargs) :
       exit()
 
     if ("abs" in kwargs) :
-      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative margin.")
+      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative uncertainty.")
       exit()
   
     varMin = kwargs["val"]*(1.0 - kwargs["rel"])
@@ -203,6 +203,10 @@ class Variable :
   def eval(self) :
     """
     Draws one value according to the variable's law.
+    A new value is drawn at first call to 'Variable.eval()', then it is 
+    cached and eval() will always return the same value.
+
+    For a new value, cache must be cleared using 'Variable.clearCache()'.
     """
 
     if self.hasCache :

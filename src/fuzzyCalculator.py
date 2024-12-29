@@ -234,10 +234,6 @@ class Calc :
     - STEP 5: create a binary object from the list of tokens
     - STEP 6: nest away operators with higher precedence in macroleaves
     - STEP 7: propagate the user-declared variables to the nested binary objects
-    - STEP 8: pack the result in a variable, return it to the user.
-    
-    Packing the output in a 'Variable' object gives the possibility to further
-    use the expression in another expression ('expression composition')
     """
     
     # STEP 1: first checks
@@ -271,9 +267,50 @@ class Calc :
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
 
-    # STEP 8: pack the result in a 'Variable' object
-    #return var
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.compileToVar(input, variable name)
+  # ---------------------------------------------------------------------------
+  def compileToVar(self, input, name) :
+    """
+    Compiles the expression given as a string and pack it in a variable, so 
+    that it can be used in another expression ('expression composition').
+
+    The function returns a 'Variable' with name given by 'name'.
+    """
     
+    # STEP 1: first checks
+    self._setInput(input)
+
+    # STEP 2: tokenise
+    self.tokens = qParser.tokenise(self.expr)
+    
+    # STEP 3: add implicit tokens (like multiplication)
+    tokensFull = qParser.explicitMult(self.tokens)
+    
+    # STEP 4: list detected variables
+    self.varNamesDetected = qParser.getVariables(tokensFull)
+
+    # STEP 5: binarise
+    self.binary = binary.Binary(tokensFull)
+    if (self.binary.status == binary.BINARISE_FAILURE) :
+      print("[ERROR] Compilation failed: unable to binarise.")
+      exit()
+
+    # STEP 5: embed higher priority operations in a Macroleaf (nesting)
+    self.binary.nest()
+    
+    # STEP 6: check if all detected variables are declared
+    ret = self._varDeclarationCheck()
+
+    # STEP 7: propagate the user-declared variables to the internal nodes
+    self.binary.setVariables(self.vars)
+
+    # If the app made it up to here, compile is OK.
+    self.status = CalcStatus.COMPILE_OK
+    print("[INFO] Compile OK.")
+
 
     
   # ---------------------------------------------------------------------------
@@ -336,9 +373,12 @@ class Calc :
     
     Within one simulation, the call to 'eval()' of a given variable always
     returns the same value. This preserves consistency of the variable value
-    accross multiple occurences in the same expression.
+    accross possible multiple occurences of it in the same expression.
     Example: expr = "a+a", you don't want to draw 2 different values for 'a'.
     So the first call is evaluated, the second is read from cache.
+    
+    When the expression has been fully evaluated, 'eval()' must return
+    a fresh new value i.e. cache must be cleared. 
     """
     
     for v in self.vars :
