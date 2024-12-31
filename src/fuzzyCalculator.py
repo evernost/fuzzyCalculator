@@ -160,8 +160,10 @@ class Calc :
   # METHOD: Calc.__init__ (constructor)
   # ---------------------------------------------------------------------------
   def __init__(self) :
-    self.expr       = ""
-    self.status     = CalcStatus.INIT
+    self.expr   = ""
+    self.status = CalcStatus.INIT
+
+    self.output = []
 
     self.binary = None
 
@@ -171,22 +173,6 @@ class Calc :
 
     self.exprHasVariables = False
 
-    # self._clearInputs()
-
-
-
-  # ---------------------------------------------------------------------------
-  # METHOD: Calc._clearInputs()
-  # ---------------------------------------------------------------------------
-  # def _clearInputs(self) :
-  #   """
-    
-  #   """
-
-  #   self.expr       = ""
-  #   self.variables  = []
-  #   self.status     = CalcStatus.INIT
-    
     
 
   # ---------------------------------------------------------------------------
@@ -225,15 +211,16 @@ class Calc :
   # ---------------------------------------------------------------------------
   def compile(self, input) :
     """
-    Compiles the expression given as a string.
-    Compilation process consists in:
-    - STEP 1: basic checks of the expression
+    Compiles the expression contained in the input string.
+    The compilation process consists in the following:
+    - STEP 1: run some basic checks of the expression
     - STEP 2: rewrite the expression as a list of tokens
     - STEP 3: detect and add the implicit multiplication tokens
-    - STEP 4: list the variables detected in the expression
-    - STEP 5: create a binary object from the list of tokens
-    - STEP 6: nest away operators with higher precedence in macroleaves
-    - STEP 7: propagate the user-declared variables to the nested binary objects
+    - STEP 4: create a binary object from the list of tokens
+    - STEP 5: nest away operators with higher precedence in 'Macroleaves' objects
+    - STEP 6: list the variables detected in the expression
+    - STEP 7: compare the detected variable against the declared variables
+    - STEP 8: propagate the user-declared variables to the nested binary objects
     """
     
     # STEP 1: first checks
@@ -245,10 +232,7 @@ class Calc :
     # STEP 3: add implicit tokens (like multiplication)
     tokensFull = qParser.explicitMult(self.tokens)
     
-    # STEP 4: list detected variables
-    self.varNamesDetected = qParser.getVariables(tokensFull)
-
-    # STEP 5: binarise
+    # STEP 4: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
       print("[ERROR] Compilation failed: unable to binarise.")
@@ -257,15 +241,23 @@ class Calc :
     # STEP 5: embed higher priority operations in a Macroleaf (nesting)
     self.binary.nest()
     
-    # STEP 6: check if all detected variables are declared
+    # STEP 6: list detected variables
+    self.varNamesDetected = qParser.getVariables(tokensFull)
+    self.exprHasVariables = (len(self.varNamesDetected) > 0)
+    
+    # STEP 7: check if all detected variables are declared
     ret = self._varDeclarationCheck()
 
-    # STEP 7: propagate the user-declared variables to the internal nodes
+    # STEP 8: propagate the user-declared variables to the internal nodes
     self.binary.setVariables(self.vars)
 
-    # If the app made it up to here, compile is OK.
+    # If the function made it up to here, compile is OK.
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
+
+    if not(self.exprHasVariables) :
+      self.status = CalcStatus.SIM_OK
+      print("[DEBUG] Skipping simulation (no variable detected)")
 
 
 
@@ -274,10 +266,14 @@ class Calc :
   # ---------------------------------------------------------------------------
   def compileToVar(self, input, name) :
     """
-    Compiles the expression given as a string and pack it in a variable, so 
-    that it can be used in another expression ('expression composition').
+    Compiles the expression contained in the input string and pack it 
+    in a 'Variable' object so that it can be used in another expression
+    (referred to as 'expression composition')
+    
+    The function returns a 'Variable' whose name attribute goes by 
+    the one given in the 'name' argument.
 
-    The function returns a 'Variable' with name given by 'name'.
+    Compilation procedure in similar to the one in 'Calc.compile()'.
     """
     
     # STEP 1: first checks
@@ -289,10 +285,7 @@ class Calc :
     # STEP 3: add implicit tokens (like multiplication)
     tokensFull = qParser.explicitMult(self.tokens)
     
-    # STEP 4: list detected variables
-    self.varNamesDetected = qParser.getVariables(tokensFull)
-
-    # STEP 5: binarise
+    # STEP 4: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
       print("[ERROR] Compilation failed: unable to binarise.")
@@ -301,13 +294,16 @@ class Calc :
     # STEP 5: embed higher priority operations in a Macroleaf (nesting)
     self.binary.nest()
     
-    # STEP 6: check if all detected variables are declared
+    # STEP 6: list detected variables
+    self.varNamesDetected = qParser.getVariables(tokensFull)
+    
+    # STEP 7: check if all detected variables are declared
     ret = self._varDeclarationCheck()
 
-    # STEP 7: propagate the user-declared variables to the internal nodes
+    # STEP 8: propagate the user-declared variables to the internal nodes
     self.binary.setVariables(self.vars)
 
-    # If the app made it up to here, compile is OK.
+    # If the function made it up to here, compile is OK.
     self.status = CalcStatus.COMPILE_OK
     print("[INFO] Compile OK.")
 
@@ -400,12 +396,8 @@ class Calc :
     For a more complete evaluation, please refer to the 'sim' method.
     """
     
-    if (len(self.expr) == 0) :
-      print("[ERROR] Please set an expression first using 'FuzzyCalculator.input()'")
-      exit()
-
     if (self.status != CalcStatus.COMPILE_OK) :
-      print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before evaluating it.")
+      print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before a 'print()'.")
       exit()
     
     if (self.exprHasVariables and (self.status != CalcStatus.SIM_OK)) :
@@ -433,8 +425,10 @@ class Calc :
     - QUANTILE_99: returns the min/max value between the 1st and 99th quantile
     """
     
+    self.output = []
     for n in range(nPts) :  
       ret = self.binary.eval()
+      self.output.append(ret)
       self.clearCache()
 
       if (n == 0) :
@@ -448,7 +442,9 @@ class Calc :
         if (ret > outMax) :
           outMax = ret
 
-    print(f"min = {outMin}, max = {outMax}")
+    self.status = CalcStatus.SIM_OK
+    print("[INFO] Simulation done.")
+
 
 
 # =============================================================================
