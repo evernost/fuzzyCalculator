@@ -396,7 +396,7 @@ class Calc :
     For a more complete evaluation, please refer to the 'sim' method.
     """
     
-    if (self.status != CalcStatus.COMPILE_OK) :
+    if (self.status != CalcStatus.SIM_OK) :
       print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before a 'print()'.")
       exit()
     
