@@ -113,7 +113,7 @@ def rand(**kwargs) :
   
     varMin = kwargs["val"] - kwargs["abs"]
     varMax = kwargs["val"] + kwargs["abs"]
-    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (min = {varMin}, max = {varMax})")
+    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
   
   if ("rel" in kwargs) :
     if (kwargs["rel"] < 0) :
@@ -126,7 +126,7 @@ def rand(**kwargs) :
   
     varMin = kwargs["val"]*(1.0 - kwargs["rel"])
     varMax = kwargs["val"]*(1.0 + kwargs["rel"])
-    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (min = {varMin}, max = {varMax})")
+    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
 
   if ("unit" in kwargs) :
     varUnit = kwargs["unit"]

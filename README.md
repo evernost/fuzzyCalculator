@@ -89,4 +89,5 @@ Remaining tasks:
 - [ ] Add the Monte-Carlo simulator
 - [ ] Plot the simulation results
 - [ ] Add expression composition
+- [ ] Add the ability to account for the units in which the variables are expressed
 

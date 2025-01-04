@@ -62,7 +62,7 @@ fcalc = fuzzyCalculator.Calc()
 fcalc.declare(var_a)
 fcalc.declare(var_b)
 fcalc.compile("a+b")
-fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
+#fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
 fcalc.print()
 print("")
 

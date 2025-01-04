@@ -137,6 +137,7 @@ import src.binary as binary
 import src.qParser as qParser
 
 from enum import Enum
+import statistics
 
 
 
@@ -257,7 +258,7 @@ class Calc :
 
     if not(self.exprHasVariables) :
       self.status = CalcStatus.SIM_OK
-      print("[DEBUG] Skipping simulation (no variable detected)")
+      #print("[DEBUG] Assuming simulation is already done (no variable detected)")
 
 
 
@@ -381,35 +382,6 @@ class Calc :
       v.clearCache()
 
 
-
-  # ---------------------------------------------------------------------------
-  # METHOD: Calc.print()
-  # ---------------------------------------------------------------------------
-  def print(self) :
-    """
-    For a scalar expression (no variables): evaluates the expression, returns
-    the result.
-    
-    For an expression with variables: draws one occurence of the variables, 
-    evaluates the expression and returns the value.
-    
-    For a more complete evaluation, please refer to the 'sim' method.
-    """
-    
-    if (self.status != CalcStatus.SIM_OK) :
-      print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before a 'print()'.")
-      exit()
-    
-    if (self.exprHasVariables and (self.status != CalcStatus.SIM_OK)) :
-      print("[WARNING] Expression has random variables: 'print' returns only the value of one single draw.")
-
-    else :
-      if not(self.exprHasVariables) :
-        print("[INFO] Running in scalar mode.")
-      out = self.binary.eval()
-      print(f"[OUTPUT] {self.expr} = {out}")
-    
-
     
   # ---------------------------------------------------------------------------
   # METHOD: Calc.sim()
@@ -443,7 +415,68 @@ class Calc :
           outMax = ret
 
     self.status = CalcStatus.SIM_OK
-    print("[INFO] Simulation done.")
+    print(f"[INFO] Simulation done (runs: {nPts})")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.print()
+  # ---------------------------------------------------------------------------
+  def print(self, digits = 5) :
+    """
+    For a scalar expression (no variables): evaluates the expression, returns
+    the result.
+    
+    For an expression with variables: shows a summary of the output.
+    """
+    
+    if not((self.status == CalcStatus.COMPILE_OK) or (self.status == CalcStatus.SIM_OK)) :
+      print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before a 'print()'.")
+      exit()
+    
+    if (self.exprHasVariables) :
+      if (self.status != CalcStatus.SIM_OK) :
+        print("[WARNING] 'print()' without prior simulation shows only one possible outcome. Consider using 'sim()' for more detailed analysis.")
+        out = self.binary.eval()
+        print(f"[OUTPUT] {self.expr} = {out}")
+
+      else :
+        outMin = min(self.output); outMax = max(self.output)
+        print(f"[OUTPUT] {self.expr} = [{outMin:.{digits}}, {outMax:.{digits}}]")
+        print(f"         mean   = {statistics.mean(self.output)}")
+        print(f"         std    = {statistics.stdev(self.output)}")
+        print(f"         median = {statistics.median(self.output)}")
+
+    else :
+      # if not(self.exprHasVariables) :
+      #   print("[DEBUG] Running in scalar mode (no variable)")
+      
+      out = self.binary.eval()
+      print(f"[OUTPUT] {self.expr} = {out:.{digits}}")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.plot()
+  # ---------------------------------------------------------------------------
+  def plot(self) :
+    """
+    Plots the statistics of the expression.
+    """
+    
+    if not((self.status == CalcStatus.COMPILE_OK) or (self.status == CalcStatus.SIM_OK)) :
+      print("[ERROR] Please compile the expression using 'FuzzyCalculator.compile()' before a 'plot()'.")
+      exit()
+    
+    if (self.exprHasVariables) :
+      if (self.status != CalcStatus.SIM_OK) :
+        print("[WARNING] A simulation is required before a plot. Consider using 'sim()' before calling this function.")
+        
+      else :
+        print(f"Showing simulation results")
+
+    else :
+      print("[WARNING] 'plot()' makes sense for expressions containing variables with uncertainties.")
 
 
 
