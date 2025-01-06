@@ -36,7 +36,7 @@ import src.variable as variable
 # [EXAMPLE 1] A basic scalar operation
 # -----------------------------------------------------------------------------
 fcalc = fuzzyCalculator.Calc()
-fcalc.compile("12*34-56")
+fcalc.compile("12*34-567")
 fcalc.print()
 print("")
 
@@ -62,7 +62,7 @@ fcalc = fuzzyCalculator.Calc()
 fcalc.declare(var_a)
 fcalc.declare(var_b)
 fcalc.compile("a+b")
-#fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
+#fcalc.sim(nPts = 1000)
 fcalc.print()
 print("")
 
@@ -72,12 +72,12 @@ print("")
 # [EXAMPLE 4] Pythagoras' theorem with uncertainties
 # -----------------------------------------------------------------------------
 var_a = variable.rand(name = "a", val = 3.0, abs = 0.1)  # a = 3.0 +/- 0.1 (uniform)
-var_b = variable.rand(name = "b", val = 4.0, abs = 0.1)  # b = 4.0 +/- 0.1 (uniform)
+var_b = variable.rand(name = "b", val = 4.0, abs = 0.2)  # b = 4.0 +/- 0.2 (uniform)
 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_a, var_b])
 fcalc.compile("sqrt(a^2+b^2)")
-fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
+fcalc.sim(nRuns = 10000)
 fcalc.print()
 print("")
 
@@ -92,7 +92,7 @@ var_g = variable.rand(name = "g", val = 9.81, abs = 0.05)   # g = 9.81 m/s2 +/- 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_l, var_g])
 fcalc.compile("2pi*sqrt(l/g)")
-fcalc.sim(nPts = 10000, mode = "MAX_RANGE")
+fcalc.sim(nRuns = 10000)
 fcalc.print()
 print("")
 
@@ -109,8 +109,8 @@ var_R2 = variable.rand(name = "R2", val = 15, rel = 0.05, unit = "kohm")
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_R1, var_R2])
 fcalc.compile("R1//R2")
-fcalc.sim(nPts = 1000, mode = "MAX_RANGE")
-fcalc.print()
+fcalc.sim(nRuns = 10000)
+fcalc.plot()
 print("")
 
 
@@ -128,7 +128,7 @@ var_y = variable.rand(name = "y", min = -1.0, max = 1.0)
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_x, var_y])
 fcalc.compile("sin(2*pi*x + cos(y)")
-fcalc.sim(nPts = 1000)
+fcalc.sim(nRuns = 1000)
 fcalc.print()
 
 
@@ -143,7 +143,7 @@ z3 = variable.randn(val = 10, tol98 = 0.5)
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([z1, z2, z3])
 fcalc.compile("(z1^2)-(z2^2) + z3^2")
-fcalc.sim(nPts = 1000, mode = "QUANTILE_99")
+fcalc.sim(nRuns = 1000, mode = "QUANTILE_99")
 fcalc.print()
 
 

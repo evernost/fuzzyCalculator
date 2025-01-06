@@ -138,6 +138,7 @@ import src.qParser as qParser
 
 from enum import Enum
 import statistics
+import matplotlib.pyplot as plt
 
 
 
@@ -386,19 +387,13 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.sim()
   # ---------------------------------------------------------------------------
-  def sim(self, nPts = 1000, mode = "MIN_MAX", seed = 0) :
+  def sim(self, nRuns = 1000, mode = "MIN_MAX", seed = 0) :
     """
     Runs the Monte-Carlo simulation of the compiled expression.
-
-    Simulation modes: 
-    - MIN_MAX: returns the min/max value reached by the expression
-    - QUANTILE_95: returns the min/max value between the 5th and 95th quantile
-    - QUANTILE_98: returns the min/max value between the 2nd and 98th quantile
-    - QUANTILE_99: returns the min/max value between the 1st and 99th quantile
     """
     
     self.output = []
-    for n in range(nPts) :  
+    for n in range(nRuns) :  
       ret = self.binary.eval()
       self.output.append(ret)
       self.clearCache()
@@ -415,7 +410,7 @@ class Calc :
           outMax = ret
 
     self.status = CalcStatus.SIM_OK
-    print(f"[INFO] Simulation done (runs: {nPts})")
+    print(f"[INFO] Simulation done (runs: {nRuns})")
 
 
 
@@ -442,15 +437,13 @@ class Calc :
 
       else :
         outMin = min(self.output); outMax = max(self.output)
-        print(f"[OUTPUT] {self.expr} = [{outMin:.{digits}}, {outMax:.{digits}}]")
+        center = (outMin + outMax)/2; err = (outMax - outMin) / 2
+        print(f"[OUTPUT] {self.expr} = {center:.{digits}} +/- {err:.{digits}} = [{outMin:.{digits}}, {outMax:.{digits}}]")
         print(f"         mean   = {statistics.mean(self.output)}")
         print(f"         std    = {statistics.stdev(self.output)}")
         print(f"         median = {statistics.median(self.output)}")
 
-    else :
-      # if not(self.exprHasVariables) :
-      #   print("[DEBUG] Running in scalar mode (no variable)")
-      
+    else :      
       out = self.binary.eval()
       print(f"[OUTPUT] {self.expr} = {out:.{digits}}")
 
@@ -459,7 +452,7 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.plot()
   # ---------------------------------------------------------------------------
-  def plot(self) :
+  def plot(self, bins = 100) :
     """
     Plots the statistics of the expression.
     """
@@ -473,7 +466,12 @@ class Calc :
         print("[WARNING] A simulation is required before a plot. Consider using 'sim()' before calling this function.")
         
       else :
-        print(f"Showing simulation results")
+        plt.hist(self.output, bins = bins, color = 'blue', edgecolor = 'black')
+
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+        plt.title(f"Simulation result for '{self.expr}'")
+        plt.show()
 
     else :
       print("[WARNING] 'plot()' makes sense for expressions containing variables with uncertainties.")

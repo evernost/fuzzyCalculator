@@ -66,7 +66,7 @@ Sorted by increasing effort:
 - add support for scientific notation
 - add support for thousands delimitation using "_": ```"3_141_592"``` vs ```"3141592"```
 - add support for special characters (```π```?)
-- add support for 'dot-prefixed' operators like ```".+"```?
+- add support for 'dot-prefixed' operators like ```".+"```? Current parser does not accept it.
 - add support for complex numbers
 - add an interactive mode where: 
   - a command prompt appears
@@ -76,7 +76,7 @@ Sorted by increasing effort:
   - implicit multiplications are automatically expanded
   - possible warnings (ambiguities, ...), errors are shown as the user types
   - ...
-- add one-liners for intervals: ```"[1,2]*[-1,3] + [2,3]"```
+- add one-liners for intervals, to allow inputs like: ```"[1,2]*[-1,3] + [2,3]"```
 
 
 ## What is the development status?
@@ -86,7 +86,7 @@ Remaining tasks:
 - [X] Wrap the complexity in a 'Calculator' object (high-level and user-friendly functions)
 - [X] Add a proper variable detection (parser) and declaration (user)
 - [X] Link the detected variable with the 'Variable' objects
-- [ ] Add the Monte-Carlo simulator
+- [X] Add the Monte-Carlo simulator
 - [ ] Plot the simulation results
 - [ ] Add expression composition
 - [ ] Add the ability to account for the units in which the variables are expressed
