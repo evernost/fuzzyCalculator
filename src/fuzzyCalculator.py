@@ -175,6 +175,8 @@ class Calc :
 
     self.exprHasVariables = False
 
+    self.runs = 0
+
     
 
   # ---------------------------------------------------------------------------
@@ -278,36 +280,7 @@ class Calc :
     Compilation procedure in similar to the one in 'Calc.compile()'.
     """
     
-    # STEP 1: first checks
-    self._setInput(input)
-
-    # STEP 2: tokenise
-    self.tokens = qParser.tokenise(self.expr)
-    
-    # STEP 3: add implicit tokens (like multiplication)
-    tokensFull = qParser.explicitMult(self.tokens)
-    
-    # STEP 4: binarise
-    self.binary = binary.Binary(tokensFull)
-    if (self.binary.status == binary.BINARISE_FAILURE) :
-      print("[ERROR] Compilation failed: unable to binarise.")
-      exit()
-
-    # STEP 5: embed higher priority operations in a Macroleaf (nesting)
-    self.binary.nest()
-    
-    # STEP 6: list detected variables
-    self.varNamesDetected = qParser.getVariables(tokensFull)
-    
-    # STEP 7: check if all detected variables are declared
-    ret = self._varDeclarationCheck()
-
-    # STEP 8: propagate the user-declared variables to the internal nodes
-    self.binary.setVariables(self.vars)
-
-    # If the function made it up to here, compile is OK.
-    self.status = CalcStatus.COMPILE_OK
-    print("[INFO] Compile OK.")
+    print("[INFO] Calc.compileToVar() is TODO.")
 
 
     
@@ -387,13 +360,13 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.sim()
   # ---------------------------------------------------------------------------
-  def sim(self, nRuns = 1000, mode = "MIN_MAX", seed = 0) :
+  def sim(self, runs = 1000, mode = "MIN_MAX", seed = 0) :
     """
     Runs the Monte-Carlo simulation of the compiled expression.
     """
     
     self.output = []
-    for n in range(nRuns) :  
+    for n in range(runs) :
       ret = self.binary.eval()
       self.output.append(ret)
       self.clearCache()
@@ -410,7 +383,7 @@ class Calc :
           outMax = ret
 
     self.status = CalcStatus.SIM_OK
-    print(f"[INFO] Simulation done (runs: {nRuns})")
+    print(f"[INFO] Simulation done (runs: {runs})")
 
 
 

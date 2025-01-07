@@ -77,7 +77,7 @@ var_b = variable.rand(name = "b", val = 4.0, abs = 0.2)  # b = 4.0 +/- 0.2 (unif
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_a, var_b])
 fcalc.compile("sqrt(a^2+b^2)")
-fcalc.sim(nRuns = 10000)
+fcalc.sim(runs = 10000)
 fcalc.print()
 print("")
 
@@ -92,7 +92,7 @@ var_g = variable.rand(name = "g", val = 9.81, abs = 0.05)   # g = 9.81 m/s2 +/- 
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_l, var_g])
 fcalc.compile("2pi*sqrt(l/g)")
-fcalc.sim(nRuns = 10000)
+fcalc.sim(runs = 10000)
 fcalc.print()
 print("")
 
@@ -101,16 +101,17 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 6] Fuzzy calculation: resistors in parallel
 # -----------------------------------------------------------------------------
-
-# 10 kOhms resistances with 5% tolerance
-var_R1 = variable.rand(name = "R1", val = 10, rel = 0.05, unit = "kohm")
-var_R2 = variable.rand(name = "R2", val = 15, rel = 0.05, unit = "kohm")
+# Resistances with 1% tolerance
+var_R1 = variable.rand(name = "R1", val = 10, rel = 0.01, unit = "kohm")
+var_R2 = variable.rand(name = "R2", val = 15, rel = 0.01, unit = "kohm")
+var_R3 = variable.rand(name = "R3", val = 12, rel = 0.01, unit = "kohm")
+var_R4 = variable.rand(name = "R4", val = 22, rel = 0.01, unit = "kohm")
 
 fcalc = fuzzyCalculator.Calc()
-fcalc.declare([var_R1, var_R2])
-fcalc.compile("R1//R2")
-fcalc.sim(nRuns = 10000)
-fcalc.plot()
+fcalc.declare([var_R1, var_R2, var_R3, var_R4])
+fcalc.compile("(R1+R2)//(R3+R4)")
+fcalc.sim(runs = 10000)
+fcalc.plot(bins = 100)
 print("")
 
 
@@ -119,7 +120,7 @@ print("")
 # [EXAMPLE 7] Fuzzy calculation: more possibilities
 # -----------------------------------------------------------------------------
 # Variable with center value and uncertainty: x = 1.0 +/- 0.1
-var_x = variable.rand(name = "x", val = 1.0, err = 0.1)
+var_x = variable.rand(name = "x", val = 1.0, rel = 0.1)
 
 # Variable in range: y = [-1.0, 1.0]
 var_y = variable.rand(name = "y", min = -1.0, max = 1.0)
@@ -128,7 +129,7 @@ var_y = variable.rand(name = "y", min = -1.0, max = 1.0)
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([var_x, var_y])
 fcalc.compile("sin(2*pi*x + cos(y)")
-fcalc.sim(nRuns = 1000)
+fcalc.sim(runs = 1000)
 fcalc.print()
 
 
@@ -143,7 +144,7 @@ z3 = variable.randn(val = 10, tol98 = 0.5)
 fcalc = fuzzyCalculator.Calc()
 fcalc.declare([z1, z2, z3])
 fcalc.compile("(z1^2)-(z2^2) + z3^2")
-fcalc.sim(nRuns = 1000, mode = "QUANTILE_99")
+fcalc.sim(runs = 1000, mode = "QUANTILE_99")
 fcalc.print()
 
 
@@ -161,7 +162,7 @@ fcalc.print()
 
 # var_gm = fcalc.compileToVar("Ic/Vt", name = "gm")
 # fcalc.compile("Ic/Vt")
-# fcalc.sim(nPts = 1000)
+# fcalc.sim(runs = 1000)
 # fcalc.print()
 
 

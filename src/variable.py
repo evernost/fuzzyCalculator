@@ -26,10 +26,8 @@ import random
 
 
 # -----------------------------------------------------------------------------
-# "Factory" functions
+# Scalar variable factory function
 # -----------------------------------------------------------------------------
-# The following create shortcuts to create the appropriate Variable object.
-
 def scalar(**kwargs) :
   """
   Creates a static variable (scalar).
@@ -59,7 +57,9 @@ def scalar(**kwargs) :
 
 
 
-
+# -----------------------------------------------------------------------------
+# Uniform random variable factory function
+# -----------------------------------------------------------------------------
 def rand(**kwargs) :
   """
   Creates a uniform random variable.
@@ -137,10 +137,9 @@ def rand(**kwargs) :
 
 
 
-
-
-
-
+# -----------------------------------------------------------------------------
+# Gaussian random variable factory function
+# -----------------------------------------------------------------------------
 def randn(**kwargs) :
   """
   Creates a gaussian random variable.
@@ -163,6 +162,14 @@ def randn(**kwargs) :
   
   
   return Variable(randType = "GAUSSIAN", mean = varMean, std = varStd)
+
+
+# Change Variable to:
+# - Variable (pure class) with only 'self.hasCache' and 'self.outputCache'
+# Then derive:
+# - continuousVar
+# - discreteVar
+
 
 
 
@@ -193,8 +200,6 @@ class Variable :
       print("[ERROR] Variable.__init__(): unknown randType.")
       exit()
       
-    # print("[WARNING] Variable.__init__() is TODO!")
-
 
 
   # ---------------------------------------------------------------------------
@@ -231,3 +236,59 @@ class Variable :
     self.hasCache = False
     self.outputCache = 0.0
     
+
+
+
+
+
+
+class ContinuousVariable(Variable) :
+  
+  def __init__(self, **kwargs) :
+    
+    self.hasCache = False
+    self.outputCache = 0.0
+
+    if (kwargs["randType"] == "UNIFORM") :
+      self.type = kwargs["randType"]
+      self.name = kwargs["name"]
+      self.min  = kwargs["min"]
+      self.max  = kwargs["max"]
+      
+    elif (kwargs["randType"] == "GAUSSIAN") :
+      self.type = kwargs["randType"]
+      self.mean = kwargs["mean"]
+      self.std  = kwargs["std"]
+    
+    else :
+      print("[ERROR] Variable.__init__(): unknown randType.")
+      exit()
+
+
+
+
+
+
+class DiscreteVariable(Variable) :
+  
+  def __init__(self, **kwargs) :
+    
+    self.hasCache = False
+    self.outputCache = 0.0
+
+    if (kwargs["randType"] == "UNIFORM") :
+      self.type = kwargs["randType"]
+      self.name = kwargs["name"]
+      self.min  = kwargs["min"]
+      self.max  = kwargs["max"]
+      
+    elif (kwargs["randType"] == "GAUSSIAN") :
+      self.type = kwargs["randType"]
+      self.mean = kwargs["mean"]
+      self.std  = kwargs["std"]
+    
+    else :
+      print("[ERROR] Variable.__init__(): unknown randType.")
+      exit()
+
+      

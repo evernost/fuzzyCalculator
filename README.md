@@ -12,7 +12,7 @@ Not only it gives the **output range** of an expression, but also a most **plaus
 
 ## What can I do with it?
 Typical use cases:
-- **worst case analysis**: what is the min/max range an expression can reach?
+- **worst case analysis**: what is the min/max range an expression can reach? or what are the most plausible values?
 - **fine algorithm design**: determine numbers of bits required for a variable that endures various processings.
 
 ## How do I use it?
@@ -87,7 +87,8 @@ Remaining tasks:
 - [X] Add a proper variable detection (parser) and declaration (user)
 - [X] Link the detected variable with the 'Variable' objects
 - [X] Add the Monte-Carlo simulator
-- [ ] Plot the simulation results
+- [X] Plot the simulation results (histogram)
+- [ ] Add support for discrete random variables (finite set instead of a full range)
 - [ ] Add expression composition
 - [ ] Add the ability to account for the units in which the variables are expressed
 
