@@ -133,8 +133,9 @@
 # =============================================================================
 from src.commons import *
 
-import src.binary as binary
 import src.qParser as qParser
+import src.binary as binary
+import src.variable as variable
 
 from enum import Enum
 import statistics
@@ -271,8 +272,8 @@ class Calc :
   def compileToVar(self, input, name) :
     """
     Compiles the expression contained in the input string and pack it 
-    in a 'Variable' object so that it can be used in another expression
-    (referred to as 'expression composition')
+    in a 'Variable' object so that it can be used in another expression.
+    This process is referred to as 'expression composition'.
     
     The function returns a 'Variable' whose name attribute goes by 
     the one given in the 'name' argument.
@@ -280,7 +281,47 @@ class Calc :
     Compilation procedure in similar to the one in 'Calc.compile()'.
     """
     
-    print("[INFO] Calc.compileToVar() is TODO.")
+    # STEP 1: first checks
+    self._setInput(input)
+
+    # STEP 2: tokenise
+    self.tokens = qParser.tokenise(self.expr)
+    
+    # STEP 3: add implicit tokens (like multiplication)
+    tokensFull = qParser.explicitMult(self.tokens)
+    
+    # STEP 4: binarise
+    self.binary = binary.Binary(tokensFull)
+    if (self.binary.status == binary.BINARISE_FAILURE) :
+      print("[ERROR] Compilation failed: unable to binarise.")
+      exit()
+
+    # STEP 5: embed higher priority operations in a Macroleaf (nesting)
+    self.binary.nest()
+    
+    # STEP 6: list detected variables
+    self.varNamesDetected = qParser.getVariables(tokensFull)
+    self.exprHasVariables = (len(self.varNamesDetected) > 0)
+    
+    # STEP 7: check if all detected variables are declared
+    ret = self._varDeclarationCheck()
+
+    # STEP 8: propagate the user-declared variables to the internal nodes
+    self.binary.setVariables(self.vars)
+
+    # If the function made it up to here, compile is OK.
+    self.status = CalcStatus.COMPILE_OK
+    print("[INFO] Compile OK.")
+
+    if not(self.exprHasVariables) :
+      self.status = CalcStatus.SIM_OK
+      #print("[DEBUG] Assuming simulation is already done (no variable detected)")
+
+    varObj = variable.CompiledVariable(name, self.binary)
+
+    # Declare the variable
+    self.declare(varObj)
+
 
 
     

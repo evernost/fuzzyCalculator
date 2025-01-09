@@ -119,33 +119,29 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 7] Fuzzy calculation: more possibilities
 # -----------------------------------------------------------------------------
-# Variable with center value and uncertainty: x = 1.0 +/- 0.1
-var_x = variable.rand(name = "x", val = 1.0, rel = 0.1)
+# var_x = variable.rand(name = "x", val = 1.0, rel = 0.1)   # x = 1.0 +/- 0.1
+# var_y = variable.rand(name = "y", min = -1.0, max = 1.0)  # y = [-1.0, 1.0]
 
-# Variable in range: y = [-1.0, 1.0]
-var_y = variable.rand(name = "y", min = -1.0, max = 1.0)
-
-# You may also declare your variables using a list:
-fcalc = fuzzyCalculator.Calc()
-fcalc.declare([var_x, var_y])
-fcalc.compile("sin(2*pi*x + cos(y)")
-fcalc.sim(runs = 1000)
-fcalc.print()
+# fcalc = fuzzyCalculator.Calc()
+# fcalc.declare([var_x, var_y])
+# fcalc.compile("sin(2*pi*x + cos(y)")
+# fcalc.sim(runs = 1000)
+# fcalc.print()
 
 
 
 # -----------------------------------------------------------------------------
 # [EXAMPLE 8] Fuzzy calculation: fun with gaussian variables
 # -----------------------------------------------------------------------------
-z1 = variable.randn(mean = 2.0, std = 0.5)
-z2 = variable.randn(val = 10, tol95 = 0.5)
-z3 = variable.randn(val = 10, tol98 = 0.5)
+# z1 = variable.randn(mean = 2.0, std = 0.5)
+# z2 = variable.randn(val = 10, tol95 = 0.5)
+# z3 = variable.randn(val = 10, tol98 = 0.5)
 
-fcalc = fuzzyCalculator.Calc()
-fcalc.declare([z1, z2, z3])
-fcalc.compile("(z1^2)-(z2^2) + z3^2")
-fcalc.sim(runs = 1000, mode = "QUANTILE_99")
-fcalc.print()
+# fcalc = fuzzyCalculator.Calc()
+# fcalc.declare([z1, z2, z3])
+# fcalc.compile("(z1^2)-(z2^2) + z3^2")
+# fcalc.sim(runs = 1000, mode = "QUANTILE_99")
+# fcalc.print()
 
 
 
@@ -153,14 +149,14 @@ fcalc.print()
 # [EXAMPLE 9] Fuzzy calculation: composing expressions
 # -----------------------------------------------------------------------------
 # Under construction! Coming soon.
-# fcalc = fuzzyCalculator.Calc()
+fcalc = fuzzyCalculator.Calc()
 
-# var_Re = variable.rand(name = "Re", val = 100, abs = 0.05, unit = "ohm")
-# var_Ic = variable.rand(name = "Ic", val = 10, abs = 0.05, unit = "mA")
-# var_Vt = variable.rand(name = "Vt", val = 26, abs = 0.05, unit = "mV")
-# fcalc.declare([var_Re, var_Ic, var_Vt])
+var_Re = variable.rand(name = "Re", val = 100, abs = 0.05, unit = "ohm")
+var_Ic = variable.rand(name = "Ic", val = 10, abs = 0.05, unit = "mA")
+var_Vt = variable.rand(name = "Vt", val = 26, abs = 0.05, unit = "mV")
+fcalc.declare([var_Re, var_Ic, var_Vt])
 
-# var_gm = fcalc.compileToVar("Ic/Vt", name = "gm")
+var_gm = fcalc.compileToVar("Ic/Vt", name = "gm")
 # fcalc.compile("Ic/Vt")
 # fcalc.sim(runs = 1000)
 # fcalc.print()

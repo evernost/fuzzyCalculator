@@ -245,18 +245,18 @@ class Variable :
 class ContinuousVariable(Variable) :
   
   def __init__(self, **kwargs) :
-    
+
+    self.type = kwargs["randType"]
+    self.name = kwargs["name"]
+
     self.hasCache = False
     self.outputCache = 0.0
 
     if (kwargs["randType"] == "UNIFORM") :
-      self.type = kwargs["randType"]
-      self.name = kwargs["name"]
       self.min  = kwargs["min"]
       self.max  = kwargs["max"]
       
     elif (kwargs["randType"] == "GAUSSIAN") :
-      self.type = kwargs["randType"]
       self.mean = kwargs["mean"]
       self.std  = kwargs["std"]
     
@@ -273,22 +273,28 @@ class DiscreteVariable(Variable) :
   
   def __init__(self, **kwargs) :
     
+    self.type = kwargs["randType"]
+    self.name = kwargs["name"]
+
     self.hasCache = False
     self.outputCache = 0.0
 
-    if (kwargs["randType"] == "UNIFORM") :
-      self.type = kwargs["randType"]
-      self.name = kwargs["name"]
-      self.min  = kwargs["min"]
-      self.max  = kwargs["max"]
-      
-    elif (kwargs["randType"] == "GAUSSIAN") :
-      self.type = kwargs["randType"]
-      self.mean = kwargs["mean"]
-      self.std  = kwargs["std"]
+    print("DiscreteVariable: todo!")
+
+
+
+
+class CompiledVariable :
+  
+  def __init__(self, name, binaryObj) :
     
-    else :
-      print("[ERROR] Variable.__init__(): unknown randType.")
-      exit()
+    self.binary = binaryObj
+
+    self.hasCache = False
+    self.outputCache = 0.0
+    
+    
 
       
+
+

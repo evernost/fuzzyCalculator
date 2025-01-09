@@ -88,7 +88,8 @@ Remaining tasks:
 - [X] Link the detected variable with the 'Variable' objects
 - [X] Add the Monte-Carlo simulator
 - [X] Plot the simulation results (histogram)
-- [ ] Add support for discrete random variables (finite set instead of a full range)
 - [ ] Add expression composition
+- [ ] Add support for discrete random variables (finite set instead of a full range)
 - [ ] Add the ability to account for the units in which the variables are expressed
+- [ ] Binary object: add an "explanatory" mode that details the calculations done
 
