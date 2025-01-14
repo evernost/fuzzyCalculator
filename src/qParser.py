@@ -899,7 +899,8 @@ def tokenise(inputStr) :
 # -----------------------------------------------------------------------------
 def getVariables(tokenList) :
   """
-  Returns the list of variables found in the list of Tokens.
+  Inspects the list of Tokens given as input and returns the list of variables
+  that were found.
   """
 
   varList = []

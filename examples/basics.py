@@ -151,15 +151,17 @@ print("")
 # Under construction! Coming soon.
 fcalc = fuzzyCalculator.Calc()
 
-var_Re = variable.rand(name = "Re", val = 100, abs = 0.05, unit = "ohm")
-var_Ic = variable.rand(name = "Ic", val = 10, abs = 0.05, unit = "mA")
-var_Vt = variable.rand(name = "Vt", val = 26, abs = 0.05, unit = "mV")
-fcalc.declare([var_Re, var_Ic, var_Vt])
+var_Rc = variable.rand(name = "Rc", val = 1000, rel = 0.01, unit = "ohm")
+var_Re = variable.rand(name = "Re", val = 100, rel = 0.01, unit = "ohm")
+var_Ic = variable.rand(name = "Ic", val = 10, rel = 0.1, unit = "mA")
+var_Vt = variable.rand(name = "Vt", val = 26, rel = 0.1, unit = "mV")
+fcalc.declare([var_Rc, var_Re, var_Ic, var_Vt])
 
 var_gm = fcalc.compileToVar("Ic/Vt", name = "gm")
-# fcalc.compile("Ic/Vt")
-# fcalc.sim(runs = 1000)
-# fcalc.print()
+fcalc.compile("-gm*Rc/(1+gm*Re")
+fcalc.sim(runs = 10000)
+fcalc.plot(bins = 100)
+print("")
 
 
 

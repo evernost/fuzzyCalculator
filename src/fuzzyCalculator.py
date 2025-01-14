@@ -293,7 +293,7 @@ class Calc :
     # STEP 4: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
-      print("[ERROR] Compilation failed: unable to binarise.")
+      print("[ERROR] compileToVar: compilation failed (cause: unable to binarise)")
       exit()
 
     # STEP 5: embed higher priority operations in a Macroleaf (nesting)
@@ -304,7 +304,7 @@ class Calc :
     self.exprHasVariables = (len(self.varNamesDetected) > 0)
     
     # STEP 7: check if all detected variables are declared
-    ret = self._varDeclarationCheck()
+    ret = self._varDeclarationCheck(ignoreUnused = True)
 
     # STEP 8: propagate the user-declared variables to the internal nodes
     self.binary.setVariables(self.vars)
@@ -355,7 +355,7 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc._varDeclarationCheck()
   # ---------------------------------------------------------------------------
-  def _varDeclarationCheck(self) :
+  def _varDeclarationCheck(self, ignoreUnused = False) :
     """
     Checks that all the variables detected in the expression are declared.
     Returns a warning if variables are declared but not detected.
@@ -364,7 +364,8 @@ class Calc :
     ret = True
     for varDec in self.varNamesDeclared :
       if not(varDec in self.varNamesDetected) :
-        print(f"[WARNING] Variable is declared, but not used/detected: '{varDec}'")
+        if not(ignoreUnused) :
+          print(f"[WARNING] Variable is declared, but not used/detected: '{varDec}'")
 
     for varDet in self.varNamesDetected :
       if not(varDet in self.varNamesDeclared) :
