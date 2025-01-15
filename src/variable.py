@@ -273,7 +273,7 @@ class DiscreteVariable(Variable) :
   
   def __init__(self, **kwargs) :
     
-    self.type = kwargs["randType"]
+    self.type = "DISCRETE"
     self.name = kwargs["name"]
 
     self.hasCache = False
@@ -288,6 +288,9 @@ class CompiledVariable :
   
   def __init__(self, name, binaryObj) :
     
+    self.type = "COMPILED"
+    self.name = name
+
     self.binary = binaryObj
 
     self.hasCache = False
