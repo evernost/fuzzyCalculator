@@ -92,4 +92,5 @@ Remaining tasks:
 - [ ] Add support for discrete random variables (finite set instead of a full range)
 - [ ] Add the ability to account for the units in which the variables are expressed
 - [ ] Binary object: add an "explanatory" mode that details the calculations done
+- [ ] Add support for complex numbers
 
