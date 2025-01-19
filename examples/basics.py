@@ -169,8 +169,7 @@ print("")
 # [EXAMPLE 10] Your first syntax error
 # -----------------------------------------------------------------------------
 fcalc = fuzzyCalculator.Calc()
-fcalc.input("x-3*y+z1/")
-fcalc.compile()
+fcalc.compile("x-3*y+z1/")
 fcalc.print()
 print("")
 

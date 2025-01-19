@@ -226,7 +226,7 @@ class Variable :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Variable.eval()
+  # METHOD: Variable.clearCache()
   # ---------------------------------------------------------------------------
   def clearCache(self) :
     """
@@ -299,5 +299,37 @@ class CompiledVariable :
     
 
       
+
+  # ---------------------------------------------------------------------------
+  # METHOD: CompiledVariable.eval()
+  # ---------------------------------------------------------------------------
+  def eval(self) :
+    """
+
+    For a new value, cache must be cleared using 'Variable.clearCache()'.
+    """
+
+    if self.hasCache :
+      return self.outputCache
+    
+    else :
+      val = self.binary.eval()
+      self.hasCache = True
+      self.outputCache = val
+      return val
+    
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: CompiledVariable.clearCache()
+  # ---------------------------------------------------------------------------
+  def clearCache(self) :
+    """
+    TODO
+    """
+
+    self.hasCache = False
+    self.outputCache = 0.0
+    
 
 
