@@ -247,7 +247,7 @@ class Calc :
     self.binary.nest()
     
     # STEP 6: list detected variables
-    self.varNamesDetected = qParser.getVariables(tokensFull)
+    self.varNamesDetected += qParser.getVariables(tokensFull)
     self.exprHasVariables = (len(self.varNamesDetected) > 0)
     
     # STEP 7: check if all detected variables are declared
@@ -300,7 +300,7 @@ class Calc :
     self.binary.nest()
     
     # STEP 6: list detected variables
-    self.varNamesDetected = qParser.getVariables(tokensFull)
+    self.varNamesDetected += qParser.getVariables(tokensFull)
     self.exprHasVariables = (len(self.varNamesDetected) > 0)
     
     # STEP 7: check if all detected variables are declared
@@ -324,7 +324,6 @@ class Calc :
 
 
 
-    
   # ---------------------------------------------------------------------------
   # METHOD: Calc.declare('variable' Object / list of 'variable' Object)
   # ---------------------------------------------------------------------------
