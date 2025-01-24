@@ -141,6 +141,8 @@ from enum import Enum
 import statistics
 import matplotlib.pyplot as plt
 
+import numpy as np    # For percentile estimation
+
 
 
 # =============================================================================
@@ -466,7 +468,7 @@ class Calc :
   # ---------------------------------------------------------------------------
   # METHOD: Calc.plot()
   # ---------------------------------------------------------------------------
-  def plot(self, bins = 100) :
+  def plot(self, bins = 100, title = "") :
     """
     Plots the statistics of the expression.
     """
@@ -489,6 +491,21 @@ class Calc :
 
     else :
       print("[WARNING] 'plot()' makes sense for expressions containing variables with uncertainties.")
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Calc.percentileRange()
+  # ---------------------------------------------------------------------------
+  def percentileRange(self, p = 0.95) :
+    """
+    Returns the range that contains p% of the values returned by the simulation.
+    The 'p' value defaults to 95%.
+    """
+    
+    lowerBound = np.percentile(self.output, 100*(1-p))
+    upperBound = np.percentile(self.output, 100*p)
+    print(f"Percentile range ({100*p}%): [{lowerBound} ... {upperBound}]")
 
 
 

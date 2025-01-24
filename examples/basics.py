@@ -112,6 +112,7 @@ fcalc.declare([var_R1, var_R2, var_R3, var_R4])
 fcalc.compile("(R1+R2)//(R3+R4)")
 fcalc.sim(runs = 10000)
 fcalc.plot(bins = 100)
+fcalc.percentileRange(p = 0.95) 
 print("")
 
 
