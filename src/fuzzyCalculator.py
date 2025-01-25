@@ -487,6 +487,7 @@ class Calc :
         plt.xlabel('Value')
         plt.ylabel('Frequency')
         plt.title(f"Simulation result for '{self.expr}'")
+        # plt.show(block = False)
         plt.show()
 
     else :

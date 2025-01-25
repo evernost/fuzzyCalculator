@@ -98,35 +98,57 @@ def rand(**kwargs) :
   else :
     varName = kwargs["name"]
 
-  if not("val" in kwargs) :
-    print("[ERROR] Variable.rand(): a variable must be given a center value 'val'.")
+
+
+  # min/max specifier
+  if ("min" in kwargs) or ("max" in kwargs) :
+    if not("max" in kwargs) :
+      print("[ERROR] Variable.rand(): when a 'min' is specified, a 'max' is expected.")
+      exit()
+
+    if not("min" in kwargs) :
+      print("[ERROR] Variable.rand(): when a 'max' is specified, a 'min' is expected.")
+      exit()
+
+    varMin = kwargs["min"]
+    varMax = kwargs["max"]
+    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
+
+
+
+  # val/abs specifier
+  elif (("val" in kwargs) or ("rel" in kwargs) or ("abs" in kwargs)) :
+    if ("abs" in kwargs) :
+      if (kwargs["abs"] < 0) :
+        print("[ERROR] Variable.rand(): the absolute uncertainty cannot be negative.")
+        exit()
+
+      if ("rel" in kwargs) :
+        print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative uncertainty.")
+        exit()
+    
+      varMin = kwargs["val"] - kwargs["abs"]
+      varMax = kwargs["val"] + kwargs["abs"]
+      print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
+    
+    if ("rel" in kwargs) :
+      if (kwargs["rel"] < 0) :
+        print("[ERROR] Variable.rand(): the relative uncertainty cannot be negative.")
+        exit()
+
+      if ("abs" in kwargs) :
+        print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative uncertainty.")
+        exit()
+    
+      varMin = kwargs["val"]*(1.0 - kwargs["rel"])
+      varMax = kwargs["val"]*(1.0 + kwargs["rel"])
+      print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
+
+  else :
+    print("[ERROR] Variable.rand(): please provide a 'min/max' or 'val/abs' or 'val/rel' specification.")
     exit()
 
-  if ("abs" in kwargs) :
-    if (kwargs["abs"] < 0) :
-      print("[ERROR] Variable.rand(): the absolute uncertainty cannot be negative.")
-      exit()
 
-    if ("rel" in kwargs) :
-      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative uncertainty.")
-      exit()
-  
-    varMin = kwargs["val"] - kwargs["abs"]
-    varMax = kwargs["val"] + kwargs["abs"]
-    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
-  
-  if ("rel" in kwargs) :
-    if (kwargs["rel"] < 0) :
-      print("[ERROR] Variable.rand(): the relative uncertainty cannot be negative.")
-      exit()
-
-    if ("abs" in kwargs) :
-      print("[ERROR] Variable.rand(): cannot specify both an absolute and a relative uncertainty.")
-      exit()
-  
-    varMin = kwargs["val"]*(1.0 - kwargs["rel"])
-    varMax = kwargs["val"]*(1.0 + kwargs["rel"])
-    print(f"[INFO] Creating a uniform random variable for '{kwargs['name']}' (range = [{varMin}, {varMax}])")
 
   if ("unit" in kwargs) :
     varUnit = kwargs["unit"]

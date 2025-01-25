@@ -120,14 +120,14 @@ print("")
 # -----------------------------------------------------------------------------
 # [EXAMPLE 7] Fuzzy calculation: more possibilities
 # -----------------------------------------------------------------------------
-# var_x = variable.rand(name = "x", val = 1.0, rel = 0.1)   # x = 1.0 +/- 0.1
-# var_y = variable.rand(name = "y", min = -1.0, max = 1.0)  # y = [-1.0, 1.0]
+var_x = variable.rand(name = "x", val = 1.0, rel = 0.1)   # x = 1.0 +/- 0.1
+var_y = variable.rand(name = "y", min = -1.0, max = 1.0)  # y = [-1.0, 1.0]
 
-# fcalc = fuzzyCalculator.Calc()
-# fcalc.declare([var_x, var_y])
-# fcalc.compile("sin(2*pi*x + cos(y)")
-# fcalc.sim(runs = 1000)
-# fcalc.print()
+fcalc = fuzzyCalculator.Calc()
+fcalc.declare([var_x, var_y])
+fcalc.compile("sin(2*pi*x + cos(y)")
+fcalc.sim(runs = 1000)
+fcalc.print()
 
 
 
