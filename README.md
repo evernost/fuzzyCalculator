@@ -15,6 +15,45 @@ Typical use cases:
 - **worst case analysis**: what is the min/max range an expression can reach? or what are the most plausible values?
 - **fine algorithm design**: determine numbers of bits required for a variable that endures various processings.
 
+## Example
+You are on a swing, and you'd like to estimate the length of the attaching ropes based on the oscillation period.
+You measured 5T = 25s with a 0.5s uncertainty on the start/stop time.
+
+Let's declare T = 5.0 +/- 0.1s:
+
+```> var_T = variable.rand(name = "T", val = 5.0, abs = 0.1)```
+
+Let's also assume that we don't know the local gravity _that_ well:
+
+```> var_g = variable.rand(name = "g", val = 9.8, abs = 0.05)```
+
+Create a Fuzzy Calculator object:
+
+```> fcalc = fuzzyCalculator.Calc()```
+
+Compile the expression to be calculated. Here we use T = 2π sqrt(L/g) and solve for ```'L'```:
+
+```> fcalc.compile("g*(T/(2*pi))^2")```
+
+Run a Monte-Carlo simulation (10 000 runs):
+
+```> fcalc.sim(runs = 10000)```
+
+Plot the result:
+
+```> fcalc.plot(bins = 100)```
+
+![image](https://github.com/user-attachments/assets/7ffbf511-a095-4566-b2cd-6c1161af6eec)
+
+This gives already a very good idea of the most plausible range for L: 5.9 to 6.4m.
+
+Using the percentileRange function, you can directly get the range that contains 95% of the values:
+
+```> fcalc.percentileRange(p = 0.95)```
+
+
+
+
 ## How do I use it?
 The calculator takes as input a string containing the mathematical expression.
 All the parsing machinery is included.
@@ -23,7 +62,7 @@ The integrated parser supports "natural" inputs like good old TI calculators:
 - implicit multiplications: ```2x-3y```, ```(a+b)(c-d)```, etc.
 - lazy parenthesis (no need to close brackets): ```2(x+y```, ```"sin(x+cox(y"```
 
-Then, declare the variables and their statistic (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.
+Then, declare the variables and their statistics (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.
 
 > [!NOTE]
 > Several rules apply for the parsing and the way it is going to be interpreted.</br>
