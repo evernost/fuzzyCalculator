@@ -50,10 +50,15 @@ This gives already a very good idea of the most plausible range for L: ```L = 5.
 Using the ```percentileRange function```, you can directly get the range that contains 95% of the values:
 
 ```> fcalc.percentileRange(p = 0.95)```
+
 ```[INFO] Creating a uniform random variable for 'T' (range = [4.9, 5.1])```
+
 ```[INFO] Creating a uniform random variable for 'g' (range = [9.75, 9.850000000000001])```
+
 ```[INFO] Compile OK.```
+
 ```[INFO] Simulation done (runs: 10000)```
+
 ```Percentile range (95.0%): [5.984 ... 6.431]```
 
 
