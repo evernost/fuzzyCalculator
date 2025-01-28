@@ -65,7 +65,7 @@ def rand(**kwargs) :
   Creates a uniform random variable.
 
   The function returns a 'Variable' object. 
-  It can be stored under any name you like, it does not really matter.
+  The object can be stored under any name you like, it does not really matter.
   
   Example: var_height = variable.rand(name = "height")
 
@@ -81,13 +81,13 @@ def rand(**kwargs) :
   
   Possible calls:
   
-  height = 181cm +/- 1.0 (absolute uncertainty)
-  > var_height = variable.rand(name = "height", val = 181.0, abs = 0.1, unit = "cm")
+  height = 181cm +/- 1.0cm (absolute uncertainty)
+  > var_height = variable.rand(name = "height", val = 181.0, abs = 1.0, unit = "cm")
 
   R1 = 10.0k +/- 5% (relative uncertainty)
   > var_R1 = variable.rand(name = "R1", val = 10.0, rel = 0.05, unit = "kohm")
 
-  z = [-1, 1]
+  z = [-1, 1] (simple range)
   > var_z = variable.rand(name = "z", min = -1.0, max = 1.0)
 
   """
@@ -152,6 +152,12 @@ def rand(**kwargs) :
 
   if ("unit" in kwargs) :
     varUnit = kwargs["unit"]
+
+    # Run some checks on the units
+    # if not(varUnit in ["kg", "s", "m", "A", "V"]) :
+    # ...
+
+
   else :
     varUnit = ""
 

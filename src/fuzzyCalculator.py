@@ -506,7 +506,7 @@ class Calc :
     
     lowerBound = np.percentile(self.output, 100*(1-p))
     upperBound = np.percentile(self.output, 100*p)
-    print(f"Percentile range ({100*p}%): [{lowerBound} ... {upperBound}]")
+    print(f"Percentile range ({100*p}%): [{lowerBound:.3f} ... {upperBound:.3f}]")
 
 
 
