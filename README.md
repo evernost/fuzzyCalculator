@@ -51,6 +51,7 @@ Using the ```percentileRange function```, you can directly get the range that co
 
 ```> fcalc.percentileRange(p = 0.95)```
 
+<<<<<<< HEAD
 [INFO] Creating a uniform random variable for 'T' (range = [4.9, 5.1])
 
 [INFO] Creating a uniform random variable for 'g' (range = [9.75, 9.850000000000001])
@@ -61,6 +62,17 @@ Using the ```percentileRange function```, you can directly get the range that co
 
 Percentile range (95.0%): [5.984 ... 6.431]
 
+=======
+```[INFO] Creating a uniform random variable for 'T' (range = [4.9, 5.1])```
+
+```[INFO] Creating a uniform random variable for 'g' (range = [9.75, 9.850000000000001])```
+
+```[INFO] Compile OK.```
+
+```[INFO] Simulation done (runs: 10000)```
+
+```Percentile range (95.0%): [5.984 ... 6.431]```
+>>>>>>> 278b2f4bdbbef04189432f61ee6578374271a6b9
 
 
 
