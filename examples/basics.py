@@ -32,9 +32,9 @@ import src.variable as variable
 # Main script
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 1] A basic scalar operation
-# -----------------------------------------------------------------------------
+print("-----------------------------------")
+print("EXAMPLE 1: a basic scalar operation")
+print("-----------------------------------")
 fcalc = fuzzyCalculator.Calc()
 fcalc.compile("12*34-567")
 fcalc.print()
@@ -42,9 +42,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 2] Another basic scalar operation
-# -----------------------------------------------------------------------------
+print("-----------------------------------------")
+print("EXAMPLE 2: another basic scalar operation")
+print("-----------------------------------------")
 fcalc = fuzzyCalculator.Calc()
 fcalc.compile("-2cos(1.5pi)")
 fcalc.print()
@@ -52,9 +52,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 3] Adding lengths with uncertainties
-# -----------------------------------------------------------------------------
+print("--------------------------------------------")
+print("EXAMPLE 3: adding lengths with uncertainties")
+print("--------------------------------------------")
 var_a = variable.rand(name = "a", val = 1.0, abs = 0.1)  # a = 1.0 +/- 0.1 (uniform)
 var_b = variable.rand(name = "b", val = 2.0, abs = 0.5)  # b = 2.0 +/- 0.5 (uniform)
 
@@ -68,9 +68,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 4] Pythagoras' theorem with uncertainties
-# -----------------------------------------------------------------------------
+print("-------------------------------------------------")
+print("EXAMPLE 4: Pythagoras' theorem with uncertainties")
+print("-------------------------------------------------")
 var_a = variable.rand(name = "a", val = 3.0, abs = 0.1)  # a = 3.0 +/- 0.1 (uniform)
 var_b = variable.rand(name = "b", val = 4.0, abs = 0.2)  # b = 4.0 +/- 0.2 (uniform)
 
@@ -83,9 +83,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 5] Fuzzy calculation: period of a pendulum
-# -----------------------------------------------------------------------------
+print("--------------------------------------------------")
+print("EXAMPLE 5: Fuzzy calculation: period of a pendulum")
+print("--------------------------------------------------")
 var_l = variable.rand(name = "l", val = 1.0, abs = 0.005)   # l = 1m +/- 5mm
 var_g = variable.rand(name = "g", val = 9.81, abs = 0.05)   # g = 9.81 m/s2 +/- 0.05 m/s2 
 
@@ -98,9 +98,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 6] Fuzzy calculation: resistors in parallel
-# -----------------------------------------------------------------------------
+print("---------------------------------------------------")
+print("EXAMPLE 6: Fuzzy calculation: resistors in parallel")
+print("---------------------------------------------------")
 # Resistances with 1% tolerance
 var_R1 = variable.rand(name = "R1", val = 10, rel = 0.01, unit = "kohm")
 var_R2 = variable.rand(name = "R2", val = 15, rel = 0.01, unit = "kohm")
@@ -117,9 +117,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 7] Fuzzy calculation: more possibilities
-# -----------------------------------------------------------------------------
+print("------------------------------------------------")
+print("EXAMPLE 7: Fuzzy calculation: more possibilities")
+print("------------------------------------------------")
 var_x = variable.rand(name = "x", val = 1.0, rel = 0.1)   # x = 1.0 +/- 0.1
 var_y = variable.rand(name = "y", min = -1.0, max = 1.0)  # y = [-1.0, 1.0]
 
@@ -128,6 +128,7 @@ fcalc.declare([var_x, var_y])
 fcalc.compile("sin(2*pi*x + cos(y)")
 fcalc.sim(runs = 1000)
 fcalc.print()
+print("")
 
 
 
@@ -146,9 +147,9 @@ fcalc.print()
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 9] Fuzzy calculation: composing expressions
-# -----------------------------------------------------------------------------
+print("---------------------------------------------------")
+print("EXAMPLE 9: Fuzzy calculation: composing expressions")
+print("---------------------------------------------------")
 fcalc = fuzzyCalculator.Calc()
 
 var_Rc = variable.rand(name = "Rc", val = 1000, rel = 0.01, unit = "ohm")
@@ -165,9 +166,9 @@ print("")
 
 
 
-# -----------------------------------------------------------------------------
-# [EXAMPLE 10] Your first syntax error
-# -----------------------------------------------------------------------------
+print("-----------------------------------")
+print("EXAMPLE 10: Your first syntax error")
+print("-----------------------------------")
 fcalc = fuzzyCalculator.Calc()
 fcalc.compile("x-3*y+z1/")
 fcalc.print()
