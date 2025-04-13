@@ -95,21 +95,21 @@ class Token :
   def __init__(self, name, value = None) :
     """
     DESCRIPTION
-    Takes an expression as argument, returns a Token object.
+    Creates a Token object from an atomic expression.
     
+    EXAMPLES
+    Token("4.5")  -> creates a Token of type "NUMBER"
+    Token("pi")   -> creates a Token of type "CONSTANT"
+    Token("exp")  -> creates a Token of type "FUNCTION"
+
     The Token has a 'type' that is inferred from the value passed as argument.
 
     Tokens can be of type: 
     - CONSTANT
     - FUNCTION
-    - TODO
-
-    EXAMPLES
-    Token("4.5")  -> creates a Token of type "NUMBER"
-    Token("pi")   -> creates a Token of type "CONSTANT"
-    Token("exp")  -> creates a Token of type "FUNCTION"
-    Etc.
+    - TODO    
     """
+
     self.constantsList  = [x["name"] for x in CONSTANTS]
     self.functionsList  = [x["name"] for x in FUNCTIONS]
     self.infixList      = [x["name"] for x in INFIX]

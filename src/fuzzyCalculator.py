@@ -133,8 +133,9 @@
 # =============================================================================
 from src.commons import *
 
-import src.qParser as qParser
 import src.binary as binary
+import src.expression as expression
+import src.qParser as qParser
 import src.variable as variable
 
 from enum import Enum
@@ -157,7 +158,7 @@ class CalcStatus(Enum) :
 
 
 # =============================================================================
-# Main code
+# Class definition
 # =============================================================================
 class Calc :
   
@@ -165,7 +166,7 @@ class Calc :
   # METHOD: Calc.__init__ (constructor)
   # ---------------------------------------------------------------------------
   def __init__(self) :
-    self.expr   = ""
+    self.expr   = None
     self.status = CalcStatus.INIT
 
     self.output = []
@@ -182,34 +183,34 @@ class Calc :
 
     
 
-  # ---------------------------------------------------------------------------
-  # METHOD: Calc._setInput(string)
-  # ---------------------------------------------------------------------------
-  def _setInput(self, expr) :
-    """
-    Sets the expression to be analysed by the parser.
-    As it is set, some first basic checks are run on the expression to make 
-    sure it is valid before proceeding any further.
-    """
+  # # ---------------------------------------------------------------------------
+  # # METHOD: Calc._setInput(string)
+  # # ---------------------------------------------------------------------------
+  # def _setInput(self, expr) :
+  #   """
+  #   Sets the expression to be analysed by the parser.
+  #   As it is set, some first basic checks are run on the expression to make 
+  #   sure it is valid before proceeding any further.
+  #   """
 
-    self.expr = expr
+  #   self.expr = expr
     
-    checkPassed = qParser.sanityCheck(self.expr)
-    if not(checkPassed) :
-      print("[ERROR] Parser halted due to an error in the sanity check.")
-      exit()
+  #   checkPassed = qParser.sanityCheck(self.expr)
+  #   if not(checkPassed) :
+  #     print("[ERROR] Parser halted due to an error in the sanity check.")
+  #     exit()
       
-    checkPassed = qParser.bracketBalanceCheck(self.expr)
-    if not(checkPassed) :
-      print("[ERROR] Parser halted due to an error in the bracket balance.")
-      exit()
+  #   checkPassed = qParser.bracketBalanceCheck(self.expr)
+  #   if not(checkPassed) :
+  #     print("[ERROR] Parser halted due to an error in the bracket balance.")
+  #     exit()
       
-    checkPassed = qParser.firstOrderCheck(self.expr)
-    if not(checkPassed) :
-      print("[ERROR] Parser halted due to an error in the first order check.")
-      exit()
+  #   checkPassed = qParser.firstOrderCheck(self.expr)
+  #   if not(checkPassed) :
+  #     print("[ERROR] Parser halted due to an error in the first order check.")
+  #     exit()
 
-    # print(f"[INFO] Calculator: input set to '{self.expr}'")
+  #   # print(f"[INFO] Calculator: input set to '{self.expr}'")
 
 
 
@@ -218,26 +219,26 @@ class Calc :
   # ---------------------------------------------------------------------------
   def compile(self, input) :
     """
-    Compiles the expression contained in the input string.
+    Compiles the expression in the input string.
     The compilation process consists in the following:
-    - STEP 1: run some basic checks of the expression
-    - STEP 2: rewrite the expression as a list of tokens
+    - STEP 1: basic syntax check
+    - STEP 2: rewrite as a list of tokens
     - STEP 3: detect and add the implicit multiplication tokens
-    - STEP 4: create a binary object from the list of tokens
-    - STEP 5: nest away operators with higher precedence in 'Macroleaves' objects
+    - STEP 4: binarise
+    - STEP 5: isolate operators with higher precedence in a macro
     - STEP 6: list the variables detected in the expression
     - STEP 7: compare the detected variable against the declared variables
     - STEP 8: propagate the user-declared variables to the nested binary objects
     """
-    
-    # STEP 1: first checks
-    self._setInput(input)
 
-    # STEP 2: tokenise
-    self.tokens = qParser.tokenise(self.expr)
-    
-    # STEP 3: add implicit tokens (like multiplication)
-    tokensFull = qParser.explicitMult(self.tokens)
+    # Create expression object
+    self.expr = expression.Expression(input)
+
+    # STEP 1: basic syntax check
+    self.expr.check()
+
+    # STEP 2: convert to a list of tokens
+    self.expr.tokenise()
     
     # STEP 4: binarise
     self.binary = binary.Binary(tokensFull)

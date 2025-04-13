@@ -42,14 +42,14 @@ BINARISE_FAILURE = -1
 class Binary :
   """
   DESCRIPTION
-  A 'Binary' object is essentially a Python list (the 'stack') made of  
-  infix operators and leaves, always arranged in the following pattern: 
+  A 'Binary' object is a Python list made of a pattern of leaves and infix
+  operators: 
 
   binaryObj.stack = [L1, op1, L2, op2, ... Ln]
   
   where 
-  - <L1> ... <Ln> are leaves (or Macroleaves objects)
-  - <op1> ... <opn> are infix operators.
+  - 'L1' ... 'Ln' are leaves (or Macroleaves objects)
+  - 'op1' ... 'opn' are infix operators.
 
   A 'leaf' refers here to the binary tree vocabulary. It represents the very last
   object that is encountered upon evaluation of an expression.
