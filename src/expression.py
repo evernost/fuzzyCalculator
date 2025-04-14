@@ -145,7 +145,7 @@ class Expression :
         level -= 1
 
       if (level < 0) :
-        if VERBOSE_MODE :
+        if self.VERBOSE_MODE :
           utils.showInStr(inputStr, loc)
           print("[ERROR] Closing parenthesis in excess.")
         return False
@@ -169,25 +169,25 @@ class Expression :
     (See unit tests in "main")
     """
 
-    for i in (range(len(inputStr)-1)) :
+    for i in (range(len(self.input)-1)) :
       
-      char1 = inputStr[i]; char2 = inputStr[i+1]
+      char1 = self.input[i]; char2 = self.input[i+1]
 
       if ((char1, char2) == (".", ".")) :
-        if VERBOSE_MODE :
-          utils.showInStr(inputStr, i+1)
+        if self.VERBOSE_MODE :
+          utils.showInStr(self.input, i+1)
           print("[ERROR] A valid expression cannot have 2 consecutive dots. Is it a typo?")
         return False
         
       elif ((char1, char2) == (",", ",")) :
-        if VERBOSE_MODE :
-          utils.showInStr(inputStr, i+1)
+        if self.VERBOSE_MODE :
+          utils.showInStr(self.input, i+1)
           print("[ERROR] A valid expression cannot have 2 consecutive commas. Is it a typo?")
         return False
 
       elif ((char1, char2) == (",", ")")) :
-        if VERBOSE_MODE :     
-          utils.showInStr(inputStr, i+1)
+        if self.VERBOSE_MODE :     
+          utils.showInStr(self.input, i+1)
           print("[ERROR] Possible missing argument?")
         return False
 
@@ -205,38 +205,35 @@ class Expression :
   # ---------------------------------------------------------------------------
   # FUNCTION: tokenise(string)
   # ---------------------------------------------------------------------------
-  def tokenise(inputStr) :
+  def tokenise(self) :
     """
-    Generates a list of tokens from a string containing a valid expression.
+    Generates a list of tokens from the input.
 
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
     
     This function assumes that syntax checks have been run prior to the call.
     Otherwise, some syntax errors will not be caught.
-
-    EXAMPLES
-    todo
     """
 
-    tokenList = []
+    buffer = self.input
 
-    while(len(inputStr) > 0) :
+    while(len(buffer) > 0) :
 
-      # White spaces do not contribute to the parsing (rule [R9])
-      (_, inputStr) = utils.splitSpace(inputStr)
+      # Remove whitespaces (rule [R9])
+      (_, buffer) = utils.splitSpace(buffer)
       
-      if (len(inputStr) == 0) :
+      if (len(buffer) == 0) :
         break
 
       # Try to interpret the leading characters as a 
       # number, constant, variable, function or infix.
       # TODO: check if there can be conflicts.
-      (number, tailNumber)      = consumeNumber(inputStr)
-      (constant, tailConstant)  = consumeConst(inputStr)
-      (function, tailFunction)  = consumeFunc(inputStr)
-      (variable, tailVariable)  = consumeVar(inputStr)
-      (infix, tailInfix)        = consumeInfix(inputStr)
+      (number, tailNumber)      = utils.consumeNumber(inputStr)
+      (constant, tailConstant)  = utils.consumeConst(inputStr)
+      (function, tailFunction)  = utils.consumeFunc(inputStr)
+      (variable, tailVariable)  = utils.consumeVar(inputStr)
+      (infix, tailInfix)        = utils.consumeInfix(inputStr)
 
       if (number != "") :
         tokenList.append(symbols.Token(number))

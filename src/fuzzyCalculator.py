@@ -240,7 +240,7 @@ class Calc :
     # STEP 2: convert to a list of tokens
     self.expr.tokenise()
     
-    # STEP 4: binarise
+    # STEP 3: binarise
     self.binary = binary.Binary(tokensFull)
     if (self.binary.status == binary.BINARISE_FAILURE) :
       print("[ERROR] Compilation failed: unable to binarise.")
