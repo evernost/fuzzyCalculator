@@ -146,7 +146,7 @@ class Expression :
 
       if (level < 0) :
         if self.VERBOSE_MODE :
-          utils.showInStr(inputStr, loc)
+          utils.showInStr(self.input, loc)
           print("[ERROR] Closing parenthesis in excess.")
         return False
 
@@ -217,6 +217,7 @@ class Expression :
     """
 
     buffer = self.input
+    self.tokens = []
 
     while(len(buffer) > 0) :
 
@@ -236,24 +237,24 @@ class Expression :
       (infix, tailInfix)        = utils.consumeInfix(inputStr)
 
       if (number != "") :
-        tokenList.append(symbols.Token(number))
+        self.tokens.append(symbols.Token(number))
         inputStr = tailNumber
 
       elif (constant != "") :
-        tokenList.append(symbols.Token(constant))
+        self.tokens.append(symbols.Token(constant))
         inputStr = tailConstant
       
       elif (function != "") :
-        tokenList.append(symbols.Token(function))
-        tokenList.append(symbols.Token("("))
+        self.tokens.append(symbols.Token(function))
+        self.tokens.append(symbols.Token("("))
         inputStr = tailFunction
 
       elif (variable != "") :
-        tokenList.append(symbols.Token(variable))
+        self.tokens.append(symbols.Token(variable))
         inputStr = tailVariable
         
       elif (infix != "") :
-        tokenList.append(symbols.Token(infix))
+        self.tokens.append(symbols.Token(infix))
         inputStr = tailInfix
       
       # Otherwise: detect brackets and commas
@@ -261,19 +262,19 @@ class Expression :
         (head, tail) = utils.pop(inputStr)
 
         if (head == "(") :
-          tokenList.append(symbols.Token(head))
+          self.tokens.append(symbols.Token(head))
           inputStr = tail
 
         elif (head == ")") :
-          tokenList.append(symbols.Token(head))
+          self.tokens.append(symbols.Token(head))
           inputStr = tail
 
         elif (head == ",") :
-          tokenList.append(symbols.Token(head))
+          self.tokens.append(symbols.Token(head))
           inputStr = tail
           
         else :
           print("[ERROR] Internal error: the input char could not be assigned to any Token.")
           exit()
 
-    return tokenList
+
