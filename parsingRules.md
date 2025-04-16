@@ -101,16 +101,16 @@ Rules for prefixing digit/number:
 Rules for suffixing digit/number:
 | Rule    | Example | Rationale |
 | :-------- | ------- |------- |
-| R5.6 | `X2` -> `var("X2")`| Typical variable suffixing. |
-| R5.7 | `X_2` -> `var("X_2")`| Same as R5.6 |
-
-
-[R5.8]  "X2.0       -> var("X")*2.0             | A decimal number interrupts the variable parsing.
-                                                | A bit odd, but it is probably the most plausible meaning.
-                                                | Raises a warning.
-[R5.9]  "X_2.0      -> var("X_")*2.0            Same as R5.8
+| R5.6 | `X2` → `var("X2")`| Typical variable suffixing. |
+| R5.7 | `X_2` → `var("X_2")`| Same as R5.6 |
+| R5.8 | `X2.0` → `var("X")*2.0`| A decimal number ends the parsing of the variable<br> A bit odd, but it is probably the most plausible meaning. <br>Raises a warning ⚠️ |
+| R5.9 | `X_2.0` → `var("X_")*2.0`| Same as R5.6 |
 
 Rules for suffixing digit/number (continued):
+| Rule    | Example | Rationale |
+| :-------- | ------- |------- |
+| R5.10 | `X3Y` → `var("X3")*var("Y")`<br>`R10C2` → `var("R10")*var("C2")`| If a variable contains a number, its name can only end with a digit.|
+
 [R5.10] "X3Y"       -> var("X3")*var("Y")       | If a variable contains a number, its name can only end with a digit.
         "R10C2"     -> var("R10")*var("C2")     |
         "C1cos("    -> var("C1")*cos(...        |
@@ -150,19 +150,19 @@ but some restrictions apply:
 - the expected behaviour for this new infix operator needs to be defined.
 
 Infix operators that are not based on special characters will not be supported.
-There are no plans to accept inputs like 'x DONG y' or 'a SUPER+ b'.
+There are no plans to accept inputs like `x DONG y` or `a SUPER+ b`.
 Reasons for that:
-- ruins the readability
-- special characters already give enough flexibility
-- exotic infix operators are not that common. It is not worth the engineering.
-- infix operators are 2 variables functions in disguise.
-  Multiargs functions are already supported and should be the reasonable choice here.
+- **readability**: messes with the implicit multiplication rule
+- **not the only solution**: special characters already give enough flexibility
+- **rarity**: exotic infix operators are not that common. It is not worth the engineering.
+- **functions do the job**: infix operators are 2 variables functions in disguise.<br>
+  Functions of multiple arguments are already supported and should be the reasonable choice here.
 
 Also, be careful when defining the priority of your new operator (see rules [R7.X] and [R11])
 
-# [R7] Rules for omitted tokens
-The infix operator "-" (minus sign) is the only operator that allows an implicit left operand.
-In other words, expressions like "(-3x+..." are accepted.
+## [R7] Omitted operators
+The infix operator `-` (minus sign) is the only operator that allows an implicit left operand.
+In other words, expressions like `(-3x+...` are accepted.
 
 There are not many cases where the implicit left operand is common and/or makes sense.
 It is mostly used:
@@ -170,11 +170,11 @@ It is mostly used:
 - for negative exponents               (rule [R7.2])
 
 Based on that, the parser's strategy is the following:
-- "(-3*..."  -> add a leading 0: "(0-3*..."
-- "10^-4..." -> create a macroleaf with the 'opp' function: "10^M..."
-  with M : {f = opp, M = [Num:'4']}.
+- **Implicit zeros:** `(-3*...`  → insert a leading 0: `(0-3*...`
+- **Negative exponents:** `10^-4...` → create a macro with the `opp` function: `10^M...`
+  with M : {f = opp, M = [Num:'4']}.<br>
   This should not have side effect with the rest of the expression
-  since '^' has the highest priority.
+  since `^` has the highest priority.
   Keep that in mind when you define custom infix.
 
 When the '-' appears at the beginning of an expression or subexpression
@@ -203,13 +203,13 @@ Note: rule [7.1] only adds a zero and does not add parenthesis.
 This prevents "-x^2" to be turned into "(-x)^2", which is probably
 never what is really meant.
 
-[R8] VARIABLE NAMING
+## [R8] Variable naming
 Variable cannot start with a number.
 
-[R9] WHITE SPACES
-White spaces are not part of the syntax and are simply ignored.
+## [R9] White spaces
+White spaces are not part of the syntax and are always ignored.
 
-[R10] OPERATORS ASSOCIATIVITY
+## [R10] Associativity
 Consecutive operators with identical priority are all treated 
 with increasing nesting level (i.e. the 'rightest the deepest'):
 - a+b+c+d -> a+(b+(c+d))
@@ -218,16 +218,19 @@ with increasing nesting level (i.e. the 'rightest the deepest'):
 - a^b^c^d -> a^(b^(c^d))    (people will complain anyway, no matter what convention is chosen)
 In doubt: check the output interpretation, add parenthesis.
 
-[R11] OPERATORS PRECEDENCE
-It is not recommended to change the relative priorities of the basic infix
-operators: '+', '-', '*' , '/', '^'.
+## [R11] Precedence
+Priorities of the basic infix operators are already defined: `+`, `-`, `*` , `/`, `^`.
+Parallel resistor association (`a//b` = ab/(a+b)) has the same priority as `/`.
+
+You can always change the priority (field `TODO` in `symbols.py`) but:
 - as far as I know, there is no real need for that
 - side effect will emerge due to the parsing strategy 
   (e.g. rule [R7.2]: '^' is assumed to have the highest precedence for proper operation)
 
-Also, be careful when defining priority of custom infix: think twice about 
-how it interacts with other infix.
-Again, in doubt: use parenthesis and don't blindly rely on precedence. Parenthesis are free!
+Also, be careful when defining priority of custom infix: think how it interacts with other infix.
+
+
+In doubt: use parenthesis and don't blindly rely on precedence.<br> Parenthesis do not cost anything!
 
 Priority level is limited to 100 (arbitrary limit)
 
