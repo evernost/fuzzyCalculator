@@ -4,45 +4,45 @@ The following note summarises the parsing rules implemented in the **Fuzzy Calcu
 ## Features
 The integrated parser supports *natural* inputs (e.g. implicit multiplications) and lazy parenthesis.
 
-So expressions like "(a+b)(c-d)" or "sin(x+cos(y" are **accepted**.
+So expressions like `(a+b)(c-d)` or `sin(x+cos(y` are **accepted**.
 
-The calculator provides the most common math operators (`+`, `-`, `*`, `/`, `^`) 
-and some obscure ones (`//` for parallel resistor association)
+The calculator provides the most common **math operations** (`+`, `-`, `*`, `/`, `^`) 
+and some obscure ones (`//` for parallel resistor association).<br> 
+These operations (_infix_ operators) can be customised. You can also **define your own**. 
 
-Usual math functions are included (`sin`, `cos`, `log`, `exp`, `abs`, ...) 
+Usual math functions are included (`sin`, `cos`, `log`, `log10`, `exp`, `abs`, ...) 
 
-Order of operands is preserved while evaluating. In other words, no commutativity is assumed, even for infix like `+` and `*`. 
+Order of operands is preserved while evaluating. In other words, **no commutativity is assumed**, even for infix like `+` and `*`. 
 Therefore, future releases could potentially handle advanced types, like matrices or quaternions.
-
-When called as a 'main', the library runs unit tests on the built-in
-parsing functions.
 
 ## Requirements
 The parser is based on native Python and does not require any specific library:
-- no regex
-- no complex string manipulation
+- No regex
+- No complex string manipulation functions
 
-However, if transcription to another programming language is needed, 
+However, if migrating the parser code to another programming language is needed, 
 the following features would be nice to have:
-- OOP 
-- string to float conversion routines
-- math functions (`sin`, `cos`, `exp`, etc.)
-- random number generation for the Monte-Carlo analysis
-- some plotting features
-
+- Object Oriented Programming structures 
+- String to float conversion routines
+- Math functions (`sin`, `cos`, `exp`, etc.)
+- Random number generation (for the Monte-Carlo analysis)
+- Some plotting features
 
 ## Add custom infix operators and functions
 Coming soon.
 
+## Support for SI units (kg, meters, seconds, amps, mol, ...)
+The current version of the parser does not support units, it is planned for future releases.<br>
+Stay tuned! 
 
 # Parsing rules
 
-The following gives the parsing strategy and lists all rules that apply 
+The following clarifies the parsing strategy and lists all rules that apply 
 when an expression is evaluated.
 
 ## [R1] Case sensitivity
 
-The parser is case sensitive.
+The parser is **case sensitive**.
 
 - `pi` and `Pi` are not the same constant
 - `cos()` and `Cos()` are not the same function
@@ -59,37 +59,44 @@ Expressions like `3var` are always seens as `3`*`var`.
 
 ## [R3] Function call syntax
 
-No space is accepted between the name of the function and the parenthesis.
+No whitespace is accepted between the name of the function and the parenthesis.<br>
+Parenthesis are **mandatory**.
 
 - `exp(-2t)` → ✅
 - `exp (-2t)` → ❌
+- `exp -2t` → ❌
+- `exp-2t` → ❌
 
-
-Allowing this space has no added value, and it makes the parsing more complicated.<br>
-
+Allowing this whitespace has no added value, and it makes the parsing more complicated.<br>
 
 ## [R4] Void arguments
 
 A function cannot be called with empty arguments.
 - `exp(0)` → ✅
 - `exp()` → ❌
+- `exp` → ❌
+
+Like for **[R3]**, there is no added value, and none of the supported functions make mathematical sense without argument.<br>
 
 ## [R5] Implicit multiplication rules
 
-The following priorities have been defined based on what feels the most "natural" interpretation.<br>
-In case of ambiguity, a warning is raised.
+The following rules have been defined based on what feels the most "natural" interpretation.<br>
+In case of ambiguity, a warning is raised.<br>
+
+In the following, examples are given to illustrate each rule. <br>
+**Notation**: `var("myVar")` means that the parser intepreted the input as a **variable** named `myVar`. 
 
 General rule for implicit products:
-| Rule    | Example | Rationale |
+| Rule    | Example | Rationale / Comments|
 | :-------- | ------- |------- |
-| R5.1  | `pixel` → `var("pixel")`| The variable as a whole is more likely than a product of smaller variables.<br> Why not even `pi`* `x`*`el`?|
+| R5.1  | `pixel` → `var("pixel")`| The variable as a **whole** is more likely than a **product of smaller variables**.<br> Why not even `pi`* `x` * `el`, or `p` * `i`* `x` * `e` * `l` or...?|
 
 
 
 
 
 Rules for prefixing digit/number:
-| Rule    | Example | Rationale |
+| Rule    | Example | Rationale / Comments |
 | :-------- | ------- |------- |
 | R5.2 | `1X` → `1*var("X")`| A variable cannot start with a digit (rule R2)|
 | R5.3 | `1_X` → `1*var("_X")`| Same as R5.2<br> Also, prefixing with `_` is allowed.|
@@ -99,44 +106,48 @@ Rules for prefixing digit/number:
 
 
 Rules for suffixing digit/number:
-| Rule    | Example | Rationale |
+| Rule    | Example | Rationale / Comments |
 | :-------- | ------- |------- |
-| R5.6 | `X2` → `var("X2")`| Typical variable suffixing. |
+| R5.6 | `X2` → `var("X2")`| Typical variable suffixing is **accepted**. |
 | R5.7 | `X_2` → `var("X_2")`| Same as R5.6 |
-| R5.8 | `X2.0` → `var("X")*2.0`| A decimal number ends the parsing of the variable<br> A bit odd, but it is probably the most plausible meaning. <br>Raises a warning ⚠️ |
+| R5.8 | `X2.0` → `var("X")*2.0`| A decimal number **always** ends the parsing of the variable.<br> Might bit odd, but it is probably the most plausible meaning. <br><br>⚠️ Raises an **ambiguity warning**. |
 | R5.9 | `X_2.0` → `var("X_")*2.0`| Same as R5.6 |
 
 Rules for suffixing digit/number (continued):
-| Rule    | Example | Rationale |
+| Rule    | Example | Rationale / Comments|
 | :-------- | ------- |------- |
-| R5.10 | `X3Y` → `var("X3")*var("Y")`<br>`R10C2` → `var("R10")*var("C2")`| If a variable contains a number, its name can only end with a digit.|
+| R5.10 (I)| `X3Y` → `var("X3")*var("Y")`<br><br>`R10C2` → `var("R10")*var("C2")`<br><br> `C1cos(...` → `var("C1")*cos(...` <br><br> `Z9_` → `var("Z9_")`| When the name of a variable contains a number, it can only end with a **digit** or a **`_`**.|
+| R5.10 (II)| `X2cos+3` | The `2` halts the parsing for the variable, so it is seen as `var("X2")*cos`, which violates **R3**. <br><br>❌ Syntax error!|
 
-[R5.10] "X3Y"       -> var("X3")*var("Y")       | If a variable contains a number, its name can only end with a digit.
-        "R10C2"     -> var("R10")*var("C2")     |
-        "C1cos("    -> var("C1")*cos(...        |
-        "X2cos+3"   -> syntax error!            "cos" is not called according to the rules for functions (R3)
-[R5.11] "X_3Y"      -> var("X_3")*var("Y")      | Same principle as [R5.10]
-        "v_21cos("  -> var("v_21")*cos(...      |
-        "X_2cos("   -> var("X_2")*cos(...       |
-[R5.12] "X2.0cos("  -> var("X")*2.0*cos(...     Consistent with R5.8
-[R5.13] "X_2.0cos(" -> var("X_")*2.0*cos(...    Consistent with R5.9
-[R5.14] "R1_Y*pi"   -> var("R1_Y")*pi           | An underscore allows more complex variable names, even after a digit.
-        "x_1_2_Y*4" -> var("x_1_2_Y")*4         | 
-[R5.15] "X_3.0_Y"    -> var("X_")*3.0*var("_Y") Raises a warning
+
+[R5.11] "X_3Y"      → var("X_3")*var("Y")      | Same principle as [R5.10]
+        "v_21cos("  → var("v_21")*cos(...      |
+        "X_2cos("   → var("X_2")*cos(...       |
+[R5.12] "X2.0cos("  → var("X")*2.0*cos(...     Consistent with R5.8
+[R5.13] "X_2.0cos(" → var("X_")*2.0*cos(...    Consistent with R5.9
+[R5.14] "R1_Y*pi"   → var("R1_Y")*pi           | An underscore allows more complex variable names, even after a digit.
+        "x_1_2_Y*4" → var("x_1_2_Y")*4         | 
+[R5.15] "X_3.0_Y"    → var("X_")*3.0*var("_Y") Raises a warning
 
 
 Consequences:
-"X_3.1Y" -> var("X_")*3.1"*var("Y")           Consequence of rule R5.9
+| Example | Rationale / Comments|
+| ------- |------- |
+| `X2cos+3` | The `2` halts the parsing for the variable, so it is seen as `var("X2")*cos`, which violates **R3**. <br><br>❌ Syntax error!|
 
-Behaviour not decided yet:
-[R5.__] "pi4X"   -> const("pi")*4*var("X")     ??
-[R5.__] "pi4.0X" -> const("pi")*4.0*var("X")   ??
-[R5.__] "pi_5"   -> var("pi_5")                Underscore serves as disembiguation/indexing and overrides the constant
 
-[R5.__] "pipi"   -> var("pipi")                If "pi*pi" was meant, maybe the user should make an effort here.
-[R5.__] "inf"    -> const("inf")               Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
+"X_3.1Y" → var("X_")*3.1"*var("Y")           Consequence of rule R5.9
+
+Behaviour not defined yet:
+| Rule    | Example | Rationale / Comments|
+| :-------- | ------- |------- |
+| R5.__ | `pi4X` → `const("pi")*4*var("X")`  | TBC
+| R5.__ | `pi4.0X` → `const("pi")*4.0*var("X")` |  TBC
+| R5.__ | `pi_5` → `var("pi_5")` | Underscore serves as disembiguation/indexing and overrides the constant
+| R5.__ | `pipi` → `var("pipi")` | Not `const("pi")*const("pi")`. <br>If `pi*pi` was meant, maybe the user should make an effort here.
+| R5.__ | `inf` → `const("inf")` | Parser tries to see as a whole in priority (so not "i*nf", "i" being a constant too)
                                                See also [R5.10]
-[R5.__] "ipi"    -> var("ipi")                 Same as [R5.13]
+[R5.__] "ipi"    → var("ipi")                 Same as [R5.13]
 
 ## [R6] Infix operator name
 The super common ones (`+`, `-`, `/`, `*`, ...) along with exotic ones (`//`) are already included.

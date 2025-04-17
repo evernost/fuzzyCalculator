@@ -274,7 +274,7 @@ class Expression :
           inputStr = tail
           
         else :
-          print("[ERROR] Internal error: the input char could not be assigned to any Token.")
+          print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
           exit()
 
 
