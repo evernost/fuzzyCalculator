@@ -17,6 +17,7 @@
 # TODO
 
 
+
 # =============================================================================
 # External libs
 # =============================================================================
@@ -57,19 +58,20 @@ class Expression :
   # ---------------------------------------------------------------------------
   def check(self) :
     """
-    Runs some tests to make sure the expression is valid for parsing.
+    Performs basic validation to ensure the expression is well-formed and 
+    suitable for parsing.
     """
     
     if not(self._validCharCheck()) :
-      print("[ERROR] Parser error: input contains invalid chars.")
+      print("[ERROR] Expression check: input contains invalid chars.")
       exit()
       
     if not(self._bracketBalanceCheck()) :
-      print("[ERROR] Parser error: invalid bracket balance.")
+      print("[ERROR] Expression check: invalid bracket balance.")
       exit()
       
     if not(self._firstOrderCheck()) :
-      print("[ERROR] Parser halted due to an error in the first order check.")
+      print("[ERROR] Expression check: invalid character sequence.")
       exit()
 
 
@@ -79,7 +81,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _validCharCheck(self) :
     """
-    Checks the input string and makes sure it contains valid characters only.
+    Checks if the expression contains valid characters only.
     Valid characters are:
     - letters: "a" to "z" and "A" to "Z"
     - space: " "
@@ -278,3 +280,34 @@ class Expression :
           exit()
 
 
+
+# =============================================================================
+# Main (unit tests)
+# =============================================================================
+if (__name__ == '__main__') :
+  
+  print("[INFO] Library called as main: running unit tests...")
+
+  assert(Expression("oni_giri*cos(2x+pi")._validCharCheck() == True)
+  assert(Expression("input Str")._validCharCheck() == True)
+  assert(Expression("input Str2.1(a+b)|x|")._validCharCheck() == False)
+  assert(Expression("$inputStr")._validCharCheck() == False)
+  assert(Expression("µinputStr")._validCharCheck() == False)
+  assert(Expression("in#putStr")._validCharCheck() == False)
+  assert(Expression("inputStr%")._validCharCheck() == False)
+  assert(Expression("inpuétStr")._validCharCheck() == False)
+  assert(Expression("inpuàtStr")._validCharCheck() == False)
+  print("- Unit test passed: '_sanityCheck()'")
+
+  assert(Expression("oni_giri*cos(2x+pi")._bracketBalanceCheck() == True)
+  assert(Expression("oni_giri*cos(2x+pi(")._bracketBalanceCheck() == True)
+  assert(Expression("oni_giri*cos(2x+pi()))")._bracketBalanceCheck() == False)
+  assert(Expression("|3x+6|.2x")._bracketBalanceCheck() == True)
+  print("- Unit test passed: '_bracketBalanceCheck()'")
+
+  assert(Expression("sin(2..1x)")._firstOrderCheck() == False)
+  assert(Expression("1+Q(2,)")._firstOrderCheck() == False)
+  assert(Expression("cos(3x+1)*Q(2,,1)")._firstOrderCheck() == False)
+  print("- Unit test passed: '_firstOrderCheck()'")
+
+  print("[INFO] End of unit tests.")

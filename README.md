@@ -2,7 +2,8 @@
 
 
 ## What is it?
-The Fuzzy Calculator looks like a regular calculator. It supports classical math operations, but it has been pimped to work on **intervals** instead of scalars.
+The Fuzzy Calculator is a command-line calculator.<br>
+It's a calculator that's been enhanced to handle not only standard operations, but also operations on **intervals** instead of just scalars.
 
 In other words: 
 - with numbers: it does the usual computation (```2*3+1/7```, ```cos(10)```, ```2*exp(-1.0)```,  ...)

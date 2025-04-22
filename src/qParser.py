@@ -510,28 +510,6 @@ if (__name__ == '__main__') :
   # Disable the babbling mode while doing the unit tests
   VERBOSE_MODE = False
 
-  assert(sanityCheck("oni_giri*cos(2x+pi") == True)
-  assert(sanityCheck("input Str") == True)
-  assert(sanityCheck("input Str2.1(a+b)|x|") == False)
-  assert(sanityCheck("$inputStr") == False)
-  assert(sanityCheck("µinputStr") == False)
-  assert(sanityCheck("in#putStr") == False)
-  assert(sanityCheck("inputStr%") == False)
-  assert(sanityCheck("inpuétStr") == False)
-  assert(sanityCheck("inpuàtStr") == False)
-  print("- Self-test passed: 'sanityCheck'")
-
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi") == True)
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi(") == True)
-  assert(bracketBalanceCheck("oni_giri*cos(2x+pi()))") == False)
-  assert(bracketBalanceCheck("|3x+6|.2x") == True)
-  print("- Self-test passed: 'bracketBalanceCheck'")
-
-  assert(firstOrderCheck("sin(2..1x)") == False)
-  assert(firstOrderCheck("1+Q(2,)") == False)
-  assert(firstOrderCheck("cos(3x+1)*Q(2,,1)") == False)
-  print("- Self-test passed: 'firstOrderCheck'")
-
   assert(consumeConst("pi") == ("pi", ""))
   assert(consumeConst("inf") == ("inf", ""))
   assert(consumeConst("eps*4") == ("eps", "*4"))
