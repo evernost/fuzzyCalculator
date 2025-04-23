@@ -1,12 +1,11 @@
 # Fuzzy Calculator
 
-
 ## What is it?
 The Fuzzy Calculator is a command-line calculator.<br>
 It's a calculator that's been enhanced to handle not only standard operations, but also operations on **intervals** instead of just scalars.
 
 In other words: 
-- with numbers: it does the usual computation (```2*3+1/7```, ```cos(10)```, ```2*exp(-1.0)```,  ...)
+- with numbers: it does the usual computation (`2*3+1/7`, `cos(10)`, `2*exp(-1.0)`,  ...)
 - with intervals: it runs a Monte-Carlo simulation based on the statistics of the operands.
 
 Not only it gives the **output range** of an expression, but also a most **plausible** values it can take.
@@ -22,43 +21,41 @@ You measured 5T = 25s with a 0.5s uncertainty on the start/stop time.
 
 Let's declare T = 5.0 +/- 0.1s:
 
-```> var_T = variable.rand(name = "T", val = 5.0, abs = 0.1)```
+`> var_T = variable.rand(name = "T", val = 5.0, abs = 0.1)`
 
 Let's also assume that we don't know the local gravity _that_ well:
 
-```> var_g = variable.rand(name = "g", val = 9.8, abs = 0.05)```
+`> var_g = variable.rand(name = "g", val = 9.8, abs = 0.05)`
 
 Create a Fuzzy Calculator object:
 
-```> fcalc = fuzzyCalculator.Calc()```
+`> fcalc = fuzzyCalculator.Calc()`
 
-Compile the expression to be calculated. Here we use T = 2π sqrt(L/g) and solve for ```'L'```:
+Compile the expression to be calculated. Here we use T = 2π sqrt(L/g) and solve for `L`:
 
-```> fcalc.compile("g*(T/(2*pi))^2")```
+`> fcalc.compile("g*(T/(2*pi))^2")`
 
 Run a Monte-Carlo simulation (10 000 runs):
 
-```> fcalc.sim(runs = 10000)```
+`> fcalc.sim(runs = 10000)`
 
 Plot the result:
 
-```> fcalc.plot(bins = 100)```
+`> fcalc.plot(bins = 100)`
 
 ![image](https://github.com/user-attachments/assets/7ffbf511-a095-4566-b2cd-6c1161af6eec)
 
-This gives already a very good idea of the most plausible range for L: ```L = 5.9 ... 6.4m```
+This gives already a very good idea of the most plausible range for `L`: L = 5.9m ... 6.4m
 
-Using the ```percentileRange function```, you can directly get the range that contains 95% of the values:
+Using the `percentileRange function`, you can directly get the range that contains 95% of the values:
 
-```> fcalc.percentileRange(p = 0.95)```
+`> fcalc.percentileRange(p = 0.95)`
 
-[INFO] Creating a uniform random variable for 'T' (range = [4.9, 5.1])
-
-[INFO] Creating a uniform random variable for 'g' (range = [9.75, 9.850000000000001])
-
-[INFO] Compile OK.
-
-[INFO] Simulation done (runs: 10000)
+Terminal output:<br>
+[INFO] Creating a uniform random variable for 'T' (range = [4.9, 5.1])<br>
+[INFO] Creating a uniform random variable for 'g' (range = [9.75, 9.850000000000001])<br>
+[INFO] Compile OK.<br>
+[INFO] Simulation done (runs: 10000)<br>
 
 Percentile range (95.0%): [5.984 ... 6.431]
 
@@ -67,7 +64,7 @@ The calculator takes as input a string containing the mathematical expression.
 All the parsing machinery is included.
 
 The integrated parser supports "natural" inputs like good old TI calculators:
-- implicit multiplications: ```2x-3y```, ```(a+b)(c-d)```, etc.
+- implicit multiplications: `2x-3y`, `(a+b)(c-d)`, etc.
 - lazy parenthesis (no need to close brackets): ```2(x+y```, ```"sin(x+cox(y"```
 
 Then, declare the variables and their statistics (uniform in range, gaussian, etc.) configure the simulation settings and _voilà_.

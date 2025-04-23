@@ -35,7 +35,6 @@
 # WHAT CAN I DO WITH IT?
 # ----------------------
 # Non exhaustive list:
-# - 
 # - signal processing: determine the range of an input to define the most 
 #                      appropriate coding.
 # - worst case analysis: what are the min/max values an expression can reach?
@@ -182,36 +181,6 @@ class Calc :
     self.runs = 0
 
     
-
-  # # ---------------------------------------------------------------------------
-  # # METHOD: Calc._setInput(string)
-  # # ---------------------------------------------------------------------------
-  # def _setInput(self, expr) :
-  #   """
-  #   Sets the expression to be analysed by the parser.
-  #   As it is set, some first basic checks are run on the expression to make 
-  #   sure it is valid before proceeding any further.
-  #   """
-
-  #   self.expr = expr
-    
-  #   checkPassed = qParser.sanityCheck(self.expr)
-  #   if not(checkPassed) :
-  #     print("[ERROR] Parser halted due to an error in the sanity check.")
-  #     exit()
-      
-  #   checkPassed = qParser.bracketBalanceCheck(self.expr)
-  #   if not(checkPassed) :
-  #     print("[ERROR] Parser halted due to an error in the bracket balance.")
-  #     exit()
-      
-  #   checkPassed = qParser.firstOrderCheck(self.expr)
-  #   if not(checkPassed) :
-  #     print("[ERROR] Parser halted due to an error in the first order check.")
-  #     exit()
-
-  #   # print(f"[INFO] Calculator: input set to '{self.expr}'")
-
 
 
   # ---------------------------------------------------------------------------

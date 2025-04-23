@@ -38,13 +38,13 @@ class Expression :
   def __init__(self, input) :
     self.input = input
     
-    # Completed after calling "tokenize"
+    # Completed after calling "tokenise()"
     self.tokens = []
     
-    # Completed after calling "binarize"
+    # Completed after calling "binarise()"
     self.binary = None
     
-    # Completed after calling "detectVar"
+    # Completed after calling "detectVar()"
     self.vars = []
 
     # Options
@@ -178,19 +178,33 @@ class Expression :
       if ((char1, char2) == (".", ".")) :
         if self.VERBOSE_MODE :
           utils.showInStr(self.input, i+1)
-          print("[ERROR] A valid expression cannot have 2 consecutive dots. Is it a typo?")
+          print("[ERROR] Syntax: a valid expression cannot have 2 consecutive dots. Is it a typo?")
         return False
         
       elif ((char1, char2) == (",", ",")) :
         if self.VERBOSE_MODE :
           utils.showInStr(self.input, i+1)
-          print("[ERROR] A valid expression cannot have 2 consecutive commas. Is it a typo?")
+          print("[ERROR] Syntax: a valid expression cannot have 2 consecutive commas. Is it a typo?")
         return False
 
       elif ((char1, char2) == (",", ")")) :
         if self.VERBOSE_MODE :     
           utils.showInStr(self.input, i+1)
-          print("[ERROR] Possible missing argument?")
+          print("[ERROR] Syntax: possible missing argument?")
+        return False
+      
+      elif ((char1, char2) == (",", "+")) :
+        if self.VERBOSE_MODE :     
+          utils.showInStr(self.input, i+1)
+          print("[ERROR] Syntax: '+' cannot follow ','. Please refer to the parsing rules.")
+        return False
+      
+      # TODO: same holds for any infix operator the user might have declared
+
+      elif ((char1, char2) == ("(", ")")) :
+        if self.VERBOSE_MODE :     
+          utils.showInStr(self.input, i+1)
+          print("[ERROR] Syntax: content between parethesis cannot be left empty.")
         return False
 
       # 

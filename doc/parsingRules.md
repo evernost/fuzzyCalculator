@@ -59,11 +59,10 @@ Expressions like `3var` are always seens as `3`*`var`.
 
 ## [R3] Function call syntax
 
-No whitespace is accepted between the name of the function and the parenthesis.<br>
-Parenthesis are **mandatory**.
+Parenthesis are **mandatory** for a function call.
 
 - `exp(-2t)` → ✅
-- `exp (-2t)` → ❌
+- `exp (-2t)` → ✅ (TBC)
 - `exp -2t` → ❌
 - `exp-2t` → ❌
 
