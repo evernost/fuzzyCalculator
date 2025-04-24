@@ -79,7 +79,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._validCharCheck()
   # ---------------------------------------------------------------------------
-  def _validCharCheck(self) :
+  def _validCharCheck(self) -> bool :
     """
     Checks if the expression contains valid characters only.
     Valid characters are:
@@ -127,7 +127,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._bracketBalanceCheck()
   # ---------------------------------------------------------------------------
-  def _bracketBalanceCheck(self) :
+  def _bracketBalanceCheck(self) -> bool :
     """
     Checks if the parentheses in the input expression are valid.
     "lazy parenthesis" are allowed: matching closing parenthesis 
@@ -159,7 +159,7 @@ class Expression :
   # -----------------------------------------------------------------------------
   # METHOD: Expression._firstOrderCheck()
   # -----------------------------------------------------------------------------
-  def _firstOrderCheck(self) :
+  def _firstOrderCheck(self) -> bool :
     """
     Takes the chars 2 by 2 and detects any invalid combination.
     Detailed list of the valid/invalid combinations can be found in 
@@ -205,6 +205,18 @@ class Expression :
         if self.VERBOSE_MODE :     
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: content between parethesis cannot be left empty.")
+        return False
+      
+      elif ((char1, char2) == ("(", "+")) :
+        if self.VERBOSE_MODE :     
+          utils.showInStr(self.input, i+1)
+          print("[ERROR] Syntax: '+' cannot follow '('. Please refer to the parsing rules.")
+        return False
+      
+      elif ((char1, char2) == ("+", ",")) :
+        if self.VERBOSE_MODE :     
+          utils.showInStr(self.input, i+1)
+          print("[ERROR] Syntax: ',' cannot follow '+'. Please refer to the parsing rules.")
         return False
 
       # 
@@ -311,17 +323,17 @@ if (__name__ == '__main__') :
   assert(Expression("inputStr%")._validCharCheck() == False)
   assert(Expression("inpuétStr")._validCharCheck() == False)
   assert(Expression("inpuàtStr")._validCharCheck() == False)
-  print("- Unit test passed: '_sanityCheck()'")
+  print("- Unit test passed: 'Expression._sanityCheck()'")
 
   assert(Expression("oni_giri*cos(2x+pi")._bracketBalanceCheck() == True)
   assert(Expression("oni_giri*cos(2x+pi(")._bracketBalanceCheck() == True)
   assert(Expression("oni_giri*cos(2x+pi()))")._bracketBalanceCheck() == False)
   assert(Expression("|3x+6|.2x")._bracketBalanceCheck() == True)
-  print("- Unit test passed: '_bracketBalanceCheck()'")
+  print("- Unit test passed: 'Expression._bracketBalanceCheck()'")
 
   assert(Expression("sin(2..1x)")._firstOrderCheck() == False)
   assert(Expression("1+Q(2,)")._firstOrderCheck() == False)
   assert(Expression("cos(3x+1)*Q(2,,1)")._firstOrderCheck() == False)
-  print("- Unit test passed: '_firstOrderCheck()'")
+  print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
   print("[INFO] End of unit tests.")

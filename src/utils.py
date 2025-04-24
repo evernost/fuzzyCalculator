@@ -28,11 +28,11 @@ import src.symbols as symbols
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: pop(string)
+# FUNCTION: pop()
 # -----------------------------------------------------------------------------
-def pop(inputStr) :
+def pop(s: str) :
   """
-  Returns a tuple containing the first character of 'inputStr' and its tail.
+  Returns a tuple containing the first character of 's' and its tail.
   
   EXAMPLES
   - pop("abcde") = ("a", "bcde")
@@ -40,19 +40,24 @@ def pop(inputStr) :
   - pop("") = ("", "")
   """
 
-  if not inputStr :
+  # 0-length string
+  if not s :
     return ("", "")
-  elif (len(inputStr) == 1) :
-    return (inputStr, "")
+  
+  # 1-length string
+  elif (len(s) == 1) :
+    return (s, "")
+  
+  # Any length > 1
   else :
-    return (inputStr[0], inputStr[1:])
+    return (s[0], s[1:])
 
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: split(string)
+# FUNCTION: split()
 # -----------------------------------------------------------------------------
-def split(inputStr, n) :
+def split(inputStr: str, n: int) :
   """
   Splits the string 'inputStr' in two at the breakpoint index 'n'.
   Indexing is 0-based.
@@ -81,15 +86,16 @@ def split(inputStr, n) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: isAlpha(string)
+# FUNCTION: isAlpha()
 # -----------------------------------------------------------------------------
-def isAlpha(inputStr) :
+def isAlpha(s: str) -> bool :
   """
   Returns True if the first char of 'inputStr' is a letter.
   Capitalisation is ignored.
   """
 
-  char = inputStr[0]
+  # Keep the first char, ignore the rest.
+  char = s[0]
 
   testAlpha = False
   testAlpha = testAlpha or ((ord(char) >= ord("A")) and (ord(char) <= ord("Z")))
@@ -100,46 +106,54 @@ def isAlpha(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: isDigit(string)
+# FUNCTION: isDigit()
 # -----------------------------------------------------------------------------
-def isDigit(inputStr) :
+def isDigit(s: str) -> bool :
   """
   Returns True if the first char of 'inputStr' is a digit.
   """
 
-  char = inputStr[0]
+  # Keep the first char, ignore the rest.
+  char = s[0]
 
   return (ord(char) >= ord("0")) and (ord(char) <= ord("9"))
 
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: isNumber(string)
+# FUNCTION: isNumber()
 # -----------------------------------------------------------------------------
-def isNumber(inputStr) :
+def isNumber(s: str) -> bool :
   """
-  Tests if the input is the string representation of a number (whole or fractional).
+  Tests if the input is the string representation of a number (integer or fractional).
   
-  The test fails if the string contains anything else than digits and more than
-  one dot. 
+  The test fails if the input:
+  - contains anything else than digits
+  - contains more than one dot 
 
-  The test fails on a single dot "."
-  The test fails on negative numbers (the minus sign is treated differently)
+  Special cases:
+  - the test fails on a single dot: "."
+  - the test fails on numbers with a negative sign '-'
 
   EXAMPLES
-  (See unit tests)
+  > isNumber("23") = True
+  > isNumber("4.5") = True
+  > isNumber(".1") = True
+  > isNumber("-1") = False
+
+  Call 'utils.py' as a main for more unit tests. 
   """
   
   # Input guard
-  assert isinstance(inputStr, str), "'isNumber' expects a string as an input."
+  assert isinstance(s, str), "'isNumber' expects a string as an input."
 
   gotDigit = False
 
   # Detect invalid inputs
-  if (inputStr in ["", "."]) :
+  if (s in ["", "."]) :
     return False
 
-  for char in inputStr :
+  for char in s :
     if (char == ".") :
       if gotDigit :
         return False
@@ -339,12 +353,12 @@ def consumeFunc(inputStr) :
 
   nMax = 0
   for n in range(1, len(inputStr)+1) :
-    (head, _) = utils.split(inputStr, n)
+    (head, _) = split(inputStr, n)
     if (head in functionsExt) :
       nMax = n
   
   # Return the function without opening bracket 
-  (tmpHead, tmpTail) = utils.split(inputStr, nMax)
+  (tmpHead, tmpTail) = split(inputStr, nMax)
   return (tmpHead[0:-1], tmpTail)
 
 
@@ -606,16 +620,8 @@ def consumeInfix(inputStr) :
 
 
 
-
-
-
-
-
-
-
-
 # -----------------------------------------------------------------------------
-# FUNCTION: isLegalVariableName(string)
+# FUNCTION: isLegalVariableName()
 # -----------------------------------------------------------------------------
 def isLegalVariableName(inputStr) :
   """
@@ -625,7 +631,7 @@ def isLegalVariableName(inputStr) :
   has been declared.
 
   EXAMPLES
-  (See unit tests)
+  TODO
   """
   
   # Input guard
@@ -652,7 +658,7 @@ def isLegalVariableName(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: showInStr(string)
+# FUNCTION: showInStr()
 # -----------------------------------------------------------------------------
 def showInStr(inputStr, loc) :
   """
@@ -660,7 +666,9 @@ def showInStr(inputStr, loc) :
   defined by <loc>.
   It helps to point out a specific char in the string.
 
-  <loc> shall point using a 0-indexing convention.
+  'loc' shall point using a 0-indexing convention.
+
+  TODO: support for multiple loc (tuples) to point more than one char.
   """
   
   print(inputStr)  
@@ -671,13 +679,12 @@ def showInStr(inputStr, loc) :
 
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Main (unit tests)
-# -----------------------------------------------------------------------------
+# =============================================================================
 if (__name__ == '__main__') :
   
   print("[INFO] Library called as main: running unit tests...")
-  print()
 
   assert(isNumber("") == False)
   assert(isNumber("1") == True)
@@ -698,7 +705,7 @@ if (__name__ == '__main__') :
   assert(isNumber("-0") == False)
   assert(isNumber("-.") == False)
   assert(isNumber("-.0") == False)
-  print("- Passed: <isNumber>")
+  print("- Unit test passed: 'utils.isNumber()'")
 
   assert(split("onigiri", -1) == ("", "onigiri"))
   assert(split("onigiri",  0) == ("", "onigiri"))
@@ -708,12 +715,12 @@ if (__name__ == '__main__') :
   assert(split("onigiri",  7) == ("onigiri", ""))
   assert(split("onigiri",  8) == ("onigiri", ""))
   assert(split("onigiri", 15) == ("onigiri", ""))
-  print("- Passed: <split>")
+  print("- Unit test passed: 'utils.split()'")
   
   assert(splitSpace("pi") == ("", "pi"))
   assert(splitSpace(" pi") == (" ", "pi"))
   assert(splitSpace("   pi") == ("   ", "pi"))
-  print("- Passed: <splitSpace>")
+  print("- Unit test passed: 'utils.splitSpace()'")
   
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
@@ -724,4 +731,4 @@ if (__name__ == '__main__') :
   assert(isLegalVariableName("exp") == False)
   assert(isLegalVariableName("_u") == True)
   assert(isLegalVariableName("_sin") == True)
-  print("- Passed: <isLegalVariableName>")
+  print("- Unit test passed: 'utils.isLegalVariableName()'")
