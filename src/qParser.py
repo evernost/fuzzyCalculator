@@ -510,38 +510,8 @@ if (__name__ == '__main__') :
   # Disable the babbling mode while doing the unit tests
   VERBOSE_MODE = False
 
-  assert(consumeConst("pi") == ("pi", ""))
-  assert(consumeConst("inf") == ("inf", ""))
-  assert(consumeConst("eps*4") == ("eps", "*4"))
-  assert(consumeConst("pi3") == ("pi", "3"))          # Rule R5.7
-  assert(consumeConst("pi4.0X") == ("pi", "4.0X"))    # Rule R5.8
-  assert(consumeConst("pi_3") == ("", "pi_3"))
-  assert(consumeConst("pir") == ("", "pir"))
-  assert(consumeConst("api") == ("", "api"))
-  assert(consumeConst("pi*12") == ("pi", "*12"))
-  assert(consumeConst("pi 12") == ("pi", " 12"))
-  assert(consumeConst("pi(12+3") == ("pi", "(12+3"))
-  assert(consumeConst("pir*12") == ("", "pir*12"))
-  assert(consumeConst("pi*r*12") == ("pi", "*r*12"))
-  assert(consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
-  print("- Self-test passed: 'consumeConst'")
 
-  assert(consumeNumber("_1") == ("", "_1"))
-  assert(consumeNumber("_") == ("", "_"))
-  assert(consumeNumber("x") == ("", "x"))
-  assert(consumeNumber("42") == ("42", ""))
-  assert(consumeNumber("4.2") == ("4.2", ""))
-  assert(consumeNumber("4.2.") == ("4.2", "."))
-  assert(consumeNumber(".") == ("", "."))
-  assert(consumeNumber("-.") == ("", "-."))
-  assert(consumeNumber("-12a") == ("", "-12a"))
-  assert(consumeNumber("-33.1") == ("", "-33.1"))
-  assert(consumeNumber("3.14cos(x)") == ("3.14", "cos(x)"))
-  assert(consumeNumber("6.280 sin(y") == ("6.280", " sin(y"))
-  assert(consumeNumber(" 64") == ("", " 64"))
-  assert(consumeNumber("x86") == ("", "x86"))
-  assert(consumeNumber("3_x") == ("3", "_x"))     # Rule R5.4
-  print("- Self-test passed: 'consumeNumber'")
+
 
   assert(consumeFunc("sina") == ("", "sina"))
   assert(consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))

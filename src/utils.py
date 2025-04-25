@@ -32,7 +32,7 @@ import src.symbols as symbols
 # -----------------------------------------------------------------------------
 def pop(s: str) :
   """
-  Returns a tuple containing the first character of 's' and its tail.
+  Returns a 2-elements tuple containing the first character of 's' and its tail.
   
   EXAMPLES
   - pop("abcde") = ("a", "bcde")
@@ -57,31 +57,32 @@ def pop(s: str) :
 # -----------------------------------------------------------------------------
 # FUNCTION: split()
 # -----------------------------------------------------------------------------
-def split(inputStr: str, n: int) :
+def split(s: str, n: int) :
   """
-  Splits the string 'inputStr' in two at the breakpoint index 'n'.
+  Splits the string 's' in two at the breakpoint index 'n'.
   Indexing is 0-based.
 
   EXAMPLES
   > split("blob", -1) = ("", "blob")
   > split("blob",  0) = ("", "blob")
   > split("blob",  1) = ("b", "lob")
+  > split("blob",  2) = ("bl", "ob")
   
-  See unit tests in 'main()'
+  See unit tests in 'main()' for more examples.
   """  
   
   # Input guard
-  assert isinstance(inputStr, str), "First argument in 'split' must be a string."
+  assert isinstance(s, str), "First argument in 'split' must be a string."
   assert isinstance(n, int), "Second argument in 'split' must be an integer."
   
-  if not(inputStr) :
+  if not(s) :
     return ("", "")
-  elif (n > len(inputStr)) :
-    return (inputStr, "")
+  elif (n > len(s)) :
+    return (s, "")
   elif (n <= 0) :
-    return ("", inputStr)
+    return ("", s)
   else :
-    return(inputStr[0:n], inputStr[n:])
+    return(s[0:n], s[n:])
 
 
 
@@ -90,7 +91,7 @@ def split(inputStr: str, n: int) :
 # -----------------------------------------------------------------------------
 def isAlpha(s: str) -> bool :
   """
-  Returns True if the first char of 'inputStr' is a letter.
+  Returns True if the first char of 's' is a letter.
   Capitalisation is ignored.
   """
 
@@ -110,7 +111,7 @@ def isAlpha(s: str) -> bool :
 # -----------------------------------------------------------------------------
 def isDigit(s: str) -> bool :
   """
-  Returns True if the first char of 'inputStr' is a digit.
+  Returns True if the first char of 's' is a digit.
   """
 
   # Keep the first char, ignore the rest.
@@ -132,8 +133,8 @@ def isNumber(s: str) -> bool :
   - contains more than one dot 
 
   Special cases:
-  - the test fails on a single dot: "."
-  - the test fails on numbers with a negative sign '-'
+  - the test fails on a single dot: s = '.'
+  - the test fails on any input with a negative sign '-'
 
   EXAMPLES
   > isNumber("23") = True
@@ -141,7 +142,7 @@ def isNumber(s: str) -> bool :
   > isNumber(".1") = True
   > isNumber("-1") = False
 
-  Call 'utils.py' as a main for more unit tests. 
+  See unit tests in 'main()' for more examples.
   """
   
   # Input guard
@@ -171,9 +172,9 @@ def isNumber(s: str) -> bool :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: splitSpace(string)
+# FUNCTION: splitSpace()
 # -----------------------------------------------------------------------------
-def splitSpace(inputStr) :
+def splitSpace(s: str) :
   """
   Separates the leading whitespaces from the rest of the string.
 
@@ -181,99 +182,99 @@ def splitSpace(inputStr) :
   with "w" being made of whitespaces only.
   
   EXAMPLES
-  (See unit tests in <main>)
+  See unit tests in 'main()'.
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "'splitSpace' expects a string as an input."
+  assert isinstance(s, str), "'splitSpace' expects a string as an input."
 
-  for n in range(len(inputStr)) :
-    if (inputStr[n] != " ") :
-      return split(inputStr, n)
+  for n in range(len(s)) :
+    if (s[n] != " ") :
+      return split(s, n)
 
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: consumeConst(string)
+# FUNCTION: consumeConst()
 # -----------------------------------------------------------------------------
-def consumeConst(inputStr) :
+def consumeConst(s: str) :
   """
   Consumes the leading constant in a string.
 
-  If 'inputStr' is a string starting with the name of a constant, the tuple (c, rem) is 
+  If 's' is a string starting with the name of a constant, the tuple (c, rem) is 
   returned, where:
   - 'c' is the matching constant name
   - 'rem' is the rest of the string.
   
-  so that inputStr = c + rem.
+  and such that s = c + rem.
 
-  If 'inputStr' does not start with a known constant or the constant is embedded 
-  in a larger name, the tuple ("", inputStr) is returned.
-  Refer to rules [5.X] for more details about the parsing strategy.
+  If 's' does not start with a known constant or the constant is embedded 
+  in a larger name, the tuple ("", s) is returned.
+  Refer to rules [5.X] in parsingRules.md for more details about the parsing strategy.
 
-  The list of available constants is fetched from 'symbols.CONSTANTS'.
+  The function tries to match with the constants listed in 'symbols.CONSTANTS'.
 
   EXAMPLES
   (See unit tests in "main")
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "'consumeConst' expects a string as an input."
+  assert isinstance(s, str), "'consumeConst' expects a string as an input."
 
   constList = [c["name"] for c in symbols.CONSTANTS]
 
-  for n in range(1, len(inputStr)+1) :
-    (head, tail) = utils.split(inputStr, n)
+  for n in range(1, len(s)+1) :
+    (head, tail) = split(s, n)
     if (head in constList) :
       
-      # Case 1: the whole string matches with a known constant
-      if (n == len(inputStr)) :
+      # Case 1: the entire string matches with a known constant
+      if (n == len(s)) :
         return (head, "")
       
-      # Case 2: there is a match, but something comes after
+      # Case 2: the beginning matches, but something comes next
       else :
         nextChar = tail[0]
         
         # See [R5.10]: underscore forbids to treat as a constant
         if (nextChar == "_") :
-          return ("", inputStr)
+          return ("", s)
         
         # From that point: the only way to match is to have a bigger
         # constant name, whose beginning matched with a known constant (see [R5.12])
         # Can't conclude.
-        elif utils.isAlpha(nextChar) :  
+        elif isAlpha(nextChar) :  
           pass
 
         else :
           return (head, tail)
 
   # Case 3: never matched
-  return ("", inputStr)
+  return ("", s)
 
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: consumeNumber(string)
+# FUNCTION: consumeNumber()
 # -----------------------------------------------------------------------------
-def consumeNumber(inputStr) :
+def consumeNumber(s: str) :
   """
   Consumes the leading number in a string.
 
-  If "input" is a string starting with a number, the tuple (n, rem) is 
+  If 's' is a string starting with a number, the tuple (n, rem) is 
   returned, where:
-  - "n" is the matching number
-  - "rem" is the rest of the string.
+  - 'n' is the matching number
+  - 'rem' is the rest of the string.
   
-  so that input = n + rem
+  and such that s = n + rem.
 
-  The function does a 'greedy' read: as many chars as possible are stacked
-  to the output "n" as long as it makes sense as a number.
+  The function does a "greedy" read: as many chars as possible are stacked
+  to the output 'n' as long as it makes sense as a number.
 
   The function accepts fractional numbers ("3.14", "0.2", etc.)
-  Omitted leading zero is accepted: ".1", ".0001" etc.
+  Omitted/extra leading zeros are accepted: ".1", ".0001", "00000.01" etc.
 
   The function does not accept negative numbers.
-  If "input" does not start with a digit or a dot, the tuple ("", inputStr) is returned.
+  If 's' does not start with a digit or a dot, the tuple ("", s) is returned.
 
   NOTES
   - the number is returned "as is" without interpretation. 
@@ -293,25 +294,25 @@ def consumeNumber(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "'consumeNumber' expects a string as an input."
+  assert isinstance(s, str), "'consumeNumber' expects a string as an input."
  
   # Test the first character.
   # A valid number can only start with a digit or a "."
-  if not(inputStr[0].isdigit() or (inputStr[0] == ".")) :
-    return ("", inputStr)
+  if not(s[0].isdigit() or (s[0] == ".")) :
+    return ("", s)
 
   # Start from the first character and consume the remaining chars as long as it makes sense as a number.
   # The longest string that passes the "isNumber" test becomes the candidate.
   nMax = 0
-  for n in range(1, len(inputStr)+1) :
-    (head, _) = utils.split(inputStr, n)
-    if utils.isNumber(head) :
+  for n in range(1, len(s)+1) :
+    (head, _) = split(s, n)
+    if isNumber(head) :
       nMax = n
 
-    else:
+    else :
       break
   
-  return utils.split(inputStr, nMax)
+  return split(s, nMax)
 
 
 
@@ -364,7 +365,7 @@ def consumeFunc(inputStr) :
 
 
 # ---------------------------------------------------------------------------
-# FUNCTION: consumeVar(string)
+# FUNCTION: consumeVar()
 # ---------------------------------------------------------------------------
 def consumeVar(inputStr) :
   """
@@ -705,6 +706,7 @@ if (__name__ == '__main__') :
   assert(isNumber("-0") == False)
   assert(isNumber("-.") == False)
   assert(isNumber("-.0") == False)
+  assert(isNumber("1-") == False)
   print("- Unit test passed: 'utils.isNumber()'")
 
   assert(split("onigiri", -1) == ("", "onigiri"))
@@ -720,8 +722,43 @@ if (__name__ == '__main__') :
   assert(splitSpace("pi") == ("", "pi"))
   assert(splitSpace(" pi") == (" ", "pi"))
   assert(splitSpace("   pi") == ("   ", "pi"))
+  assert(splitSpace("   test123   ") == ("   ", "test123   "))
+  assert(splitSpace(" *test123  ") == (" ", "*test123  "))
   print("- Unit test passed: 'utils.splitSpace()'")
   
+  assert(consumeConst("pi") == ("pi", ""))
+  assert(consumeConst("inf") == ("inf", ""))
+  assert(consumeConst("eps*4") == ("eps", "*4"))
+  assert(consumeConst("pi3") == ("pi", "3"))          # Rule R5.7
+  assert(consumeConst("pi4.0X") == ("pi", "4.0X"))    # Rule R5.8
+  assert(consumeConst("pi_3") == ("", "pi_3"))
+  assert(consumeConst("pir") == ("", "pir"))
+  assert(consumeConst("api") == ("", "api"))
+  assert(consumeConst("pi*12") == ("pi", "*12"))
+  assert(consumeConst("pi 12") == ("pi", " 12"))
+  assert(consumeConst("pi(12+3") == ("pi", "(12+3"))
+  assert(consumeConst("pir*12") == ("", "pir*12"))
+  assert(consumeConst("pi*r*12") == ("pi", "*r*12"))
+  assert(consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
+  print("- Unit test passed: 'utils.consumeConst()'")
+
+  assert(consumeNumber("_1") == ("", "_1"))
+  assert(consumeNumber("_") == ("", "_"))
+  assert(consumeNumber("x") == ("", "x"))
+  assert(consumeNumber("42") == ("42", ""))
+  assert(consumeNumber("4.2") == ("4.2", ""))
+  assert(consumeNumber("4.2.") == ("4.2", "."))
+  assert(consumeNumber(".") == ("", "."))
+  assert(consumeNumber("-.") == ("", "-."))
+  assert(consumeNumber("-12a") == ("", "-12a"))
+  assert(consumeNumber("-33.1") == ("", "-33.1"))
+  assert(consumeNumber("3.14cos(x)") == ("3.14", "cos(x)"))
+  assert(consumeNumber("6.280 sin(y") == ("6.280", " sin(y"))
+  assert(consumeNumber(" 64") == ("", " 64"))
+  assert(consumeNumber("x86") == ("", "x86"))
+  assert(consumeNumber("3_x") == ("3", "_x"))     # Rule R5.4
+  print("- Unit test passed: 'utils.consumeNumber()'")
+
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
   assert(isLegalVariableName("1.2") == False)
