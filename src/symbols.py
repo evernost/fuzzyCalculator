@@ -53,7 +53,8 @@ FUNCTIONS = [
   {"name": "ceil",  "nArgs": 1, "dispStr": "Ceil"},
   {"name": "round", "nArgs": 1, "dispStr": "Round"},
   {"name": "Q",     "nArgs": 2, "dispStr": "Quantise"},
-  {"name": "sinc",  "nArgs": 1, "dispStr": "Sinc"}
+  {"name": "sinc",  "nArgs": 1, "dispStr": "Sinc"},
+  {"name": "si",    "nArgs": 1, "dispStr": "FOR TEST PURPOSES - DO NOT USE"}
 ]
 
 INFIX = [

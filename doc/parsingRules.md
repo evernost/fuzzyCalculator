@@ -216,8 +216,11 @@ never what is really meant.
 ## [R8] Variable naming
 Variable cannot start with a number.
 
-## [R9] White spaces
-White spaces are not part of the syntax and are always ignored.
+## [R9] Spaces
+Space character " " are ignored most of the time:
+
+But they can also create implicit multiplications:
+"a b" -> ??
 
 ## [R10] Associativity
 Consecutive operators with identical priority are all treated 

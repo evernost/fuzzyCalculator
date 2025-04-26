@@ -186,15 +186,30 @@ def splitSpace(s: str) :
   with 's_w' being made of whitespaces only.
   
   EXAMPLES
+  > splitSpace("blah") = ("", "blah")
+  > splitSpace("   123") = ("   ", "123")
+  > splitSpace("") = ("", "")
+  > splitSpace("  ") = ("  ", "")
+  
+  
   See unit tests in 'main()'.
   """
 
   # Input guard
   assert isinstance(s, str), "'splitSpace' expects a string as an input."
 
-  for n in range(len(s)) :
-    if (s[n] != " ") :
-      return split(s, n)
+  # Empty input
+  if (len(s) == 0) :
+    return ("", "")
+  
+  nMax = len(s)
+  for n in range(1, len(s)+1) :
+    (head, _) = split(s, n)
+    if (head[-1] != " ") :
+      nMax = n-1
+      break
+  
+  return split(s, nMax)
 
 
 
@@ -342,29 +357,47 @@ def consumeFunc(s: str) :
   The list of available functions is fetched from 'symbols.FUNCTIONS'.
 
   NOTE
-  - The function name must include an opening parenthesis (rule [R3])
+  - The opening parenthesis is mandatory (rule [R3])
   - Opening parenthesis is omitted because later in the parsing engine, a function 
   or a single "(" triggers the same processing. 
 
   EXAMPLES
+  > consumeFunc("sin") = ("", "sin")
   > consumeFunc("sina") = ("", "sina")
   > consumeFunc("sinc(3x+12)") = ("sinc", "3x+12)")
-  > consumeFunc("tan (x-pi)") = ("", "tan (x-pi)")
+  > consumeFunc("tan (x-pi)") = ("tan", "x-pi)")
   
   See unit tests in 'main()' for more examples.
   """
   
   funcList = [f["name"] for f in symbols.FUNCTIONS]
 
+  RET_NO_MATCH = ("", s)
+
   nMax = 0
   for n in range(1, len(s)+1) :
-    (head, _) = split(s, n)
+    (head, tail) = split(s, n)
     if (head in funcList) :
       nMax = n
   
-  # Return the function without opening bracket 
-  (tmpHead, tmpTail) = split(s, nMax)
-  return (tmpHead[0:-1], tmpTail)
+  # No function matched
+  if (nMax == 0) :
+    return RET_NO_MATCH
+    
+  # Extract the match, analyse the remainder
+  (headMax, tailMax) = split(s, nMax)
+  (_, tail) = splitSpace(tailMax)
+
+  # The remainder has no information (spaces eventually)
+  # In particular, no parenthesis: reject the match.
+  if (len(tail) == 0) :
+    return RET_NO_MATCH   
+  
+  # The remainder has meaningful characters
+  if (tail[0] == "(") :
+      return (headMax, tail[1:])
+  else :
+    return RET_NO_MATCH
 
 
 
@@ -728,6 +761,8 @@ if (__name__ == '__main__') :
   assert(splitSpace("   pi") == ("   ", "pi"))
   assert(splitSpace("   test123   ") == ("   ", "test123   "))
   assert(splitSpace(" *test123  ") == (" ", "*test123  "))
+  assert(splitSpace("  ") == ("  ", ""))
+  assert(splitSpace("") == ("", ""))
   print("- Unit test passed: 'utils.splitSpace()'")
   
   assert(consumeConst("pi") == ("pi", ""))
@@ -767,15 +802,19 @@ if (__name__ == '__main__') :
   assert(consumeNumber("02.11235sin(3x)") == ("02.11235", "sin(3x)"))
   print("- Unit test passed: 'utils.consumeNumber()'")
 
-  assert(consumeFunc("tan (x-pi)") == ("tan", "x-pi)"))
+  assert(consumeFunc("sin") == ("", "sin"))
   assert(consumeFunc("sina") == ("", "sina"))
+  assert(consumeFunc("sin(") == ("sin", ""))
+  assert(consumeFunc("si(") == ("si", ""))
+  assert(consumeFunc("sin  (") == ("sin", ""))
+  assert(consumeFunc("si  ") == ("", "si  "))
   assert(consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
   assert(consumeFunc("tan (x-pi)") == ("tan", "x-pi)"))
   assert(consumeFunc("floot(-2.4)") == ("", "floot(-2.4)"))
   assert(consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
   assert(consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
   assert(consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
-  assert(consumeFunc("logN (12, 2)") == ("Q", "2.4, 0.1)"))
+  assert(consumeFunc("logN (12, 2)") == ("logN", "12, 2)"))
   print("- Unit test passed: 'utils.consumeFunc()'")
 
   assert(consumeVar("x") == ("x", ""))
