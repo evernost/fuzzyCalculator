@@ -222,7 +222,7 @@ import src.binary as binary
 import src.symbols as symbols
 import src.utils as utils
 
-from enum import Enum
+
 import numpy as np
 
 
@@ -511,63 +511,6 @@ if (__name__ == '__main__') :
   VERBOSE_MODE = False
 
 
-
-
-  assert(consumeFunc("sina") == ("", "sina"))
-  assert(consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
-  assert(consumeFunc("tan (x-pi)") == ("", "tan (x-pi)"))
-  assert(consumeFunc("floot(-2.4)") == ("", "floot(-2.4)"))
-  assert(consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
-  assert(consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
-  assert(consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
-  print("- Self-test passed: 'consumeFunc'")
-
-  assert(consumeVar("x") == ("x", ""))
-  assert(consumeVar("1") == ("", "1"))
-  assert(consumeVar("_") == ("", "_"))
-  assert(consumeVar(".") == ("", "."))
-  assert(consumeVar("_1") == ("", "_1"))
-  assert(consumeVar("_a") == ("_a", ""))
-  assert(consumeVar("a_") == ("a_", ""))
-  assert(consumeVar("bonjour") == ("bonjour", ""))
-  assert(consumeVar("_var1") == ("_var1", ""))
-  assert(consumeVar("3x") == ("", "3x"))          # Rule R5.2
-  assert(consumeVar("3_x") == ("", "3_x"))        # Rule R5.3
-  assert(consumeVar("3.14x") == ("", "3.14x"))    # Rule R5.4
-  assert(consumeVar("3.14_x") == ("", "3.14_x"))  # Rule R5.5
-  assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))          # Rule R5.6
-  assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))      # Rule R5.7
-  assert(consumeVar("onigiri_3.14*pi") == ("onigiri_", "3.14*pi"))  # Rule R5.8
-  assert(consumeVar("x_2//4") == ("x_2", "//4"))
-  assert(consumeVar("x_23//4") == ("x_23", "//4"))
-  assert(consumeVar("x_123456//7") == ("x_123456", "//7"))
-  assert(consumeVar("x_3.0+ 1") == ("x_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
-  assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning
-  assert(consumeVar("x_1.+ 1") == ("x_", "1.+ 1"))      # Raises a warning
-  assert(consumeVar("x_12.*3") == ("x_", "12.*3"))      # Raises a warning
-  assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
-  assert(consumeVar("pi*12x") == ("", "pi*12x"))
-  assert(consumeVar("R1*3") == ("R1", "*3"))
-  assert(consumeVar(".1") == ("", ".1"))
-  assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
-  assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
-  assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
-  assert(consumeVar("R1//R2") == ("R1", "//R2"))
-  
-  # The following should work, but doesn't. Needs a fix.
-  #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))       # FAILS
-  #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))   # FAILS
-  #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))     # FAILS
-  #assert(consumeVar("x3y") == ("x3", "y"))                       # FAILS
-  print("- Self-test passed: 'consumeVar'")
-
-  assert(consumeInfix("*3x") == ("*", "3x"))
-  assert(consumeInfix("**2+1") == ("*", "*2+1"))
-  assert(consumeInfix("//2+1") == ("//", "2+1"))
-  assert(consumeInfix("x-y") == ("", "x-y"))
-  assert(consumeInfix("-2x+y") == ("-", "2x+y"))
-  assert(consumeInfix("^-3") == ("^", "-3"))
-  print("- Self-test passed: 'consumeInfix'")
   
   # TODO: check some tokenisations
   tokenList = [

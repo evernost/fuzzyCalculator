@@ -127,16 +127,17 @@ Sorted by increasing effort:
 So far, it has been tested **successfully** on various expressions with scalars (see unit tests in ```src/qParser.py```).
 
 Remaining tasks: 
+- [ ] Add scripting: read variable definition and expressions from a file
+- [ ] Add support for discrete random variables (finite set instead of a full range)
+- [ ] Add the ability to account for the units in which the variables are expressed
+- [ ] Export the customisable sections (list of functions, constants, etc.) to a JSON 
+- [ ] Binary object: add an "explanatory" mode (detailed operation stack) that breaks down the calculations done
+- [ ] Add support for complex numbers
+- [ ] Is there a simple way to determine the variable that accounts for most of the total variation?
 - [X] Wrap the complexity in a 'Calculator' object (high-level and user-friendly functions)
 - [X] Add a proper variable detection (parser) and declaration (user)
 - [X] Link the detected variable with the 'Variable' objects
 - [X] Add the Monte-Carlo simulator
 - [X] Plot the simulation results (histogram)
 - [X] Add expression composition
-- [ ] Add scripting: read variable definition and expressions from a file
-- [ ] Add support for discrete random variables (finite set instead of a full range)
-- [ ] Add the ability to account for the units in which the variables are expressed
-- [ ] Binary object: add an "explanatory" mode (detailed operation stack) that breaks down the calculations done
-- [ ] Add support for complex numbers
-- [ ] Is there a simple way to determine the variable that accounts for most of the total variation?
 

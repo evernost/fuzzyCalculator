@@ -14,7 +14,7 @@
 # =============================================================================
 # Description
 # =============================================================================
-# todo
+# TODO
 
 
 
@@ -87,11 +87,33 @@ def nArgsFromFunctionName(inputStr) :
 
 
 
+
+# -----------------------------------------------------------------------------
+# FUNCTION: _autoTest()
+# -----------------------------------------------------------------------------
+def _autoTest() :
+  """
+  Checks all user-customisable declarations
+  """
+  
+
+  # No double declaration in 'CONSTANTS'
+  constList = [c["name"] for c in CONSTANTS]
+  if (len(constList) != len(set(constList))) :
+    print("[WARNING] Symbols auto-test: found duplicate in the list of constants.")
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# TOKEN CLASS DEFINITION
+# -----------------------------------------------------------------------------
 class Token :
 
-  # ---------------------------------------------------------------------------
-  # METHOD: Token.__init__ (constructor)
-  # ---------------------------------------------------------------------------
+
   def __init__(self, name, value = None) :
     """
     DESCRIPTION
@@ -228,6 +250,13 @@ class Token :
 
     else :
       super().__setattr__(attrName, attrValue)
+
+
+
+# =============================================================================
+# START-UP CODE
+# =============================================================================
+_autoTest()
 
 
 

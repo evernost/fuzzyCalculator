@@ -25,6 +25,8 @@
 # =============================================================================
 import src.symbols as symbols
 
+from enum import Enum
+
 
 
 # -----------------------------------------------------------------------------
@@ -38,6 +40,8 @@ def pop(s: str) :
   - pop("abcde") = ("a", "bcde")
   - pop("a") = ("a", "")
   - pop("") = ("", "")
+
+  See unit tests in 'main()' for more examples.
   """
 
   # 0-length string
@@ -178,8 +182,8 @@ def splitSpace(s: str) :
   """
   Separates the leading whitespaces from the rest of the string.
 
-  Returns a couple (w, rem) such that inputStr = w + rem 
-  with "w" being made of whitespaces only.
+  Returns a couple (s_w, s_rem) such that s = s_w + s_rem 
+  with 's_w' being made of whitespaces only.
   
   EXAMPLES
   See unit tests in 'main()'.
@@ -199,14 +203,14 @@ def splitSpace(s: str) :
 # -----------------------------------------------------------------------------
 def consumeConst(s: str) :
   """
-  Consumes the leading constant in a string.
+  Consumes any leading constant name in a string.
 
-  If 's' is a string starting with the name of a constant, the tuple (c, rem) is 
+  If 's' is a string starting with the name of a constant, the tuple (s_c, s_rem) is 
   returned, where:
-  - 'c' is the matching constant name
-  - 'rem' is the rest of the string.
+  - 's_c' is the matching constant name
+  - 's_rem' is the rest of the string.
   
-  and such that s = c + rem.
+  and such that s = s_c + s_rem.
 
   If 's' does not start with a known constant or the constant is embedded 
   in a larger name, the tuple ("", s) is returned.
@@ -215,7 +219,7 @@ def consumeConst(s: str) :
   The function tries to match with the constants listed in 'symbols.CONSTANTS'.
 
   EXAMPLES
-  (See unit tests in "main")
+  See unit tests in 'main()'.
   """
 
   # Input guard
@@ -258,17 +262,17 @@ def consumeConst(s: str) :
 # -----------------------------------------------------------------------------
 def consumeNumber(s: str) :
   """
-  Consumes the leading number in a string.
+  Consumes any leading number in a string.
 
-  If 's' is a string starting with a number, the tuple (n, rem) is 
+  If 's' is a string starting with a number, the tuple (s_n, s_rem) is 
   returned, where:
-  - 'n' is the matching number
-  - 'rem' is the rest of the string.
+  - 's_n' is the matching number
+  - 's_rem' is the remainder of the string.
   
-  and such that s = n + rem.
+  and such that s = s_n + s_rem.
 
   The function does a "greedy" read: as many chars as possible are stacked
-  to the output 'n' as long as it makes sense as a number.
+  to the output 's_n' as long as it makes sense as a number.
 
   The function accepts fractional numbers ("3.14", "0.2", etc.)
   Omitted/extra leading zeros are accepted: ".1", ".0001", "00000.01" etc.
@@ -276,21 +280,23 @@ def consumeNumber(s: str) :
   The function does not accept negative numbers.
   If 's' does not start with a digit or a dot, the tuple ("", s) is returned.
 
-  NOTES
+  NOTE
   - the number is returned "as is" without interpretation. 
   Inputs like "0.500000", "4." or "0.0" will not be simplified.
   - integer or fractionnal part can be omitted: "12.", ".34" etc.
   - a single dot is not considered as a number: consumeNumber(".") = ("", ".")
   - minus sign "-" is not accepted
-  - scientific notation will be supported in a later version.
+  - scientific notation will be supported in a later version
+  - 's_n' always passes the 'isNumber()' test
 
   EXAMPLES
-  > consumeNumber("42") = ("42", "")
-  > consumeNumber("4.2") = ("4.2", "")
+  > consumeNumber("42abc") = ("42", "abc")
+  > consumeNumber("4.2def") = ("4.2", "def")
   > consumeNumber("4.2.") = ("4.2", ".")
   > consumeNumber("4.2cos(3x)") = ("4.2", "cos(3x)")
   > consumeNumber("-3.14") = ("", "-3.14")
-  (See unit tests in "main" for more)
+
+  See unit tests in 'main()' for more examples.
   """
 
   # Input guard
@@ -317,29 +323,26 @@ def consumeNumber(s: str) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: consumeFunc(string)
+# FUNCTION: consumeFunc()
 # -----------------------------------------------------------------------------
-def consumeFunc(inputStr) :
+def consumeFunc(s: str) :
   """
-  Consumes the leading function name in a string.
+  Consumes any leading function name in a string.
 
-  If 'inputStr' is a string starting with a function, the tuple (f, rem) is 
+  If 's' is a string starting with a function, the tuple (s_f, s_rem) is 
   returned, where:
-  - 'f' is the matching function name
-  - 'rem' is the rest of the string.
+  - 's_f' is the matching function name
+  - 's_rem' is the remainder of the string.
   
-  The opening parenthesis is omitted in 'rem', so inputStr = f + '(' + rem
+  The opening parenthesis is omitted in 's_rem', such that s = s_f + '(' + s_rem.
 
-  If "inputStr" does not start with a known function, the tuple ("", inputStr) is 
+  If 's' does not start with a known function, the tuple ("", s) is 
   returned.
 
   The list of available functions is fetched from 'symbols.FUNCTIONS'.
 
-  Notes:
-  - The function name must be immediatly followed by an opening parenthesis "(".
-  There is not point in accepting things like "cos (3x+1)" or "cos ax+1".
-  It does not bring anything to the user experience, makes the expression
-  harder to read and leads to ambiguity (rule [R3])
+  NOTE
+  - The function name must include an opening parenthesis (rule [R3])
   - Opening parenthesis is omitted because later in the parsing engine, a function 
   or a single "(" triggers the same processing. 
 
@@ -347,19 +350,20 @@ def consumeFunc(inputStr) :
   > consumeFunc("sina") = ("", "sina")
   > consumeFunc("sinc(3x+12)") = ("sinc", "3x+12)")
   > consumeFunc("tan (x-pi)") = ("", "tan (x-pi)")
-  (See unit tests in "main" for more)
+  
+  See unit tests in 'main()' for more examples.
   """
   
-  functionsExt = [(f["name"] + "(") for f in symbols.FUNCTIONS]
+  funcList = [f["name"] for f in symbols.FUNCTIONS]
 
   nMax = 0
-  for n in range(1, len(inputStr)+1) :
-    (head, _) = split(inputStr, n)
-    if (head in functionsExt) :
+  for n in range(1, len(s)+1) :
+    (head, _) = split(s, n)
+    if (head in funcList) :
       nMax = n
   
   # Return the function without opening bracket 
-  (tmpHead, tmpTail) = split(inputStr, nMax)
+  (tmpHead, tmpTail) = split(s, nMax)
   return (tmpHead[0:-1], tmpTail)
 
 
@@ -367,7 +371,7 @@ def consumeFunc(inputStr) :
 # ---------------------------------------------------------------------------
 # FUNCTION: consumeVar()
 # ---------------------------------------------------------------------------
-def consumeVar(inputStr) :
+def consumeVar(s: str) :
   """
   Consumes the leading variable name in a string.
   
@@ -407,9 +411,9 @@ def consumeVar(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "'consumeVar' expects a string as an input."
+  assert isinstance(s, str), "'consumeVar' expects a string as an input."
 
-  OUTPUT_FAILURE = ("", inputStr)
+  OUTPUT_FAILURE = ("", s)
   reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
 
   class fsmState(Enum) :
@@ -418,15 +422,15 @@ def consumeVar(inputStr) :
     PROC = 2
     PROC_NUM = 3
   
-  if (inputStr == "") :
-    return ("", inputStr)
+  if (s == "") :
+    return ("", s)
 
   state = fsmState.INIT
   stateNext = fsmState.INIT
   splitPoint = 0; splitPointBeforeNum = 0
 
-  for (n, c) in enumerate(inputStr) :
-    lastChar = (n == (len(inputStr)-1))
+  for (n, c) in enumerate(s) :
+    lastChar = (n == (len(s)-1))
     splitPointCurr = n+1
     
     # Note:
@@ -439,28 +443,28 @@ def consumeVar(inputStr) :
     # -----------------------------------------------------------------------
     if (state == fsmState.INIT) :
       if lastChar :
-        if utils.isAlpha(c) :
+        if isAlpha(c) :
           splitPoint = splitPointCurr
         
-        elif utils.isDigit(c) :
+        elif isDigit(c) :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK01, '{inputStr}': a number cannot be a variable.")
-          return ("", inputStr)
+            print(f"[DEBUG] BRK01, '{s}': a number cannot be a variable.")
+          return ("", s)
         
         else :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK02, '{inputStr}': '{c}' cannot be a variable.")
-          return ("", inputStr)
+            print(f"[DEBUG] BRK02, '{s}': '{c}' cannot be a variable.")
+          return ("", s)
       
       else :      
-        if utils.isAlpha(c) :
+        if isAlpha(c) :
           splitPoint = splitPointCurr
           stateNext = fsmState.PROC
         
-        elif utils.isDigit(c) :
+        elif isDigit(c) :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK03, '{inputStr}': a variable cannot start with a number.")
-          return ("", inputStr)
+            print(f"[DEBUG] BRK03, '{s}': a variable cannot start with a number.")
+          return ("", s)
 
         elif (c == "_") :
           splitPoint = splitPointCurr
@@ -469,16 +473,16 @@ def consumeVar(inputStr) :
         else :
           if DEBUG_MODE :
             print(f"[DEBUG] BRK04: a variable cannot start with '{c}'.")
-          return ("", inputStr)
+          return ("", s)
 
     # -----------------------------------------------------------------------
     # State: FSM_UNDERSCORE_FIRST
     # -----------------------------------------------------------------------
     elif (state == fsmState.UNDERSCORE_FIRST) :
       if lastChar :
-        if (utils.isDigit(c) or (c == "_")) :
+        if (isDigit(c) or (c == "_")) :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK05, '{inputStr}': a variable cannot be purely made of a combination of underscores and digits.")
+            print(f"[DEBUG] BRK05, '{s}': a variable cannot be purely made of a combination of underscores and digits.")
           return ("", inputStr)
         
         elif utils.isAlpha(c) :
@@ -728,6 +732,7 @@ if (__name__ == '__main__') :
   
   assert(consumeConst("pi") == ("pi", ""))
   assert(consumeConst("inf") == ("inf", ""))
+  assert(consumeConst(" pi") == ("", " pi"))
   assert(consumeConst("eps*4") == ("eps", "*4"))
   assert(consumeConst("pi3") == ("pi", "3"))          # Rule R5.7
   assert(consumeConst("pi4.0X") == ("pi", "4.0X"))    # Rule R5.8
@@ -742,12 +747,13 @@ if (__name__ == '__main__') :
   assert(consumeConst("i*pi*r*12") == ("i", "*pi*r*12"))
   print("- Unit test passed: 'utils.consumeConst()'")
 
-  assert(consumeNumber("_1") == ("", "_1"))
-  assert(consumeNumber("_") == ("", "_"))
-  assert(consumeNumber("x") == ("", "x"))
   assert(consumeNumber("42") == ("42", ""))
   assert(consumeNumber("4.2") == ("4.2", ""))
   assert(consumeNumber("4.2.") == ("4.2", "."))
+  assert(consumeNumber(" 42") == ("", " 42"))
+  assert(consumeNumber("_1") == ("", "_1"))
+  assert(consumeNumber("_") == ("", "_"))
+  assert(consumeNumber("x") == ("", "x"))
   assert(consumeNumber(".") == ("", "."))
   assert(consumeNumber("-.") == ("", "-."))
   assert(consumeNumber("-12a") == ("", "-12a"))
@@ -757,7 +763,67 @@ if (__name__ == '__main__') :
   assert(consumeNumber(" 64") == ("", " 64"))
   assert(consumeNumber("x86") == ("", "x86"))
   assert(consumeNumber("3_x") == ("3", "_x"))     # Rule R5.4
+  assert(consumeNumber("00.1") == ("00.1", ""))
+  assert(consumeNumber("02.11235sin(3x)") == ("02.11235", "sin(3x)"))
   print("- Unit test passed: 'utils.consumeNumber()'")
+
+  assert(consumeFunc("tan (x-pi)") == ("tan", "x-pi)"))
+  assert(consumeFunc("sina") == ("", "sina"))
+  assert(consumeFunc("sinc(3x+12)") == ("sinc", "3x+12)"))
+  assert(consumeFunc("tan (x-pi)") == ("tan", "x-pi)"))
+  assert(consumeFunc("floot(-2.4)") == ("", "floot(-2.4)"))
+  assert(consumeFunc("floor(-2.4)") == ("floor", "-2.4)"))
+  assert(consumeFunc("q(2.4, 0.1)") == ("", "q(2.4, 0.1)"))
+  assert(consumeFunc("Q(2.4, 0.1)") == ("Q", "2.4, 0.1)"))
+  assert(consumeFunc("logN (12, 2)") == ("Q", "2.4, 0.1)"))
+  print("- Unit test passed: 'utils.consumeFunc()'")
+
+  assert(consumeVar("x") == ("x", ""))
+  assert(consumeVar("1") == ("", "1"))
+  assert(consumeVar("_") == ("", "_"))
+  assert(consumeVar(".") == ("", "."))
+  assert(consumeVar("_1") == ("", "_1"))
+  assert(consumeVar("_a") == ("_a", ""))
+  assert(consumeVar("a_") == ("a_", ""))
+  assert(consumeVar("bonjour") == ("bonjour", ""))
+  assert(consumeVar("_var1") == ("_var1", ""))
+  assert(consumeVar("3x") == ("", "3x"))          # Rule R5.2
+  assert(consumeVar("3_x") == ("", "3_x"))        # Rule R5.3
+  assert(consumeVar("3.14x") == ("", "3.14x"))    # Rule R5.4
+  assert(consumeVar("3.14_x") == ("", "3.14_x"))  # Rule R5.5
+  assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))          # Rule R5.6
+  assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))      # Rule R5.7
+  assert(consumeVar("onigiri_3.14*pi") == ("onigiri_", "3.14*pi"))  # Rule R5.8
+  assert(consumeVar("x_2//4") == ("x_2", "//4"))
+  assert(consumeVar("x_23//4") == ("x_23", "//4"))
+  assert(consumeVar("x_123456//7") == ("x_123456", "//7"))
+  assert(consumeVar("x_3.0+ 1") == ("x_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
+  assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning
+  assert(consumeVar("x_1.+ 1") == ("x_", "1.+ 1"))      # Raises a warning
+  assert(consumeVar("x_12.*3") == ("x_", "12.*3"))      # Raises a warning
+  assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
+  assert(consumeVar("pi*12x") == ("", "pi*12x"))
+  assert(consumeVar("R1*3") == ("R1", "*3"))
+  assert(consumeVar(".1") == ("", ".1"))
+  assert(consumeVar("sin(2pi*x)") == ("", "sin(2pi*x)"))
+  assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
+  assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
+  assert(consumeVar("R1//R2") == ("R1", "//R2"))
+  
+  # The following should work, but doesn't. Needs a fix.
+  #assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))       # FAILS
+  #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))   # FAILS
+  #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))     # FAILS
+  #assert(consumeVar("x3y") == ("x3", "y"))                       # FAILS
+  print("- Self-test passed: 'consumeVar'")
+
+  assert(consumeInfix("*3x") == ("*", "3x"))
+  assert(consumeInfix("**2+1") == ("*", "*2+1"))
+  assert(consumeInfix("//2+1") == ("//", "2+1"))
+  assert(consumeInfix("x-y") == ("", "x-y"))
+  assert(consumeInfix("-2x+y") == ("-", "2x+y"))
+  assert(consumeInfix("^-3") == ("^", "-3"))
+  print("- Self-test passed: 'consumeInfix'")
 
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
