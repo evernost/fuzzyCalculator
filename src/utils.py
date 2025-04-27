@@ -426,13 +426,14 @@ def consumeVar(s: str) :
   
   Refer to rules [5.X] for more details about the parsing strategy. 
 
-  NOTES
-  Future releases might affect this function so that it takes into account the variables 
-  that have been declared for the detection.
-  This could give some more flexibility in the syntax (especially on rule [5.9])
-
   EXAMPLES
-  (See unit tests in "main" for more)
+  > consumeVar("onigiri_12*pi") -> ("onigiri_12", "*pi")
+  > consumeVar("onigiri_3.14*pi") -> ("onigiri_", "3.14*pi")
+  > consumeVar("abc_2//4") -> ("abc_2", "//4")
+  > consumeVar("abc_23//4") -> ("abc_23", "//4")
+  > consumeVar("abc_123456//7") -> ("abc_123456", "//7")
+  
+  See unit tests in 'main()' for more examples.
   """
 
   # Input guard
@@ -440,23 +441,25 @@ def consumeVar(s: str) :
 
   RET_NO_MATCH = ("", s)
   DEBUG_MODE = False
+  
+  # Void input case
+  if (s == "") :
+    return RET_NO_MATCH
+  
   reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
 
   class fsmState(Enum) :
     INIT = 0
-    UNDERSCORE_FIRST = 1
-    PROC = 2
-    PROC_NUM = 3
+    LETTER_BLOCK = 1
+    NUM_BLOCK = 2
+    UNDERSCORE_FIRST = 3
   
-  if (s == "") :
-    return ("", s)
-
   state = fsmState.INIT
   stateNext = fsmState.INIT
   splitPoint = 0; splitPointBeforeNum = 0
 
   for (n, c) in enumerate(s) :
-    lastChar = (n == (len(s)-1))
+    isLastChar = (n == (len(s)-1))
     splitPointCurr = n+1
     
     # Note:
@@ -464,32 +467,33 @@ def consumeVar(s: str) :
     # > utils.split(inputStr, splitPointCurr)
     # would include the current character "c".
     
-    # -----------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # State: INIT
-    # -----------------------------------------------------------------------
+    # Description: entry point of the FSM 
+    # -------------------------------------------------------------------------
     if (state == fsmState.INIT) :
-      if lastChar :
+      if isLastChar :
         if isAlpha(c) :
           splitPoint = splitPointCurr
         
         elif isDigit(c) :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK01, '{s}': a number cannot be a variable.")
+            print(f"[DEBUG] BRK1, '{s}': a number cannot be a variable.")
           return RET_NO_MATCH
         
         else :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK02, '{s}': '{c}' cannot be a variable.")
+            print(f"[DEBUG] BRK2, '{s}': '{c}' cannot be a variable.")
           return RET_NO_MATCH
       
       else :      
         if isAlpha(c) :
           splitPoint = splitPointCurr
-          stateNext = fsmState.PROC
+          stateNext = fsmState.LETTER_BLOCK
         
         elif isDigit(c) :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK03, '{s}': a variable cannot start with a number.")
+            print(f"[DEBUG] BRK3, '{s}': a variable cannot start with a number.")
           return RET_NO_MATCH
 
         elif (c == "_") :
@@ -498,82 +502,55 @@ def consumeVar(s: str) :
       
         else :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK04: a variable cannot start with '{c}'.")
-          return RET_NO_MATCH
-
-    # -----------------------------------------------------------------------
-    # State: FSM_UNDERSCORE_FIRST
-    # -----------------------------------------------------------------------
-    elif (state == fsmState.UNDERSCORE_FIRST) :
-      if lastChar :
-        if (isDigit(c) or (c == "_")) :
-          if DEBUG_MODE :
-            print(f"[DEBUG] BRK05, '{s}': a variable cannot be purely made of a combination of underscores and digits.")
-          return RET_NO_MATCH
-        
-        elif isAlpha(c) :
-          splitPoint = splitPointCurr
-          
-        else :
-          if DEBUG_MODE :
-            print(f"[DEBUG] BRK06, '{s}': the character '{c}' interrupts the parsing of a variable.")
-          return RET_NO_MATCH
-      
-      else :
-        if (isDigit(c) or (c == "_")) :
-          splitPoint = splitPointCurr
-        
-        elif isAlpha(c) :
-          splitPoint = splitPointCurr
-          stateNext = fsmState.PROC
-          
-        else :
-          if DEBUG_MODE :
-            print(f"[DEBUG] BRK07, '{s}': the character '{c}' interrupts the parsing of a variable.")
+            print(f"[DEBUG] BRK4: a variable cannot start with '{c}'.")
           return RET_NO_MATCH
           
-    # -----------------------------------------------------------------------
-    # State: FSM_PROC
-    # -----------------------------------------------------------------------
-    elif (state == fsmState.PROC) :
-      if lastChar :
+    # -------------------------------------------------------------------------
+    # State: LETTER_BLOCK
+    # -------------------------------------------------------------------------
+    elif (state == fsmState.LETTER_BLOCK) :
+      if isLastChar :
         if (isAlpha(c) or isDigit(c) or (c == "_")) :
           splitPoint = splitPointCurr
           
         else :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK08, '{s}': the character '{c}' interrupts the parsing of a variable.")
+            print(f"[DEBUG] BRK5, '{s}': the character '{c}' interrupts the parsing of a variable.")
       
       else :        
         if (isAlpha(c) or (c == "_")) :
           splitPoint = splitPointCurr
 
+        # A block of lette
         elif isDigit(c) :
           splitPointBeforeNum = splitPointCurr-1
-          stateNext = fsmState.PROC_NUM
+          stateNext = fsmState.NUM_BLOCK
           
         else :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK09, '{s}': the character '{c}' interrupts the parsing of a variable.")
+            print(f"[DEBUG] BRK6, '{s}': the character '{c}' interrupts the parsing of a variable.")
           break
         
-    # -----------------------------------------------------------------------
-    # State: FSM_PROC_NUM
-    # -----------------------------------------------------------------------
-    elif (state == fsmState.PROC_NUM) :
-      if lastChar :
-        if (isAlpha(c) or isDigit(c) or (c == "_")) :
+    # -------------------------------------------------------------------------
+    # State: NUM_BLOCK
+    # -------------------------------------------------------------------------
+    elif (state == fsmState.NUM_BLOCK) :
+      if isLastChar :
+        if (isDigit(c) or (c == "_")) :
           splitPoint = splitPointCurr
-          
+        
+        elif isAlpha(c) : 
+          print("todo!")
+
         elif (c == ".") :
           splitPoint = splitPointBeforeNum
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK10, '{s}': a decimal number interrupts the parsing of a variable.")
+            print(f"[DEBUG] BRK7, '{s}': a decimal number interrupts the parsing of a variable.")
           
         else :
           splitPoint = splitPointCurr-1
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK11, '{s}': the character '{c}' interrupts the parsing of a variable.")
+            print(f"[DEBUG] BRK8, '{s}': the character '{c}' interrupts the parsing of a variable.")
       
       else :
         if isDigit(c) :
@@ -581,19 +558,55 @@ def consumeVar(s: str) :
         
         elif (c == ".") :
           if DEBUG_MODE :
-            print(f"[DEBUG] BRK12, '{s}': a decimal number interrupts the parsing of a variable.")
+            print(f"[DEBUG] BRK9, '{s}': a decimal number interrupts the parsing of a variable.")
           splitPoint = splitPointBeforeNum
           break
         
         elif (isAlpha(c) or (c == "_")) :
           splitPoint = splitPointCurr
-          stateNext = fsmState.PROC
+          stateNext = fsmState.LETTER_BLOCK
+          
+        else :
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK10, '{s}': the character '{c}' interrupts the parsing of a variable.")
+          splitPoint = splitPointCurr-1
+          break
+
+    # -------------------------------------------------------------------------
+    # State: UNDERSCORE_FIRST
+    # Description: special case when the expression starts with a "_"
+    # -------------------------------------------------------------------------
+    elif (state == fsmState.UNDERSCORE_FIRST) :
+      if isLastChar :
+        if (isDigit(c) or (c == "_")) :
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK11, '{s}': a variable cannot be purely made of a combination of underscores and digits.")
+          return RET_NO_MATCH
+        
+        elif isAlpha(c) :
+          splitPoint = splitPointCurr
+          
+        else :
+          if DEBUG_MODE :
+            print(f"[DEBUG] BRK12, '{s}': the character '{c}' interrupts the parsing of a variable.")
+          return RET_NO_MATCH
+      
+      else :
+        if (isDigit(c) or (c == "_")) :
+          splitPoint = splitPointCurr
+        
+        elif isAlpha(c) :
+          splitPoint = splitPointCurr
+          stateNext = fsmState.LETTER_BLOCK
           
         else :
           if DEBUG_MODE :
             print(f"[DEBUG] BRK13, '{s}': the character '{c}' interrupts the parsing of a variable.")
-          splitPoint = splitPointCurr-1
-          break
+          return RET_NO_MATCH
+
+    else :
+      print("[ERROR] consumeVar: internal error. This state cannot be reached.")
+
 
     # Update FSM
     state = stateNext
@@ -608,9 +621,9 @@ def consumeVar(s: str) :
 
 
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # FUNCTION: consumeInfix(string)
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 def consumeInfix(inputStr) :
   """
   Consumes the leading infix operator in a string.
@@ -641,13 +654,13 @@ def consumeInfix(inputStr) :
 
   nMax = 0
   for n in range(1, len(inputStr)+1) :
-    (head, _) = utils.split(inputStr, n)
+    (head, _) = split(inputStr, n)
     
     # Returns True only if the whole word matches
     if (head in infixList) :
       nMax = n
   
-  return utils.split(inputStr, nMax)
+  return split(inputStr, nMax)
 
 
 
@@ -816,8 +829,15 @@ if (__name__ == '__main__') :
   assert(consumeVar("_") == ("", "_"))
   assert(consumeVar(".") == ("", "."))
   assert(consumeVar("_1") == ("", "_1"))
+  assert(consumeVar("_1.1") == ("", "_1.1"))
   assert(consumeVar("_a") == ("_a", ""))
   assert(consumeVar("a_") == ("a_", ""))
+  assert(consumeVar("__1") == ("", "__1"))
+  assert(consumeVar("__1_a") == ("__1_a", ""))
+  assert(consumeVar("__1a") == ("__1a", ""))
+  assert(consumeVar("x3_y") == ("x3_y", ""))
+  assert(consumeVar("x3_y_") == ("x3_y_", ""))
+  assert(consumeVar("x3_y__") == ("x3_y__", ""))
   assert(consumeVar("bonjour") == ("bonjour", ""))
   assert(consumeVar("_var1") == ("_var1", ""))
   assert(consumeVar("3x") == ("", "3x"))          # Rule R5.2
@@ -827,13 +847,13 @@ if (__name__ == '__main__') :
   assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))          # Rule R5.6
   assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))      # Rule R5.7
   assert(consumeVar("onigiri_3.14*pi") == ("onigiri_", "3.14*pi"))  # Rule R5.8
-  assert(consumeVar("x_2//4") == ("x_2", "//4"))
-  assert(consumeVar("x_23//4") == ("x_23", "//4"))
-  assert(consumeVar("x_123456//7") == ("x_123456", "//7"))
-  assert(consumeVar("x_3.0+ 1") == ("x_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
-  assert(consumeVar("x_23.0+ 1") == ("x_", "23.0+ 1"))  # Raises a warning
-  assert(consumeVar("x_1.+ 1") == ("x_", "1.+ 1"))      # Raises a warning
-  assert(consumeVar("x_12.*3") == ("x_", "12.*3"))      # Raises a warning
+  assert(consumeVar("abc_2//4") == ("abc_2", "//4"))
+  assert(consumeVar("abc_23//4") == ("abc_23", "//4"))
+  assert(consumeVar("abc_123456//7") == ("abc_123456", "//7"))
+  assert(consumeVar("abc_3.0+ 1") == ("abc_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
+  assert(consumeVar("abc_23.0+ 1") == ("abc_", "23.0+ 1"))  # Raises a warning
+  assert(consumeVar("abc_1.+ 1") == ("abc_", "1.+ 1"))      # Raises a warning
+  assert(consumeVar("abc_12.*3") == ("abc_", "12.*3"))      # Raises a warning
   assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
   assert(consumeVar("R1*3") == ("R1", "*3"))
@@ -842,12 +862,20 @@ if (__name__ == '__main__') :
   assert(consumeVar("R1_2*3") == ("R1_2", "*3"))
   assert(consumeVar("R1_2*exp(-t/4)") == ("R1_2", "*exp(-t/4)"))
   assert(consumeVar("R1//R2") == ("R1", "//R2"))
+  assert(consumeVar("logN (12, 2)") == ("", "logN (12, 2)"))
+  assert(consumeVar("sin(") == ("", "sin("))
+  assert(consumeVar("R1 sin(") == ("R1", " sin("))
+  assert(consumeVar("tan (x+pi)") == ("", "tan (x+pi)"))
+  assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
   
   # The following should work, but doesn't. Needs a fix.
-  assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))       # FAILS
-  #assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))   # FAILS
-  #assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))     # FAILS
-  #assert(consumeVar("x3y") == ("x3", "y"))                       # FAILS
+  assert(consumeVar("var1var2") == ("var1", "var2"))
+  assert(consumeVar("var1_1var2") == ("var1_1", "var2"))
+  assert(consumeVar("var1_1_var2") == ("var1_1_var2", ""))
+  assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))        # FAILS
+  assert(consumeVar("R1C2exp (-t/8)") == ("R1C2", "exp (-t/8)"))  # FAILS
+  
+  assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))      # FAILS
   print("- Unit test passed: 'utils.consumeVar()'")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
