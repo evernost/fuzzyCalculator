@@ -97,15 +97,22 @@ def _autoTest() :
   Checks all user-customisable declarations
   """
   
-
-  # No double declaration in 'CONSTANTS'
+  # Look for duplicate definitions in 'CONSTANTS'
   constList = [c["name"] for c in CONSTANTS]
   if (len(constList) != len(set(constList))) :
     print("[WARNING] Symbols auto-test: found duplicate in the list of constants.")
 
+  # Look for duplicate definitions in 'FUNCTIONS'
+  funcList = [f["name"] for f in FUNCTIONS]
+  if (len(funcList) != len(set(funcList))) :
+    print("[WARNING] Symbols auto-test: found duplicate in the list of functions.")
 
+  # Look for duplicate definitions in 'INFIX'
+  infixList = [i["name"] for i in INFIX]
+  if (len(infixList) != len(set(infixList))) :
+    print("[WARNING] Symbols auto-test: found duplicate in the list of infix.")
 
-
+  print("[INFO] symbols.py: end of auto-test.")
 
 
 
