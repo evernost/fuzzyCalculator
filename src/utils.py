@@ -521,7 +521,6 @@ def consumeVar(s: str) :
         if (isAlpha(c) or (c == "_")) :
           splitPoint = splitPointCurr
 
-        # A block of lette
         elif isDigit(c) :
           splitPointBeforeNum = splitPointCurr-1
           stateNext = fsmState.NUM_BLOCK
@@ -539,8 +538,9 @@ def consumeVar(s: str) :
         if (isDigit(c) or (c == "_")) :
           splitPoint = splitPointCurr
         
-        elif isAlpha(c) : 
-          print("todo!")
+        # A block of digits suffixing a variable necessarily ends it
+        elif isAlpha(c) :
+          splitPoint = splitPointCurr-1
 
         elif (c == ".") :
           splitPoint = splitPointBeforeNum
@@ -553,19 +553,27 @@ def consumeVar(s: str) :
             print(f"[DEBUG] BRK8, '{s}': the character '{c}' interrupts the parsing of a variable.")
       
       else :
+        # Another digit in a sequence of digits: keep stacking
         if isDigit(c) :
           pass
         
+        # A number with a decimal point cannot be part of a variable name
         elif (c == ".") :
           if DEBUG_MODE :
             print(f"[DEBUG] BRK9, '{s}': a decimal number interrupts the parsing of a variable.")
           splitPoint = splitPointBeforeNum
           break
         
-        elif (isAlpha(c) or (c == "_")) :
+        # A letter after a number suffixing a variable necessarily ends that variable
+        # Example: "var1var2" -> "var1"
+        elif isAlpha(c) :
+          splitPoint = splitPointCurr-1
+          break
+          
+        elif (c == "_") :
           splitPoint = splitPointCurr
           stateNext = fsmState.LETTER_BLOCK
-          
+
         else :
           if DEBUG_MODE :
             print(f"[DEBUG] BRK10, '{s}': the character '{c}' interrupts the parsing of a variable.")
@@ -591,6 +599,9 @@ def consumeVar(s: str) :
             print(f"[DEBUG] BRK12, '{s}': the character '{c}' interrupts the parsing of a variable.")
           return RET_NO_MATCH
       
+      # A sequence of "_" and digits make the FSM stay in this state.
+      # The only successful way out is a letter.
+      # Anything else cannot be a variable.
       else :
         if (isDigit(c) or (c == "_")) :
           splitPoint = splitPointCurr
@@ -598,7 +609,7 @@ def consumeVar(s: str) :
         elif isAlpha(c) :
           splitPoint = splitPointCurr
           stateNext = fsmState.LETTER_BLOCK
-          
+        
         else :
           if DEBUG_MODE :
             print(f"[DEBUG] BRK13, '{s}': the character '{c}' interrupts the parsing of a variable.")
@@ -673,6 +684,8 @@ def isLegalVariableName(inputStr) :
   
   This test only checks the syntax. It does not indicate if this variable
   has been declared.
+
+  This function is used in symbols.py to detect variables.
 
   EXAMPLES
   TODO
@@ -832,6 +845,8 @@ if (__name__ == '__main__') :
   assert(consumeVar("_1.1") == ("", "_1.1"))
   assert(consumeVar("_a") == ("_a", ""))
   assert(consumeVar("a_") == ("a_", ""))
+  assert(consumeVar("R112a") == ("R112", "a"))
+  assert(consumeVar("R112_") == ("R112_", ""))
   assert(consumeVar("__1") == ("", "__1"))
   assert(consumeVar("__1_a") == ("__1_a", ""))
   assert(consumeVar("__1a") == ("__1a", ""))
@@ -867,15 +882,12 @@ if (__name__ == '__main__') :
   assert(consumeVar("R1 sin(") == ("R1", " sin("))
   assert(consumeVar("tan (x+pi)") == ("", "tan (x+pi)"))
   assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
-  
-  # The following should work, but doesn't. Needs a fix.
   assert(consumeVar("var1var2") == ("var1", "var2"))
   assert(consumeVar("var1_1var2") == ("var1_1", "var2"))
   assert(consumeVar("var1_1_var2") == ("var1_1_var2", ""))
-  assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))        # FAILS
-  assert(consumeVar("R1C2exp (-t/8)") == ("R1C2", "exp (-t/8)"))  # FAILS
-  
-  assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))      # FAILS
+  assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))
+  assert(consumeVar("R1C2exp (-t/8)") == ("R1", "C2exp (-t/8)"))
+  assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))
   print("- Unit test passed: 'utils.consumeVar()'")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
