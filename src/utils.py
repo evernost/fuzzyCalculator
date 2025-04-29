@@ -4,7 +4,7 @@
 # Module name     : utils
 # File name       : utils.py
 # File type       : Python script (Python 3.10 or higher)
-# Purpose         : 
+# Purpose         : various parsing utilities
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : June 1st, 2024
 # -----------------------------------------------------------------------------
@@ -18,6 +18,7 @@
 # own library :(
 # 
 # Run is as a 'main()' to call the unit tests.
+
 
 
 # =============================================================================
@@ -182,7 +183,7 @@ def splitSpace(s: str) :
   """
   Separates the leading whitespaces from the rest of the string.
 
-  Returns a couple (s_w, s_rem) such that s = s_w + s_rem 
+  Returns a tuple (s_w, s_rem) such that s = s_w + s_rem 
   with 's_w' being made of whitespaces only.
   
   EXAMPLES
@@ -349,17 +350,14 @@ def consumeFunc(s: str) :
   - 's_f' is the matching function name
   - 's_rem' is the remainder of the string.
   
-  The opening parenthesis is omitted in 's_rem', such that s = s_f + '(' + s_rem.
+  The opening parenthesis is omitted in 's_rem', such that 
+  s = s_f + "(" + s_rem.
 
   If 's' does not start with a known function, the tuple ("", s) is 
   returned.
 
-  The list of available functions is fetched from 'symbols.FUNCTIONS'.
-
-  NOTE
-  - The opening parenthesis is mandatory (rule [R3])
-  - Opening parenthesis is omitted because later in the parsing engine, a function 
-  or a single "(" triggers the same processing. 
+  The list of functions the parser compares against is read from 
+  'symbols.FUNCTIONS'.
 
   EXAMPLES
   > consumeFunc("sin") = ("", "sin")
@@ -408,15 +406,14 @@ def consumeVar(s: str) :
   """
   Consumes what could be the name of a variable in the beginning of a string.
   
-  The parsing does not rely on prior variable declaration.
-  It tries to extract a name that is a legal variable name.
-
   If 's' is a string starting with a valid variable name, the tuple (s_v, s_rem) 
   is returned, where:
   - 's_v' is the name of the variable
   - 's_rem' is the rest of the string.
-  
   such that s = s_v + s_rem
+
+  It tries to extract a name that is a legal variable name.
+  The parsing does not rely on prior variable declaration.
 
   Several rules apply to the parsing strategy. 
   - the function tries to match the head of the input with what could be
@@ -429,25 +426,30 @@ def consumeVar(s: str) :
   EXAMPLES
   > consumeVar("onigiri_12*pi") -> ("onigiri_12", "*pi")
   > consumeVar("onigiri_3.14*pi") -> ("onigiri_", "3.14*pi")
-  > consumeVar("abc_2//4") -> ("abc_2", "//4")
-  > consumeVar("abc_23//4") -> ("abc_23", "//4")
-  > consumeVar("abc_123456//7") -> ("abc_123456", "//7")
+  > consumeVar("logN (12, 2)") -> ("", "logN (12, 2)")
+  > consumeVar("sin(") -> ("", "sin(")
+  > consumeVar("R1 sin(") -> ("R1", " sin(")
+  > consumeVar("tan (x+pi)") -> ("", "tan (x+pi)")
+  > consumeVar("R1.4exp(-t/4)") -> ("R", "1.4exp(-t/4)")
+  > consumeVar("var1var2") -> ("var1", "var2")
+  > consumeVar("var1_1var2") -> ("var1_1", "var2")
+  > consumeVar("R1exp(-t/4)") -> ("R1", "exp(-t/4)")
   
   See unit tests in 'main()' for more examples.
   """
+
+  # Enables a babbling mode that describes all exit cases
+  DEBUG_MODE = False
 
   # Input guard
   assert isinstance(s, str), "'consumeVar' expects a string as an input."
 
   RET_NO_MATCH = ("", s)
-  DEBUG_MODE = False
-  
+    
   # Void input case
   if (s == "") :
     return RET_NO_MATCH
   
-  reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
-
   class fsmState(Enum) :
     INIT = 0
     LETTER_BLOCK = 1
@@ -507,6 +509,7 @@ def consumeVar(s: str) :
           
     # -------------------------------------------------------------------------
     # State: LETTER_BLOCK
+    # Description: consumes an aggregate of letters
     # -------------------------------------------------------------------------
     elif (state == fsmState.LETTER_BLOCK) :
       if isLastChar :
@@ -532,6 +535,7 @@ def consumeVar(s: str) :
         
     # -------------------------------------------------------------------------
     # State: NUM_BLOCK
+    # Description: consumes an aggregate of digits
     # -------------------------------------------------------------------------
     elif (state == fsmState.NUM_BLOCK) :
       if isLastChar :
@@ -618,38 +622,38 @@ def consumeVar(s: str) :
     else :
       print("[ERROR] consumeVar: internal error. This state cannot be reached.")
 
-
-    # Update FSM
+    # Update FSM state
     state = stateNext
 
   (candidate, _) = split(s, splitPoint)
 
+  # Exclude reserved names
+  reservedNames = [x["name"] for x in symbols.CONSTANTS] + [x["name"] for x in symbols.FUNCTIONS]
   if candidate in reservedNames :
     return RET_NO_MATCH
-  
-  else: 
+  else : 
     return split(s, splitPoint)
 
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: consumeInfix(string)
+# FUNCTION: consumeInfix()
 # -----------------------------------------------------------------------------
-def consumeInfix(inputStr) :
+def consumeInfix(s: str) :
   """
   Consumes the leading infix operator in a string.
 
-  If 'inputStr' is a string starting with an infix operator, the tuple (op, rem) is 
+  If 's' is a string starting with an infix operator, the tuple (s_op, s_rem) is 
   returned, where:
-  - 'op' is the matching infix operator name
-  - 'rem' is the rest of the string.
-  
-  so that inputStr = op + rem
+  - 's_op' is the matching infix operator name
+  - 's_rem' is the rest of the string.
+  such that s = op + rem
 
-  If 'inputStr' does not start with a known infix operator, the tuple 
-  ("", inputStr) is returned instead.
+  If 's' does not start with a known infix operator, the tuple 
+  ("", s) is returned instead.
 
-  The list of available infix operators is fetched from 'symbols.INFIX'
+  The list of infix operators the parser compares against is read from 
+  'symbols.INFIX'.
 
   The list of infix operators can be extended with custom operators.
   Please refer to [R6] to see the rules that apply for that.
@@ -659,19 +663,19 @@ def consumeInfix(inputStr) :
   """
 
   # Input guard
-  assert isinstance(inputStr, str), "'consumeInfix' expects a string as an input."
+  assert isinstance(s, str), "'consumeInfix' expects a string as an input."
 
   infixList = [op["name"] for op in symbols.INFIX]
 
   nMax = 0
-  for n in range(1, len(inputStr)+1) :
-    (head, _) = split(inputStr, n)
+  for n in range(1, len(s)+1) :
+    (head, _) = split(s, n)
     
     # Returns True only if the whole word matches
     if (head in infixList) :
       nMax = n
   
-  return split(inputStr, nMax)
+  return split(s, nMax)
 
 
 
@@ -888,6 +892,7 @@ if (__name__ == '__main__') :
   assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))
   assert(consumeVar("R1C2exp (-t/8)") == ("R1", "C2exp (-t/8)"))
   assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))
+  assert(consumeVar("pi(") == ("", "pi("))
   print("- Unit test passed: 'utils.consumeVar()'")
 
   assert(consumeInfix("*3x") == ("*", "3x"))
