@@ -721,22 +721,28 @@ def isLegalVariableName(inputStr) :
 # -----------------------------------------------------------------------------
 # FUNCTION: showInStr()
 # -----------------------------------------------------------------------------
-def showInStr(inputStr, loc) :
+def showInStr(s: str, loc) -> None :
   """
-  Prints 'inputStr' with a "^" char right below the a location
-  defined by <loc>.
-  It helps to point out a specific char in the string.
+  Prints 's' with a "^" char right below the location defined by 'loc'.
+  It helps to point out at a specific char in the string.
 
   'loc' shall point using a 0-indexing convention.
-
-  TODO: support for multiple loc (tuples) to point more than one char.
   """
   
-  print(inputStr)  
-  if ((loc >= 0) and (loc < len(inputStr))) :
-    s = [" "] * len(inputStr)
-    s[loc] = "^"
-    print("".join(s))
+  if isinstance(loc, int) :
+    locTuple = (loc, )
+  elif isinstance(loc, tuple):
+    locTuple = loc
+
+  # Line 1: input string
+  print(s)
+  
+  # Line 2: cursor
+  s = [" "] * len(s)
+  for i in locTuple :
+    if ((i >= 0) and (i < len(s))) :
+      s[i] = "^"
+  print("".join(s))
 
 
 
