@@ -56,7 +56,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression.check()
   # ---------------------------------------------------------------------------
-  def check(self) :
+  def check(self) -> None :
     """
     Performs basic validation to ensure the expression is well-formed and 
     suitable for parsing.
@@ -73,6 +73,8 @@ class Expression :
     if not(self._firstOrderCheck()) :
       print("[ERROR] Expression check: invalid character sequence.")
       exit()
+
+    print("[INFO] Check passed!")
 
 
 
@@ -231,7 +233,7 @@ class Expression :
 
 
   # ---------------------------------------------------------------------------
-  # FUNCTION: tokenise(string)
+  # METHOD: Expression.tokenise()
   # ---------------------------------------------------------------------------
   def tokenise(self) :
     """
@@ -258,48 +260,48 @@ class Expression :
       # Try to interpret the leading characters as a 
       # number, constant, variable, function or infix.
       # TODO: check if there can be conflicts.
-      (number, tailNumber)      = utils.consumeNumber(inputStr)
-      (constant, tailConstant)  = utils.consumeConst(inputStr)
-      (function, tailFunction)  = utils.consumeFunc(inputStr)
-      (variable, tailVariable)  = utils.consumeVar(inputStr)
-      (infix, tailInfix)        = utils.consumeInfix(inputStr)
+      (number, tailNumber)      = utils.consumeNumber(buffer)
+      (constant, tailConstant)  = utils.consumeConst(buffer)
+      (function, tailFunction)  = utils.consumeFunc(buffer)
+      (variable, tailVariable)  = utils.consumeVar(buffer)
+      (infix, tailInfix)        = utils.consumeInfix(buffer)
 
       if (number != "") :
         self.tokens.append(symbols.Token(number))
-        inputStr = tailNumber
+        buffer = tailNumber
 
       elif (constant != "") :
         self.tokens.append(symbols.Token(constant))
-        inputStr = tailConstant
+        buffer = tailConstant
       
       elif (function != "") :
         self.tokens.append(symbols.Token(function))
         self.tokens.append(symbols.Token("("))
-        inputStr = tailFunction
+        buffer = tailFunction
 
       elif (variable != "") :
         self.tokens.append(symbols.Token(variable))
-        inputStr = tailVariable
+        buffer = tailVariable
         
       elif (infix != "") :
         self.tokens.append(symbols.Token(infix))
-        inputStr = tailInfix
+        buffer = tailInfix
       
       # Otherwise: detect brackets and commas
       else :
-        (head, tail) = utils.pop(inputStr)
+        (head, tail) = utils.pop(buffer)
 
         if (head == "(") :
           self.tokens.append(symbols.Token(head))
-          inputStr = tail
+          buffer = tail
 
         elif (head == ")") :
           self.tokens.append(symbols.Token(head))
-          inputStr = tail
+          buffer = tail
 
         elif (head == ",") :
           self.tokens.append(symbols.Token(head))
-          inputStr = tail
+          buffer = tail
           
         else :
           print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
@@ -335,5 +337,10 @@ if (__name__ == '__main__') :
   assert(Expression("1+Q(2,)")._firstOrderCheck() == False)
   assert(Expression("cos(3x+1)*Q(2,,1)")._firstOrderCheck() == False)
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
+
+
+
+
+
 
   print("[INFO] End of unit tests.")

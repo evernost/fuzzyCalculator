@@ -522,7 +522,7 @@ if (__name__ == '__main__') :
     "R_1",
     "R1.0",
     "R_1.0",
-    "1+2*pi*R1*C1"
+    "1+2*pi*R1C1cos(x/7.1)"
   ]
   print("- TODO: <tokenise>")
   
