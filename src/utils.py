@@ -897,6 +897,7 @@ if (__name__ == '__main__') :
   assert(consumeVar("var1_1_var2") == ("var1_1_var2", ""))
   assert(consumeVar("R1exp(-t/4)") == ("R1", "exp(-t/4)"))
   assert(consumeVar("R1C2exp (-t/8)") == ("R1", "C2exp (-t/8)"))
+  assert(consumeVar("C2exp (-t/8)") == ("C2", "exp (-t/8)"))
   assert(consumeVar("var5_3cos(x)") == ("var5_3", "cos(x)"))
   assert(consumeVar("pi(") == ("", "pi("))
   print("- Unit test passed: 'utils.consumeVar()'")

@@ -35,51 +35,61 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression.__init__ (constructor)
   # ---------------------------------------------------------------------------
-  def __init__(self, input) :
+  def __init__(self, input, verbose = False, debug = False) :
     self.input = input
     
-    # Completed after calling "tokenise()"
+    # Populated after calling "tokenise()"
     self.tokens = []
     
-    # Completed after calling "binarise()"
+    # Populated after calling "binarise()"
     self.binary = None
     
-    # Completed after calling "detectVar()"
+    # Populated after calling "detectVar()"
     self.vars = []
 
     # Options
-    self.VERBOSE_MODE = False
-    self.DEBUG_MODE = False
+    self.VERBOSE_MODE = verbose
+    self.DEBUG_MODE = debug
     
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Expression.check()
+  # METHOD: Expression.syntaxCheck()
   # ---------------------------------------------------------------------------
-  def check(self) -> None :
+  def syntaxCheck(self) -> bool :
     """
     Performs basic validation to ensure the expression is well-formed and 
     suitable for parsing.
+
+    Returns True when the check passes, False if errors were found.
     """
     
+    status = True
+
     if not(self._validCharCheck()) :
       print("[ERROR] Expression check: input contains invalid chars.")
-      exit()
+      status = False
       
     if not(self._bracketBalanceCheck()) :
       print("[ERROR] Expression check: invalid bracket balance.")
-      exit()
+      status = False
       
     if not(self._firstOrderCheck()) :
       print("[ERROR] Expression check: invalid character sequence.")
-      exit()
+      status = False
 
-    print("[INFO] Check passed!")
+    if self.VERBOSE_MODE :
+      if status :
+        print("[INFO] Syntax check: success")
+      else :
+        print("[ERROR] Syntax check: failed")
+
+    return status
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Expression._validCharCheck()
+  # METHOD: Expression._validCharCheck()                              [PRIVATE]
   # ---------------------------------------------------------------------------
   def _validCharCheck(self) -> bool :
     """
@@ -127,7 +137,7 @@ class Expression :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Expression._bracketBalanceCheck()
+  # METHOD: Expression._bracketBalanceCheck()                         [PRIVATE]
   # ---------------------------------------------------------------------------
   def _bracketBalanceCheck(self) -> bool :
     """
@@ -158,9 +168,9 @@ class Expression :
 
 
 
-  # -----------------------------------------------------------------------------
-  # METHOD: Expression._firstOrderCheck()
-  # -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # METHOD: Expression._firstOrderCheck()                             [PRIVATE]
+  # ---------------------------------------------------------------------------
   def _firstOrderCheck(self) -> bool :
     """
     Takes the chars 2 by 2 and detects any invalid combination.
@@ -235,16 +245,27 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression.tokenise()
   # ---------------------------------------------------------------------------
-  def tokenise(self) :
+  def tokenise(self) -> bool :
     """
     Generates a list of tokens from the input.
 
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
+
+    Internally, tokenise runs in 2 steps:
+    - create tokens for each block encountered
+    - explicit the hidden multiplication tokens
     
-    This function assumes that syntax checks have been run prior to the call.
-    Otherwise, some syntax errors will not be caught.
+    This function assumes that syntax checks have been run prior to the call
+    (Expression.check() method)
+    Otherwise, some syntax errors might not be caught.
+
+    Outcome is generated in the attribute 'Expression.tokens'.
+
+    Returns True if the operation is successful, False otherwise.
     """
+
+    status = True
 
     buffer = self.input
     self.tokens = []
@@ -305,7 +326,119 @@ class Expression :
           
         else :
           print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
-          exit()
+          status = False
+
+
+    # Explicit the hidden multiplications
+    self._tokeniseExplicitMult()
+
+    if self.VERBOSE_MODE :
+      if status :
+        print("[INFO] Tokenise: success")
+      else :
+        print("[ERROR] Tokenise: failed")
+
+    return status
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Expression._tokeniseExplicitMult()                        [PRIVATE]
+  # ---------------------------------------------------------------------------
+  def _tokeniseExplicitMult(self) :
+    """
+    Detects and expands implicit multiplications in a list of tokens.
+    Updates the internal list of tokens with the multiplication tokens 
+    explicited at the right place.
+
+    This function is usually called from Expression.tokenise()
+    """
+    
+    nTokens = len(self.tokens)
+
+    # Hidden multiplication involves at least 2 tokens.
+    if (nTokens <= 1) :
+      pass
+
+    else :
+      output = []
+      
+      # Read the tokens 2 by 2, with a 1 overlap.
+      # If the tokens are "ABCDE..." the loop will read
+      # "AB" then "BC", "CD", "DE", etc.
+      for n in range(nTokens-1) :
+        T1 = self.tokens[n]; T2 = self.tokens[n+1]
+
+        output.append(T1)
+        
+        # Example: "pi(x+4)"
+        if ((T1.type, T2.type) == ("CONSTANT", "BRKT_OPEN")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "R1C1*cos(x)"
+        elif ((T1.type, T2.type) == ("VAR", "VAR")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "R1(R2+R3)"
+        elif ((T1.type, T2.type) == ("VAR", "BRKT_OPEN")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "x_2.1"
+        elif ((T1.type, T2.type) == ("VAR", "NUMBER")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "(x+1)pi"
+        elif ((T1.type, T2.type) == ("BRKT_CLOSE", "CONSTANT")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "(x+1)cos(y)"
+        elif ((T1.type, T2.type) == ("BRKT_CLOSE", "FUNCTION")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "(R2+R3)R1"
+        elif ((T1.type, T2.type) == ("BRKT_CLOSE", "VAR")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "(x+y)(x-y)"
+        elif ((T1.type, T2.type) == ("BRKT_CLOSE", "BRKT_OPEN")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "(x+y)100"
+        elif ((T1.type, T2.type) == ("BRKT_CLOSE", "NUMBER")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "2pi"
+        elif ((T1.type, T2.type) == ("NUMBER", "CONSTANT")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "2exp(t)"
+        elif ((T1.type, T2.type) == ("NUMBER", "FUNCTION")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "2x"
+        elif ((T1.type, T2.type) == ("NUMBER", "VAR")) :
+          output.append(symbols.Token("*"))
+
+        # Example: "2(x+y)"
+        elif ((T1.type, T2.type) == ("NUMBER", "BRKT_OPEN")) :
+          output.append(symbols.Token("*"))
+        
+        # Anything else: no multiplication hidden
+        else :
+          pass
+      
+      if (n == (nTokens-2)) :
+        output.append(T2)
+
+
+    if (self.VERBOSE_MODE) :
+      nAdded = len(output) - nTokens
+      if (nAdded == 1) :
+        print("[INFO] Tokenise: added 1 implicit multiplication")
+      elif (nAdded > 1) :
+        print(f"[INFO] Tokenise: added {nAdded} implicit multiplications")
+
+    self.tokens = output
 
 
 
@@ -338,7 +471,7 @@ if (__name__ == '__main__') :
   assert(Expression("cos(3x+1)*Q(2,,1)")._firstOrderCheck() == False)
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
-
+  # TODO: unit tests for the tokeniser
 
 
 
