@@ -36,16 +36,16 @@ class Expression :
   EXPRESSION class definition
 
   An Expression object is a placeholder for a mathematical expression (provided
-  as a simple string) and enhances it by providing all the methods to parse it
+  as a simple string) enhances it by providing all the methods to parse it
   and in the end, evaluate it.
 
   Elements listed in 'Expression.variables' need to be linked to an actual 
   Variable object, so that the evaluator can call their 'Variable.sample()' attribute.
 
   Options: 
-  - quiet mode: turns off all output (even errors)
-  - verbose mode: prints additional info
-  - debug mode: prints extra info for investigation
+  - quiet mode  : turns off all outputs (even errors)
+  - verbose mode: prints additional info relative to the parsing
+  - debug mode  : prints extra info for investigation
   """
   
   def __init__(self, input, quiet = False, verbose = False, debug = False) :
@@ -264,10 +264,6 @@ class Expression :
 
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
-
-    Internally, tokenise runs in 2 steps:
-    - create tokens for each block encountered
-    - explicit the hidden multiplication tokens
     
     This function assumes that syntax checks have been run prior to the call
     (Expression.check() method)
@@ -338,7 +334,8 @@ class Expression :
           buffer = tail
           
         else :
-          print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
+          if not(self.QUIET_MODE) :
+            print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
           status = False
 
 
@@ -348,8 +345,8 @@ class Expression :
     # List the variables
     self._tokeniseListVars()
 
-    # Run more checks (TODO)
-    #self._tokeniseSyntaxCheck()
+    # Run syntax check on the token sequence
+    self._tokeniseSyntaxCheck()
 
     if self.VERBOSE_MODE :
       if status :
@@ -370,7 +367,7 @@ class Expression :
     Updates the internal list of tokens with the multiplication tokens 
     explicited at the right place.
 
-    This function is usually called from Expression.tokenise()
+    This function is usually called from 'Expression.tokenise()'
     """
     
     nTokens = len(self.tokens)
@@ -491,7 +488,7 @@ class Expression :
     combination.
     Detailed list can be found in "resources/secondOrderCheck.xslx"
     
-    It is a complement to "firstOrderCheck".
+    It is a complement to 'Expression.syntaxCheck()'.
     Some checks are easier to do on the list of tokens rather than the raw 
     input expression.
     
@@ -505,14 +502,15 @@ class Expression :
 
     nTokens = len(self.tokens)
 
+    # STEP 1: check tokens by pairs
     for i in range(nTokens-1) :
-      
-      T1 = tokenList[i]; T2 = tokenList[i+1]
+      T1 = self.tokens[i]; T2 = self.tokens[i+1]
 
       if (T1.type == "FUNCTION") :
         if not(T2.type == "BRKT_OPEN") :
-          print(f"[ERROR] A function must be followed with a parenthesis (Rule R3).")
-          return CHECK_FAILED      
+          if not(self.QUIET_MODE) :
+            print(f"[ERROR] A function must be followed with a parenthesis (Rule R3).")
+          return False      
         else :
           pass
       
@@ -521,23 +519,26 @@ class Expression :
       # TODO: this section needs to be completed.
       # 
 
-
-    T = tokenList[nTokens-1]
+    # STEP 2: check how the sequence of tokens ends
+    T = self.tokens[nTokens-1]
     if (T.type == "FUNCTION") :
-      print(f"[ERROR] An expression cannot end with a function.")
-      return CHECK_FAILED
+      if not(self.QUIET_MODE) :
+        print(f"[ERROR] An expression cannot end with a function.")
+      return False
 
     elif (T.type == "BRKT_OPEN") :
-      print(f"[ERROR] An expression cannot end with an opening parenthesis.")
-      return CHECK_FAILED
+      if not(self.QUIET_MODE) :
+        print(f"[ERROR] An expression cannot end with an opening parenthesis.")
+      return False
     
     elif (T.type == "INFIX") :
-      print(f"[ERROR] An expression cannot end with an infix operator.")
-      return CHECK_FAILED
+      if not(self.QUIET_MODE) :
+        print(f"[ERROR] An expression cannot end with an infix operator.")
+      return False
 
+    # STEP 3: return status
+    return True
 
-
-    return CHECK_SUCCESS
 
 
   # ---------------------------------------------------------------------------
@@ -564,12 +565,12 @@ class Expression :
     EXAMPLE: "R1C1*exp(-t)" -> "R1C1*[MACRO_OBJECT: 'exp']"
     """
     
-    buffer = tokenList.copy()
+    buffer = self.tokens.copy()
 
     while (len(buffer) > 0) :
       nTokens = len(buffer)
       
-      if (nTokens > 1) :
+      if (nTokens >= 2) :
         (T, tail) = (buffer[0], buffer[1:])
         
         # (Macro)Leaves/infix are simply pushed to the stack.
@@ -939,7 +940,7 @@ if (__name__ == '__main__') :
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
   # TODO: unit tests for the tokeniser
-
+  # ...
 
 
 
