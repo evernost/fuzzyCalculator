@@ -21,7 +21,7 @@
 # =============================================================================
 # External libs
 # =============================================================================
-import src.binary as binary
+import src.macro as macro
 import src.symbols as symbols
 import src.utils as utils
 
@@ -566,6 +566,7 @@ class Expression :
     """
     
     buffer = self.tokens.copy()
+    output = []
 
     while (len(buffer) > 0) :
       nTokens = len(buffer)
@@ -575,13 +576,13 @@ class Expression :
         
         # (Macro)Leaves/infix are simply pushed to the stack.
         if (T.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
-          self.stack.append(T)
+          output.append(T)
           buffer = tail
         
-        # A function creates a Macroleaf and requires another call to <_buildStack> on its argument(s).
+        # A function creates a Macro expression and requires another call to <_buildStack> on its argument(s).
         elif (T.type == "FUNCTION") :
-          tailNoParenthesis = tail[1:]
-          M = macroleaf.Macroleaf(function = T.name, tokenList = tailNoParenthesis)
+          #M = macroleaf.Macroleaf(function = T.name, tokenList = tailNoParenthesis)
+          M = macro.Macro(buffer)
 
           self.stack.append(M)
           buffer = M.remainder
@@ -598,18 +599,19 @@ class Expression :
         # The Macroleaf must now process the next argument.
         elif (T.type == "COMMA") :
           self.remainder = tail
-          return BINARISE_SUCCESS_WITH_REMAINDER
+          return True
 
         # A ")" stops the binarisation.
         # The Macroleaf is now complete. 
         elif (T.type == "BRKT_CLOSE") :
           self.remainder = tail
-          return BINARISE_SUCCESS_WITH_REMAINDER
+          return True
         
         # Anything else is invalid.
         else :
-          print(f"[ERROR] Unexpected token: {T}")
-          return BINARISE_FAILURE
+          if not(self.QUIET_MODE) :
+            print(f"[ERROR] Unexpected token: {T}")
+          return False
 
 
 
@@ -619,32 +621,35 @@ class Expression :
         if (T.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
           self.stack.append(T)
           self.remainder = []
-          return BINARISE_SUCCESS
+          return True
         
         elif (T.type == "BRKT_CLOSE") :
           self.remainder = []
-          return BINARISE_SUCCESS
+          return True
 
         elif (T.type == "COMMA") :
-          print("[ERROR] A list of tokens cannot end with a comma.")
+          if not(self.QUIET_MODE) :
+            print("[ERROR] A list of tokens cannot end with a comma.")
           self.remainder = [T]
-          return BINARISE_FAILURE
+          return False
 
         elif (T.type == "INFIX") :
-          print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
+          if not(self.QUIET_MODE) :
+            print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
           self.remainder = [T]
-          return BINARISE_FAILURE
+          return False
 
         else :
-          print(f"[ERROR] Unexpected token: {T}")
+          if not(self.QUIET_MODE) :
+            print(f"[ERROR] Unexpected token: {T}")
           self.remainder = [T]
-          return BINARISE_FAILURE
+          return False
 
       
       # nTokens = 0
       else :
         self.remainder = []
-        return BINARISE_SUCCESS
+        return True
 
 
 
@@ -943,5 +948,11 @@ if (__name__ == '__main__') :
   # ...
 
 
+
+
+  e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+sin(exp(-9t)))", verbose = True)
+  e.syntaxCheck()
+  e.tokenise()
+  e.nest()
 
   print("[INFO] End of unit tests.")
