@@ -719,7 +719,7 @@ def consumeAtomic(tokens) :
         print("[WARNING] utils.consumeAtomic(): possible uncaught syntax error.")
         return (tokens[0:i], tokens[(i+1):])
 
-      elif (tokens[i] in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+      elif (tokens[i].type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
         pass
 
       else :

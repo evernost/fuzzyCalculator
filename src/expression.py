@@ -578,95 +578,118 @@ class Expression :
         pass
     
     else :
-      a = utils.consumeAtomic(self.tokens)
+      (tokensFlat, tokensRecurse) = utils.consumeAtomic(self.tokens)
 
+      if (len(tokensRecurse) == 0) :
+        return tokensFlat
 
-    buffer = self.tokens.copy()
-    output = []
-
-    while (len(buffer) > 0) :
-      nTokens = len(buffer)
-      
-      if (nTokens >= 2) :
-        (T, tail) = (buffer[0], buffer[1:])
-        
-        # (Macro)Leaves/infix are simply pushed to the stack.
-        if (T.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
-          output.append(T)
-          buffer = tail
-        
-        # A function creates a Macro expression and requires another call to <_buildStack> on its argument(s).
-        elif (T.type == "FUNCTION") :
-          #M = macroleaf.Macroleaf(function = T.name, tokenList = tailNoParenthesis)
-          M = macro.Macro(buffer)
-
-          self.stack.append(M)
-          buffer = M.remainder
-
-        # A "(" creates a Macroleaf and requires another call to <_buildStack>.
-        elif (T.type == "BRKT_OPEN") :
-          #M = macroleaf.Macroleaf(function = "id", tokenList = tail)
-          M = macro.Macro(buffer)
-          
-          self.stack.append(M)
-          buffer = M.remainder
-          
-        # A "," occurs when <_buildStack> is called from a Macroleaf.
-        # It stops the binarisation.
-        # The Macroleaf must now process the next argument.
-        elif (T.type == "COMMA") :
-          self.remainder = tail
-          return True
-
-        # A ")" stops the binarisation.
-        # The Macroleaf is now complete. 
-        elif (T.type == "BRKT_CLOSE") :
-          self.remainder = tail
-          return True
-        
-        # Anything else is invalid.
-        else :
-          if not(self.QUIET_MODE) :
-            print(f"[ERROR] Unexpected token: {T}")
-          return False
-
-
-
-      elif (nTokens == 1) :
-        T = buffer[0]; buffer = []
-
-        if (T.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
-          self.stack.append(T)
-          self.remainder = []
-          return True
-        
-        elif (T.type == "BRKT_CLOSE") :
-          self.remainder = []
-          return True
-
-        elif (T.type == "COMMA") :
-          if not(self.QUIET_MODE) :
-            print("[ERROR] A list of tokens cannot end with a comma.")
-          self.remainder = [T]
-          return False
-
-        elif (T.type == "INFIX") :
-          if not(self.QUIET_MODE) :
-            print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
-          self.remainder = [T]
-          return False
-
-        else :
-          if not(self.QUIET_MODE) :
-            print(f"[ERROR] Unexpected token: {T}")
-          self.remainder = [T]
-          return False
-
-      
-      # nTokens = 0
       else :
-        self.remainder = []
-        return True
+        if (tokensRecurse[0].type == "BRKT_OPEN") :
+          M = macro.Macro(tokensRecurse)
+          buffer = M.remainder
+
+        elif (tokensRecurse[0].type == "FUNCTION") :
+          M = macro.Macro(tokensRecurse)
+          buffer = M.remainder
+
+        elif (tokensRecurse[0].type == "COMMA") :
+          if not(self.QUIET_MODE) :
+            print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+
+        else :
+          if not(self.QUIET_MODE) :
+            print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+
+
+
+    # buffer = self.tokens.copy()
+    # output = []
+    # while (len(buffer) > 0) :
+    #   nTokens = len(buffer)
+      
+
+
+
+    #   if (nTokens >= 2) :
+    #     (T, tail) = (buffer[0], buffer[1:])
+        
+    #     # (Macro)Leaves/infix are simply pushed to the stack.
+    #     if (T.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
+    #       output.append(T)
+    #       buffer = tail
+        
+    #     # A function creates a Macro expression and requires another call to <_buildStack> on its argument(s).
+    #     elif (T.type == "FUNCTION") :
+    #       #M = macroleaf.Macroleaf(function = T.name, tokenList = tailNoParenthesis)
+    #       M = macro.Macro(buffer)
+
+    #       self.stack.append(M)
+    #       buffer = M.remainder
+
+    #     # A "(" creates a Macroleaf and requires another call to <_buildStack>.
+    #     elif (T.type == "BRKT_OPEN") :
+    #       #M = macroleaf.Macroleaf(function = "id", tokenList = tail)
+    #       M = macro.Macro(buffer)
+          
+    #       self.stack.append(M)
+    #       buffer = M.remainder
+          
+    #     # A "," occurs when <_buildStack> is called from a Macroleaf.
+    #     # It stops the binarisation.
+    #     # The Macroleaf must now process the next argument.
+    #     elif (T.type == "COMMA") :
+    #       self.remainder = tail
+    #       return True
+
+    #     # A ")" stops the binarisation.
+    #     # The Macroleaf is now complete. 
+    #     elif (T.type == "BRKT_CLOSE") :
+    #       self.remainder = tail
+    #       return True
+        
+    #     # Anything else is invalid.
+    #     else :
+    #       if not(self.QUIET_MODE) :
+    #         print(f"[ERROR] Unexpected token: {T}")
+    #       return False
+
+
+
+    #   elif (nTokens == 1) :
+    #     T = buffer[0]; buffer = []
+
+    #     if (T.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
+    #       self.stack.append(T)
+    #       self.remainder = []
+    #       return True
+        
+    #     elif (T.type == "BRKT_CLOSE") :
+    #       self.remainder = []
+    #       return True
+
+    #     elif (T.type == "COMMA") :
+    #       if not(self.QUIET_MODE) :
+    #         print("[ERROR] A list of tokens cannot end with a comma.")
+    #       self.remainder = [T]
+    #       return False
+
+    #     elif (T.type == "INFIX") :
+    #       if not(self.QUIET_MODE) :
+    #         print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
+    #       self.remainder = [T]
+    #       return False
+
+    #     else :
+    #       if not(self.QUIET_MODE) :
+    #         print(f"[ERROR] Unexpected token: {T}")
+    #       self.remainder = [T]
+    #       return False
+
+      
+    #   # nTokens = 0
+    #   else :
+    #     self.remainder = []
+    #     return True
 
 
 

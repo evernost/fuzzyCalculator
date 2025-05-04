@@ -22,6 +22,7 @@
 # External libs
 # =============================================================================
 import src.symbols as symbols
+import src.utils as utils
 
 
 
@@ -55,14 +56,12 @@ class Macro :
     # Allows Macro object to be treated as a Token
     self.type = "MACRO"
 
-    self._buildArgs(tokens)
-
     # Options
     self.QUIET_MODE = quiet
     self.VERBOSE_MODE = verbose
     self.DEBUG_MODE = debug
     
-
+    self._buildArgs(tokens)
 
 
 
@@ -115,7 +114,6 @@ class Macro :
         print("[ERROR] Macro._buildArgs(): void list of tokens (possible internal error)")
 
     elif (nTokens >= 1) :
-      
       if not(tokens[0].type in ("BRKT_OPEN", "FUNCTION")) :
         if not(self.QUIET_MODE) :
           print("[ERROR] Macro._buildArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
@@ -129,8 +127,18 @@ class Macro :
         elif (tokens[0].type == "BRKT_OPEN") :
           self.function = symbols.Token("id")
           self.nArgs = tokens[0].nArgs
-          buffer = tokens[1:]
-                
+          #buffer = tokens[1:]
+          (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
+
+          if (tokensRecurse[0].type == "COMMA") :
+            print("[ERROR] Macro._buildArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
+
+
+
+
+
+
+
         for n in range(self.nArgs) :
           # Last argument flag
           lastArg = (n == self.nArgs-1)
