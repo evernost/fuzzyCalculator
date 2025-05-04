@@ -558,13 +558,29 @@ class Expression :
     EXAMPLE: "R1*(C1+C2)+R2" -> "R1*[EXPR_OBJECT]+R2" 
 
     - Round brackets used for functions: the content is isolated in a 
-    Macro object, a sort of "super" expression embedding 1 or more expressions
+    Macro object, a sort of super-'Expression' embedding 1 or more expressions
     with a top-level function applied to the result.
     Having more than 1 expression is used for functions with multiple arguments
     (1 expression for each argument)
     EXAMPLE: "R1C1*exp(-t)" -> "R1C1*[MACRO_OBJECT: 'exp']"
     """
+
+    nTokens = len(self.tokens)
+
+    if (nTokens == 0) :
+      pass
+
+    elif (nTokens == 1) :
+      if self.tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
+        if not(self.QUIET_MODE) :
+          print("[WARNING] Expression.nest(): odd input")
+      else :
+        pass
     
+    else :
+      a = utils.consumeAtomic(self.tokens)
+
+
     buffer = self.tokens.copy()
     output = []
 
@@ -589,7 +605,8 @@ class Expression :
 
         # A "(" creates a Macroleaf and requires another call to <_buildStack>.
         elif (T.type == "BRKT_OPEN") :
-          M = macroleaf.Macroleaf(function = "id", tokenList = tail)
+          #M = macroleaf.Macroleaf(function = "id", tokenList = tail)
+          M = macro.Macro(buffer)
           
           self.stack.append(M)
           buffer = M.remainder
