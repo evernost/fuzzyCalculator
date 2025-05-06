@@ -29,12 +29,12 @@ import src.utils as utils
 # =============================================================================
 # Class definition
 # =============================================================================
-class Macro : 
+class Macro(symbols.Token) : 
   
   """
   MACRO class definition
 
-  A Macro object is ...
+  A Macro object derives from the Token class.
 
   The function takes a list of 'Token' objects as input. 
   It consumes all the tokens that fit into the macro expression, the rest is
@@ -127,12 +127,14 @@ class Macro :
         elif (tokens[0].type == "BRKT_OPEN") :
           self.function = symbols.Token("id")
           self.nArgs = tokens[0].nArgs
-          #buffer = tokens[1:]
+
           (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
 
           if (tokensRecurse[0].type == "COMMA") :
             print("[ERROR] Macro._buildArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
-
+          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+            pass
+          
 
 
 

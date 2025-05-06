@@ -121,24 +121,28 @@ def _autoTest() :
 # -----------------------------------------------------------------------------
 class Token :
 
+  """
+  TOKEN class definition
+
+  Creates a Token object from a string.
+  
+  EXAMPLES
+  - Token("4.5")  -> creates a Token of type "NUMBER"
+  - Token("pi")   -> creates a Token of type "CONSTANT"
+  - Token("exp")  -> creates a Token of type "FUNCTION"
+
+  The Token has a 'type' that is inferred from the value passed as argument.
+  Tokens can be one of the following types: 
+  - 'CONSTANT'
+  - 'FUNCTION'
+  - 'VARIABLE'
+  - 'BRKT_OPEN' / 'BRKT_CLOSE'
+  - 'COMMA'
+  - 'SPACE' (deprecated, no use case)
+  - 'MACRO'
+  """
 
   def __init__(self, name, value = None) :
-    """
-    DESCRIPTION
-    Creates a Token object from an atomic expression.
-    
-    EXAMPLES
-    Token("4.5")  -> creates a Token of type "NUMBER"
-    Token("pi")   -> creates a Token of type "CONSTANT"
-    Token("exp")  -> creates a Token of type "FUNCTION"
-
-    The Token has a 'type' that is inferred from the value passed as argument.
-
-    Tokens can be of type: 
-    - CONSTANT
-    - FUNCTION
-    - TODO    
-    """
 
     self.constantsList  = [x["name"] for x in CONSTANTS]
     self.functionsList  = [x["name"] for x in FUNCTIONS]

@@ -35,8 +35,8 @@ class Expression :
   """
   EXPRESSION class definition
 
-  An Expression object is a placeholder for a mathematical expression (provided
-  as a simple string) enhances it by providing all the methods to parse it
+  An Expression object is a container for a mathematical expression given
+  as a simple string. Then, it provides all the methods to parse this string
   and in the end, evaluate it.
 
   Elements listed in 'Expression.variables' need to be linked to an actual 
@@ -486,7 +486,8 @@ class Expression :
     """
     Takes the tokens 2 by 2 from the list of Tokens and detects any invalid 
     combination.
-    Detailed list can be found in "resources/secondOrderCheck.xslx"
+    Detailed list of the valid/invalid combinations can be found in 
+    'resources/secondOrderCheck.xslx'
     
     It is a complement to 'Expression.syntaxCheck()'.
     Some checks are easier to do on the list of tokens rather than the raw 
@@ -553,9 +554,8 @@ class Expression :
     the next operations much easier.
     
     Different scenarios can happen:
-    - Round brackets used as simple context: the content is nested in 
-    an Expression object.
-    EXAMPLE: "R1*(C1+C2)+R2" -> "R1*[EXPR_OBJECT]+R2" 
+    - Round brackets: the content is nested in an Expression object.
+    EXAMPLE: "R1*(C1+C2)+R2C4" -> "R1*[EXPR_OBJECT]+R2C4" 
 
     - Round brackets used for functions: the content is isolated in a 
     Macro object, a sort of super-'Expression' embedding 1 or more expressions
