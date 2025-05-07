@@ -124,33 +124,41 @@ class Token :
   """
   TOKEN class definition
 
-  Creates a Token object from a string.
+  Creates a Token object from a descriptor string.
   
+  The string given as argument determines the type of token. 
+  Type inference from a string is handy for the integration in the top level
+  parser.
+
+  The following list gives the different inference based on the input string:
+  - name of a constant ('pi', 'i' etc.)         -> Token.type = 'CONSTANT'
+  - name of a function ('sin', 'cos', etc.)     -> Token.type = 'FUNCTION'
+  - name of a variable ('abc', 'x', 'R1', etc.) -> Token.type = 'VARIABLE'
+  - opening round bracket '('                   -> Token.type = 'BRKT_OPEN'
+  - closing round bracket ')'                   -> Token.type = 'BRKT_CLOSE'
+  - comma ','                                   -> Token.type = 'COMMA'
+  - empty string ''                             -> reserved (used for macros)
+  - space ' '                                   -> invalid (deprecated)
+
+  Notes : for a function Token, the opening parenthesis must be omitted.
+
   EXAMPLES
   - Token("4.5")  -> creates a Token of type "NUMBER"
   - Token("pi")   -> creates a Token of type "CONSTANT"
   - Token("exp")  -> creates a Token of type "FUNCTION"
-
-  The Token has a 'type' that is inferred from the value passed as argument.
-  Tokens can be one of the following types: 
-  - 'CONSTANT'
-  - 'FUNCTION'
-  - 'VARIABLE'
-  - 'BRKT_OPEN' / 'BRKT_CLOSE'
-  - 'COMMA'
-  - 'SPACE' (deprecated, no use case)
-  - 'MACRO'
   """
 
-  def __init__(self, name, value = None) :
+  def __init__(self, s: str) :
 
+    # Constants
     self.constantsList  = [x["name"] for x in CONSTANTS]
     self.functionsList  = [x["name"] for x in FUNCTIONS]
     self.infixList      = [x["name"] for x in INFIX]
     
-    if (name in self.constantsList) :
+    # Determine the type of token based on the input string
+    if (s in self.constantsList) :
       self.type     = "CONSTANT"
-      self.name     = name
+      self.name     = s
       self.nArgs    = 0
       self.dispStr  = f"CONST:'{name}'"
       

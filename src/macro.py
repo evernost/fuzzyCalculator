@@ -48,6 +48,9 @@ class Macro(symbols.Token) :
 
   def __init__(self, tokens, quiet = False, verbose = False, debug = False) :
     
+    # Call the Token init method
+    super().__init__()
+
     # Populated after calling "_buildArgs()"
     self.function = None
     self.nArgs = 0

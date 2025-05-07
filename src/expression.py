@@ -573,7 +573,7 @@ class Expression :
     elif (nTokens == 1) :
       if self.tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
         if not(self.QUIET_MODE) :
-          print("[WARNING] Expression.nest(): odd input")
+          print("[WARNING] Expression.nest(): odd input (single meaningless token)")
       else :
         pass
     
