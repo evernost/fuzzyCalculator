@@ -63,7 +63,7 @@ INFIX = [
   {"name": "*",  "priority": 2},
   {"name": "/",  "priority": 2},
   {"name": "//", "priority": 2},
-  {"name": "^",  "priority": 3}
+  {"name": "^",  "priority": 3}   # Exponentiation must have the highest priority
 ]
 
 
@@ -90,9 +90,9 @@ def nArgsFromFunctionName(inputStr) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: _autoTest()
+# FUNCTION: _selfCheck()
 # -----------------------------------------------------------------------------
-def _autoTest() :
+def _selfCheck() :
   """
   Checks all user-customisable declarations
   """
@@ -111,6 +111,9 @@ def _autoTest() :
   infixList = [i["name"] for i in INFIX]
   if (len(infixList) != len(set(infixList))) :
     print("[WARNING] Symbols auto-test: found duplicate in the list of infix.")
+
+
+  # TODO: detect illegal chars
 
   print("[INFO] symbols.py: end of auto-test.")
 
@@ -134,6 +137,7 @@ class Token :
   - name of a constant ('pi', 'i' etc.)         -> Token.type = 'CONSTANT'
   - name of a function ('sin', 'cos', etc.)     -> Token.type = 'FUNCTION'
   - name of a variable ('abc', 'x', 'R1', etc.) -> Token.type = 'VARIABLE'
+  - number ('0.1', '-23', '010.8', etc.)        -> Token.type = 'NUMBER'
   - opening round bracket '('                   -> Token.type = 'BRKT_OPEN'
   - closing round bracket ')'                   -> Token.type = 'BRKT_CLOSE'
   - comma ','                                   -> Token.type = 'COMMA'
@@ -148,82 +152,92 @@ class Token :
   - Token("exp")  -> creates a Token of type "FUNCTION"
   """
 
-  def __init__(self, s: str) :
+  def __init__(self, s: str, quiet = False, verbose = False, debug = False) :
 
     # Constants
-    self.constantsList  = [x["name"] for x in CONSTANTS]
-    self.functionsList  = [x["name"] for x in FUNCTIONS]
-    self.infixList      = [x["name"] for x in INFIX]
-    
+    self._initRefs()
+
+    # Options
+    self.QUIET_MODE   = quiet
+    self.VERBOSE_MODE = verbose
+    self.DEBUG_MODE   = debug
+
     # Determine the type of token based on the input string
-    if (s in self.constantsList) :
-      self.type     = "CONSTANT"
-      self.name     = s
-      self.nArgs    = 0
-      self.dispStr  = f"CONST:'{name}'"
-      
+    self._readType(s)
+    
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Token._initRefs()
+  # ---------------------------------------------------------------------------
+  def _initRefs(self) -> None :
+    """
+    Initialises the internal references from the lists of constants.
+    """
+
+    self.listConstants  = [x["name"] for x in CONSTANTS]
+    self.listFunctions  = [x["name"] for x in FUNCTIONS]
+    self.listInfix      = [x["name"] for x in INFIX]
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Token._readType()
+  # ---------------------------------------------------------------------------
+  def _readType(self, s: str) -> None :
+    """
+    TODO
+    """
+
+    if (s in self.listConstants) :
       for c in CONSTANTS :
-        if (name == c["name"]) :
-          self.value = c["value"]
-          if not(value is None) :
-            print("[WARNING] Non-empty field for 'value' is ignored when creating a constant.")
+        if (s == c["name"]) :
+          self.type     = "CONSTANT"
+          self.id       = s
+          self.dispStr  = f"CONST:'{s}'"
           
-    elif (name in self.functionsList) :
+    elif (s in self.listFunctions) :
       self.type     = "FUNCTION"
-      self.name     = name
-      self.dispStr  = f"FCT:'{name}'"
-      
-      for f in FUNCTIONS :
-        if (name == f["name"]) :
-          self.nArgs = f["nArgs"]
+      self.id       = s
+      self.dispStr  = f"FCT:'{s}'"
 
-    elif (name in self.infixList) :
+    elif (s in self.listInfix) :
       self.type     = "INFIX"
-      self.name     = name
-      self.nArgs    = 2
-      self.dispStr  = f"OP:'{name}'"
+      self.id       = s
+      self.dispStr  = f"OP:'{s}'"
 
-      for i in INFIX :
-        if (name == i["name"]) :
-          self.priority = i["priority"]
-
-    elif (utils.isLegalVariableName(name)) :
-      self.type     = "VAR"
-      self.name     = name
-      self.nArgs    = 0
-      self.dispStr  = f"VAR:'{name}'"
-      self.value    = value
-
-    elif (name == "(") :
+    elif (s == "(") :
       self.type     = "BRKT_OPEN"
-      self.name     = name
-      self.nArgs    = 0
-      self.dispStr  = f"'('"
+      self.id       = "("
+      self.dispStr  = "'('"
 
-    elif (name == ")") :
+    elif (s == ")") :
       self.type     = "BRKT_CLOSE"
-      self.name     = name
-      self.nArgs    = 0
-      self.dispStr  = f"')'"
+      self.id       = ")"
+      self.dispStr  = "')'"
 
-    elif (name == ",") :
+    elif (s == ",") :
       self.type     = "COMMA"
-      self.name     = name
+      self.id       = ","
       self.dispStr  = f"SEP:','"
 
-    elif (utils.isNumber(name)) :
+    elif utils.isNumber(s) :
       self.type     = "NUMBER"
-      self.name     = name
-      self.dispStr  = f"NUM:'{name}'"
-      self.value    = float(name)
+      self.id       = s
+      self.dispStr  = f"NUM:'{s}'"
 
-    elif (utils.isBlank(name)) :
-      self.type     = "SPACE"
-      self.name     = name
-      self.dispStr  = f"BLK:'{name}'"
+    elif utils.isLegalVariableName(s) :
+      self.type     = "VARIABLE"
+      self.id       = s
+      self.dispStr  = f"VAR:'{s}'"
 
     else :
-      print("[ERROR] Invalid token!")
+      self.type     = "UNKNOWN"
+      self.id       = s
+      self.dispStr  = f"U:'{s}'"
+      
+      if not(self.QUIET_MODE) :
+        print(f"[ERROR] Invalid token input: {s}")
 
 
 
@@ -276,7 +290,7 @@ class Token :
 # =============================================================================
 # START-UP CODE
 # =============================================================================
-_autoTest()
+_selfCheck()
 
 
 
@@ -284,17 +298,23 @@ _autoTest()
 # Main (unit tests)
 # =============================================================================
 if (__name__ == '__main__') :
+  
   print("[INFO] Library called as main: running unit tests...")
   
-  T1 = Token("x", -1.0)
-  assert(T1.name == "x")
-  assert(T1.value == -1.0)
-  print("- Self-test passed: number token")
+  assert(Token("pi"     , quiet=True).type == "CONSTANT")
+  assert(Token(".1"     , quiet=True).type == "NUMBER")
+  assert(Token("2.0"    , quiet=True).type == "NUMBER")
+  assert(Token("0395"   , quiet=True).type == "NUMBER")
+  assert(Token("("      , quiet=True).type == "BRKT_OPEN")
+  assert(Token(")"      , quiet=True).type == "BRKT_CLOSE")
+  assert(Token("x1_3"   , quiet=True).type == "VARIABLE")
+  assert(Token(","      , quiet=True).type == "COMMA")
+  assert(Token("exp"    , quiet=True).type == "FUNCTION")
+  assert(Token("//"     , quiet=True).type == "INFIX")
 
-  T2 = Token("pi")
-  assert(T2.value == math.pi)   # Comparing two floats like that is not very clean...
-  T3 = Token("pi", -1.0)
-  print("- Self-test passed: constant token")
-  
+  assert(Token("-0.9"   , quiet=True).type == "UNKNOWN")
+  assert(Token(") "     , quiet=True).type == "UNKNOWN")
+  assert(Token("sin("   , quiet=True).type == "UNKNOWN")
+  print("- Unit test passed: Token type inference")
 
 
