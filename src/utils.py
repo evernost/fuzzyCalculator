@@ -405,7 +405,7 @@ def consumeFunc(s: str) :
 # ---------------------------------------------------------------------------
 # FUNCTION: consumeVar()
 # ---------------------------------------------------------------------------
-def consumeVar(s: str) :
+def consumeVar(s: str, quiet = False, verbose = False, debug = False) :
   """
   Consumes what could be the name of a variable in the beginning of a string.
   
@@ -442,7 +442,7 @@ def consumeVar(s: str) :
   """
 
   # Enables a babbling mode that describes all exit cases
-  DEBUG_MODE = False
+  DEBUG_MODE = debug
 
   # Input guard
   assert isinstance(s, str), "'consumeVar' expects a string as an input."
@@ -551,8 +551,10 @@ def consumeVar(s: str) :
 
         elif (c == ".") :
           splitPoint = splitPointBeforeNum
-          if DEBUG_MODE :
-            print(f"[DEBUG] BRK7, '{s}': a decimal number interrupts the parsing of a variable.")
+          if not(quiet) :
+            print(f"[WARNING] utils.consumeVar(): detected an odd use of decimal number for suffixing. Please check the interpretation")
+            if DEBUG_MODE :
+              print(f"[DEBUG] BRK7, '{s}': a decimal number interrupts the parsing of a variable.")
           
         else :
           splitPoint = splitPointCurr-1
@@ -566,8 +568,10 @@ def consumeVar(s: str) :
         
         # A number with a decimal point cannot be part of a variable name
         elif (c == ".") :
-          if DEBUG_MODE :
-            print(f"[DEBUG] BRK9, '{s}': a decimal number interrupts the parsing of a variable.")
+          if not(quiet) :
+            print(f"[WARNING] utils.consumeVar(): detected an odd use of decimal number for suffixing. Please check the interpretation")
+            if DEBUG_MODE :
+              print(f"[DEBUG] BRK9, '{s}': a decimal number interrupts the parsing of a variable.")
           splitPoint = splitPointBeforeNum
           break
         
@@ -1008,16 +1012,18 @@ if (__name__ == '__main__') :
   assert(consumeVar("3_x") == ("", "3_x"))        # Rule R5.3
   assert(consumeVar("3.14x") == ("", "3.14x"))    # Rule R5.4
   assert(consumeVar("3.14_x") == ("", "3.14_x"))  # Rule R5.5
-  assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))          # Rule R5.6
-  assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))      # Rule R5.7
-  assert(consumeVar("onigiri_3.14*pi") == ("onigiri_", "3.14*pi"))  # Rule R5.8
+  assert(consumeVar("onigiri12+4") == ("onigiri12", "+4"))      # Rule R5.6
+  assert(consumeVar("onigiri_12*pi") == ("onigiri_12", "*pi"))  # Rule R5.7
   assert(consumeVar("abc_2//4") == ("abc_2", "//4"))
   assert(consumeVar("abc_23//4") == ("abc_23", "//4"))
   assert(consumeVar("abc_123456//7") == ("abc_123456", "//7"))
-  assert(consumeVar("abc_3.0+ 1") == ("abc_", "3.0+ 1"))    # Raises a warning (this input is seriously odd)
-  assert(consumeVar("abc_23.0+ 1") == ("abc_", "23.0+ 1"))  # Raises a warning
-  assert(consumeVar("abc_1.+ 1") == ("abc_", "1.+ 1"))      # Raises a warning
-  assert(consumeVar("abc_12.*3") == ("abc_", "12.*3"))      # Raises a warning
+  assert(consumeVar("onigiri_3.14*pi" , quiet=True) == ("onigiri_", "3.14*pi"))  # Rule R5.8
+  assert(consumeVar("abc_3.0+ 1"      , quiet=True) == ("abc_", "3.0+ 1"))    # Raises a warning
+  assert(consumeVar("abc_23.0+ 1"     , quiet=True) == ("abc_", "23.0+ 1"))   # Raises a warning
+  assert(consumeVar("abc_1.+ 1"       , quiet=True) == ("abc_", "1.+ 1"))     # Raises a warning
+  assert(consumeVar("abc_12.*3"       , quiet=True) == ("abc_", "12.*3"))     # Raises a warning
+  assert(consumeVar("ax1."            , quiet=True) == ("ax", "1."))          # Raises a warning
+  assert(consumeVar("R1.4exp(-t/4)"   , quiet=True) == ("R", "1.4exp(-t/4)")) # Raises a warning
   assert(consumeVar("var5_3*3") == ("var5_3", "*3"))
   assert(consumeVar("pi*12x") == ("", "pi*12x"))
   assert(consumeVar("R1*3") == ("R1", "*3"))
@@ -1030,7 +1036,7 @@ if (__name__ == '__main__') :
   assert(consumeVar("sin(") == ("", "sin("))
   assert(consumeVar("R1 sin(") == ("R1", " sin("))
   assert(consumeVar("tan (x+pi)") == ("", "tan (x+pi)"))
-  assert(consumeVar("R1.4exp(-t/4)") == ("R", "1.4exp(-t/4)"))
+
   assert(consumeVar("var1var2") == ("var1", "var2"))
   assert(consumeVar("var1_1var2") == ("var1_1", "var2"))
   assert(consumeVar("var1_1_var2") == ("var1_1_var2", ""))
