@@ -548,7 +548,10 @@ class Expression :
   def nest(self) :
     """
     The nesting operation consists in isolating expressions between round
-    brackets '(' and ')' and assigning them to their own Expression object.
+    brackets '(' and ')' and assigning them to their own Token object.
+
+    In that case, since the Token contains an expression, it is a Macro
+    object, which is a sort of "super-Token".
 
     That process turns the list of Tokens into a recursive structure that makes 
     the next operations much easier.
@@ -975,22 +978,18 @@ if (__name__ == '__main__') :
 
   assert(Expression("oni_giri*cos(2x+pi"      , quiet=True)._bracketBalanceCheck() == True)
   assert(Expression("oni_giri*cos(2x+pi("     , quiet=True)._bracketBalanceCheck() == True)
-  assert(Expression("oni_giri*cos(2x+pi()))"  , quiet=True)._bracketBalanceCheck() == False)
   assert(Expression("|3x+6|.2x"               , quiet=True)._bracketBalanceCheck() == True)
+  assert(Expression("oni_giri*cos(2x+pi()))"  , quiet=True)._bracketBalanceCheck() == False)
   print("- Unit test passed: 'Expression._bracketBalanceCheck()'")
 
+  assert(Expression("1+2x//4cos(exp(-t" , quiet=True)._firstOrderCheck() == True)
   assert(Expression("sin(2..1x)"        , quiet=True)._firstOrderCheck() == False)
   assert(Expression("1+Q(2,)"           , quiet=True)._firstOrderCheck() == False)
   assert(Expression("cos(3x+1)*Q(2,,1)" , quiet=True)._firstOrderCheck() == False)
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
-  # TODO: unit tests for the tokeniser
-  # ...
-
-
-
-
-  e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+sin(exp(-9t)))", verbose = True)
+  #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+sin(exp(-9t)))", verbose = True)
+  e = Expression("(a+b)(a-2b)", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

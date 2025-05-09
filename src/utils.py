@@ -67,6 +67,8 @@ def split(s: str, n: int) :
   Splits the string 's' in two at the breakpoint index 'n'.
   Indexing is 0-based.
 
+  In other words, if (a,b) = split(s,n) then len(a) = n.
+
   EXAMPLES
   > split("blob", -1) = ("", "blob")
   > split("blob",  0) = ("", "blob")
@@ -297,8 +299,9 @@ def consumeNumber(s: str) :
   If 's' does not start with a digit or a dot, the tuple ("", s) is returned.
 
   NOTE
-  - the number is returned "as is" without interpretation. 
-  Inputs like "0.500000", "4." or "0.0" will not be simplified.
+  - the number is returned "as is" without interpretation
+    Inputs like "0.500000", "4." or "0.0" will not be simplified
+    to "0.5", "4", "0" etc.
   - integer or fractionnal part can be omitted: "12.", ".34" etc.
   - a single dot is not considered as a number: consumeNumber(".") = ("", ".")
   - minus sign "-" is not accepted
@@ -684,12 +687,15 @@ def consumeInfix(s: str) :
 # -----------------------------------------------------------------------------
 def consumeAtomic(tokens) :
   """
-  Consumes the tokens in a list until it hits tokens implying recursivity, like 
-  an opening parenthesis or a function.
+  Consumes the tokens in a list until it hits tokens implying recursivity: 
+  - an opening parenthesis "("
+  - or a function.
 
   It then stops and returns the atomic part and the recursive part.
 
-  The recursive part is not analysed.
+  The recursive part is not analysed: if there is another function 
+  call or opening parenthesis, it will remain as is in the recursive part.
+  Another call to consumeAtomic() is needed on the remaining part. 
 
   EXAMPLES
   > consumeAtomic(...) = ...
@@ -885,19 +891,20 @@ if (__name__ == '__main__') :
   
   print("[INFO] Library called as main: running unit tests...")
 
-  assert(isNumber("") == False)
+
   assert(isNumber("1") == True)
   assert(isNumber("23") == True)
   assert(isNumber("4.5") == True)
   assert(isNumber("6.0") == True)
-  assert(isNumber("789.000000000") == True)
+  assert(isNumber("789.0000000") == True)
   assert(isNumber(".123456") == True)
   assert(isNumber(".1") == True)
+  assert(isNumber(".0") == True)
+  assert(isNumber("") == False)
   assert(isNumber("4.2.") == False)
   assert(isNumber(" 12") == False)
   assert(isNumber("2 ") == False)
   assert(isNumber("120 302") == False)
-  assert(isNumber(".0") == True)
   assert(isNumber(".") == False)
   assert(isNumber("-") == False)
   assert(isNumber("-1") == False)
@@ -917,13 +924,13 @@ if (__name__ == '__main__') :
   assert(split("onigiri", 15) == ("onigiri", ""))
   print("- Unit test passed: 'utils.split()'")
   
-  assert(splitSpace("pi") == ("", "pi"))
-  assert(splitSpace(" pi") == (" ", "pi"))
-  assert(splitSpace("   pi") == ("   ", "pi"))
-  assert(splitSpace("   test123   ") == ("   ", "test123   "))
-  assert(splitSpace(" *test123  ") == (" ", "*test123  "))
-  assert(splitSpace("  ") == ("  ", ""))
-  assert(splitSpace("") == ("", ""))
+  assert(splitSpace("pi")             == ("", "pi"))
+  assert(splitSpace(" pi")            == (" ", "pi"))
+  assert(splitSpace("   pi")          == ("   ", "pi"))
+  assert(splitSpace("   test123   ")  == ("   ", "test123   "))
+  assert(splitSpace(" *test123  ")    == (" ", "*test123  "))
+  assert(splitSpace("  ")             == ("  ", ""))
+  assert(splitSpace("")               == ("", ""))
   print("- Unit test passed: 'utils.splitSpace()'")
   
   assert(consumeConst("pi") == ("pi", ""))
@@ -1041,6 +1048,9 @@ if (__name__ == '__main__') :
   assert(consumeInfix("-2x+y") == ("-", "2x+y"))
   assert(consumeInfix("^-3") == ("^", "-3"))
   print("- Unit test passed: 'utils.consumeInfix()'")
+
+  #consumeAtomic([symbols.Token("("), symbols.Token("(")])
+  print("- Unit test TODO: 'utils.consumeAtomic()'")
 
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
