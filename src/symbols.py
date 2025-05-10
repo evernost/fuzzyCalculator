@@ -68,57 +68,6 @@ INFIX = [
 
 
 
-# -----------------------------------------------------------------------------
-# FUNCTION: nArgsFromFunctionName(string)
-# -----------------------------------------------------------------------------
-def nArgsFromFunctionName(inputStr) :
-  """
-  Returns the number of arguments taken by the function whose name is given as 
-  argument.
-
-  If no function is found, returns -1.
-  """
-  
-  for f in FUNCTIONS :
-    if (inputStr == f["name"]) :
-      return f["nArgs"]
-  
-  print(f"[WARNING] The function {inputStr} could not be found.")
-  return -1
-
-
-
-
-# -----------------------------------------------------------------------------
-# FUNCTION: _selfCheck()
-# -----------------------------------------------------------------------------
-def _selfCheck() :
-  """
-  Checks all user-customisable declarations
-  """
-  
-  # Look for duplicate definitions in 'CONSTANTS'
-  constList = [c["name"] for c in CONSTANTS]
-  if (len(constList) != len(set(constList))) :
-    print("[WARNING] Symbols auto-test: found duplicate in the list of constants.")
-
-  # Look for duplicate definitions in 'FUNCTIONS'
-  funcList = [f["name"] for f in FUNCTIONS]
-  if (len(funcList) != len(set(funcList))) :
-    print("[WARNING] Symbols auto-test: found duplicate in the list of functions.")
-
-  # Look for duplicate definitions in 'INFIX'
-  infixList = [i["name"] for i in INFIX]
-  if (len(infixList) != len(set(infixList))) :
-    print("[WARNING] Symbols auto-test: found duplicate in the list of infix.")
-
-
-  # TODO: detect illegal chars
-
-  print("[INFO] symbols.py: end of auto-test.")
-
-
-
 # =============================================================================
 # CLASS DEFINITION - TOKEN
 # =============================================================================
@@ -127,7 +76,7 @@ class Token :
   """
   TOKEN class definition
 
-  Creates a Token object from a descriptor string.
+  The constructor creates a Token object from a descriptor string.
   
   The string given as argument determines the type of token. 
   Type inference from a string is handy for the integration in the top level
@@ -155,7 +104,7 @@ class Token :
   def __init__(self, s: str, quiet = False, verbose = False, debug = False) :
 
     # Constants
-    self._initRefs()
+    self._initLists()
 
     # Options
     self.QUIET_MODE   = quiet
@@ -168,9 +117,9 @@ class Token :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Token._initRefs()
+  # METHOD: Token._initLists()
   # ---------------------------------------------------------------------------
-  def _initRefs(self) -> None :
+  def _initLists(self) -> None :
     """
     Initialises the internal references from the lists of constants.
     """
@@ -256,37 +205,34 @@ class Token :
     """
     return self.dispStr
 
-  def getOverviewStr(self) :
-    """
-    Returns a string with a pretty print of the content of the Token,
-    so that it is readable when several of them a shown in a row.
-    """
-    return self.name
+  # def getOverviewStr(self) :
+  #   """
+  #   Returns a string with a pretty print of the content of the Token,
+  #   so that it is readable when several of them a shown in a row.
+  #   """
+  #   return self.name
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Token.__setattr__ (generic attribute setter)
   # ---------------------------------------------------------------------------
-  def __setattr__(self, attrName, attrValue):
-    """
-    Function is called every time an attribute is set.
-    For the "number" Token, assigning 'value' automatically changes its name.
-    """
+  # def __setattr__(self, attrName, attrValue):
+  #   """
+  #   Function is called every time an attribute is set.
+  #   For the "number" Token, assigning 'value' automatically changes its name.
+  #   """
     
-    if (attrName == "value") :
-      if (self.type == "NUMBER") :
-        super().__setattr__("value", attrValue)
-        super().__setattr__("name", str(attrValue))
-        super().__setattr__("dispStr", f"NUM:'{attrValue}'")
-      else :
-        super().__setattr__(attrName, attrValue)
+  #   if (attrName == "value") :
+  #     if (self.type == "NUMBER") :
+  #       super().__setattr__("value", attrValue)
+  #       super().__setattr__("name", str(attrValue))
+  #       super().__setattr__("dispStr", f"NUM:'{attrValue}'")
+  #     else :
+  #       super().__setattr__(attrName, attrValue)
 
-    else :
-      super().__setattr__(attrName, attrValue)
-
-
-
+  #   else :
+  #     super().__setattr__(attrName, attrValue)
 
 
 
@@ -296,16 +242,163 @@ class Token :
 class Macro :
 
   """
-  Description is TODO.
+  MACRO class definition
+
+  A Macro object is...
+
+  The constructor takes a list of Token objects as input. 
+  It consumes all the tokens that fit into the macro expression, the rest is
+  left aside in the 'Macro.remainder' attribute for further processing.
+
+  Options: 
+  - quiet mode  : turns off all outputs (even errors)
+  - verbose mode: prints additional info relative to the parsing
+  - debug mode  : prints extra info for investigation
   """
 
-  def __init__(self) :
-    pass
+  def __init__(self, tokens, quiet = False, verbose = False, debug = False) :
+
+    # Populated after calling "_buildArgs()"
+    self.function = None
+    self.nArgs    = 0
+
+    # Allows Macro object to be treated as a Token
+    self.type = "MACRO"
+
+    # Options
+    self.QUIET_MODE   = quiet
+    self.VERBOSE_MODE = verbose
+    self.DEBUG_MODE   = debug
+
+    self._buildArgs(tokens)
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macro._buildArgs()                                        [PRIVATE]
+  # ---------------------------------------------------------------------------
+  def _buildArgs(self, tokens) -> None :
+    """
+    TODO
+    """
+    
+    nTokens = len(tokens)
+
+    if (nTokens == 0) :
+      if not(self.QUIET_MODE) :
+        print("[ERROR] Macro._buildArgs(): void list of tokens (possible internal error)")
+
+    elif (nTokens >= 1) :
+      if not(tokens[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        if not(self.QUIET_MODE) :
+          print("[ERROR] Macro._buildArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
+
+      else :
+        if (tokens[0].type == "FUNCTION") :
+          self.function = tokens[0]
+          self.nArgs = nArgsFromFunctionName()
+          buffer = tokens[2:]
+
+        elif (tokens[0].type == "BRKT_OPEN") :
+          self.function = Token("id")
+          self.nArgs = 1
+
+          (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
+
+          if (tokensRecurse[0].type == "COMMA") :
+            print("[ERROR] Macro._buildArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
+          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+            pass
+          
 
 
 
 
 
+
+        for n in range(self.nArgs) :
+          # Last argument flag
+          lastArg = (n == self.nArgs-1)
+          
+          # Binarise the current buffer.
+          # Binarisation stops automatically when encountering Tokens
+          # meant for the next argument.
+          self.args.append(binary.Binary(buffer, context = "MACRO"))
+          ret = self.args[n].status
+          
+          # Binarisation failed: propagate the status to the upper level.
+          if (ret == binary.BINARISE_FAILURE) :
+            return binary.BINARISE_FAILURE
+          
+          # Binarisation terminated successfully.
+          # But there is no token left to process, and the top function requires another argument.
+          elif (not(lastArg) and (len(self.args[n].remainder) == 0)) :
+            
+            if (ret != binary.BINARISE_SUCCESS_WITH_REMAINDER) :
+              print("[ERROR] Macroleaf._buildArgs(): binarisation returned an incorrect value.")
+            
+            print("[ERROR] Macroleaf._buildArgs(): arguments are expected, but there a no Tokens left to process.")
+            return binary.BINARISE_FAILURE
+          
+          # Binarisation terminated successfully. 
+          # The remainder of the Binary object in the current argument is cleared
+          # and transferred to the next argument.
+          else :
+            buffer = self.args[n].remainder
+            self.args[n].remainder = []
+            
+            if lastArg :
+              self.remainder = buffer
+
+
+
+# -----------------------------------------------------------------------------
+# FUNCTION: nArgsFromFunctionName(string)
+# -----------------------------------------------------------------------------
+def nArgsFromFunctionName(s: str) :
+  """
+  Returns the number of arguments taken by the function whose name is given as 
+  argument.
+
+  If no function is found, returns -1.
+  """
+  
+  for f in FUNCTIONS :
+    if (s == f["name"]) :
+      return f["nArgs"]
+  
+  print(f"[WARNING] The function {s} could not be found.")
+  return -1
+
+
+
+# -----------------------------------------------------------------------------
+# FUNCTION: _selfCheck()
+# -----------------------------------------------------------------------------
+def _selfCheck() :
+  """
+  Checks all user-customisable declarations
+  """
+  
+  # Look for duplicate definitions in 'CONSTANTS'
+  constList = [c["name"] for c in CONSTANTS]
+  if (len(constList) != len(set(constList))) :
+    print("[WARNING] Symbols auto-test: found duplicate in the list of constants.")
+
+  # Look for duplicate definitions in 'FUNCTIONS'
+  funcList = [f["name"] for f in FUNCTIONS]
+  if (len(funcList) != len(set(funcList))) :
+    print("[WARNING] Symbols auto-test: found duplicate in the list of functions.")
+
+  # Look for duplicate definitions in 'INFIX'
+  infixList = [i["name"] for i in INFIX]
+  if (len(infixList) != len(set(infixList))) :
+    print("[WARNING] Symbols auto-test: found duplicate in the list of infix.")
+
+
+  # TODO: detect illegal chars
+
+  print("[INFO] symbols.py: end of auto-test.")
 
 
 

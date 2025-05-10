@@ -588,11 +588,11 @@ class Expression :
 
       else :
         if (tokensRecurse[0].type == "BRKT_OPEN") :
-          M = macro.Macro(tokensRecurse)
+          M = symbols.Macro(tokensRecurse)
           buffer = M.remainder
 
         elif (tokensRecurse[0].type == "FUNCTION") :
-          M = macro.Macro(tokensRecurse)
+          M = symbols.Macro(tokensRecurse)
           buffer = M.remainder
 
         elif (tokensRecurse[0].type == "COMMA") :

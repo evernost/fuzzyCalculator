@@ -48,9 +48,6 @@ class Macro(symbols.Token) :
 
   def __init__(self, tokens, quiet = False, verbose = False, debug = False) :
     
-    # Call the Token init method
-    super().__init__()
-
     # Populated after calling "_buildArgs()"
     self.function = None
     self.nArgs = 0
@@ -129,7 +126,7 @@ class Macro(symbols.Token) :
 
         elif (tokens[0].type == "BRKT_OPEN") :
           self.function = symbols.Token("id")
-          self.nArgs = tokens[0].nArgs
+          self.nArgs = 1
 
           (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
 
