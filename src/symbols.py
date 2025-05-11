@@ -260,7 +260,8 @@ class Macro :
 
     # Populated after calling "_buildArgs()"
     self.function = None
-    self.nArgs    = 0
+    self.args = []
+    self.nArgs = 0
 
     # Allows Macro object to be treated as a Token
     self.type = "MACRO"
@@ -279,7 +280,8 @@ class Macro :
   # ---------------------------------------------------------------------------
   def _buildArgs(self, tokens) -> None :
     """
-    TODO
+    Extracts the tokens that are part of the arguments of the function.
+    Return the rest in 'Macro.remainder'.
     """
     
     nTokens = len(tokens)
@@ -296,23 +298,65 @@ class Macro :
       else :
         if (tokens[0].type == "FUNCTION") :
           self.function = tokens[0]
-          self.nArgs = nArgsFromFunctionName()
-          buffer = tokens[2:]
+          self.nArgs = nArgsFromFunctionName(self.function.id)
+
+          # Consume the argument in the function
+          (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
+
+          # Read: COMMA
+          # Example: "logN(... ,...)"
+          #                    ^
+          # This case is valid if the function accepts more than one argument.
+          if (tokensRecurse[0].type == "COMMA") :
+            print("[ERROR] Macro._buildArgs(): section is TODO.")
+          
+          # Read: CLOSING PARENTHESIS
+          # Example: "exp(....)"
+          #                   ^
+          # Macro is now complete.
+          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+            self.args.append(tokensFlat)
+            self.remainder = tokensRecurse
+
+            # Check the number of arguments
+            if (len(self.args) < self.nArgs) :
+              if not(self.QUIET_MODE) :
+                print(f"[ERROR] Macro._buildArgs(): not enough arguments for '{self.function.id}'. Expected {self.nArgs}, got {len(self.args)}.")
+          
+          # Read: FUNCTION
+          # Example: "sin(....cos(..."
+          #                   ^
+          # This case is TODO.
+          elif (tokensRecurse[0].type == "FUNCTION") :
+            pass
 
         elif (tokens[0].type == "BRKT_OPEN") :
           self.function = Token("id")
           self.nArgs = 1
-
           (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
 
+          # Read: COMMA
+          # Example: "(... ,...)"
+          #                ^
+          # This case is an syntax error.
           if (tokensRecurse[0].type == "COMMA") :
-            print("[ERROR] Macro._buildArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
-          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-            pass
+            if not(self.QUIET_MODE) :
+              print("[ERROR] Macro._buildArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
           
+          # Read: CLOSING PARENTHESIS
+          # Example: "(....)"
+          #                ^
+          # Macro is now complete.
+          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+            self.args.append(tokensFlat)
+            self.remainder = tokensRecurse
 
-
-
+          # Read: FUNCTION
+          # Example: "(....exp(..."
+          #                ^
+          # This case is TODO.
+          elif (tokensRecurse[0].type == "FUNCTION") :
+            pass
 
 
 

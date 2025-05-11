@@ -989,7 +989,7 @@ if (__name__ == '__main__') :
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+sin(exp(-9t)))", verbose = True)
-  e = Expression("(a+b)(a-2b)", verbose = True)
+  e = Expression("( a+b)(a-2b)", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

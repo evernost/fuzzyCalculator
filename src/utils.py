@@ -725,10 +725,9 @@ def consumeAtomic(tokens) :
         return (tokens[0:i], tokens[i:])
 
       elif (tokens[i].type == "BRKT_CLOSE") :
-        print("[WARNING] utils.consumeAtomic(): possible uncaught syntax error.")
         return (tokens[0:i], tokens[i:])
 
-      elif (tokens[i].type in ["CONSTANT", "VAR", "NUMBER", "INFIX"]) :
+      elif (tokens[i].type in ["CONSTANT", "VARIABLE", "NUMBER", "INFIX"]) :
         pass
 
       else :
