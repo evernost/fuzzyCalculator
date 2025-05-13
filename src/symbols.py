@@ -300,71 +300,72 @@ class Macro :
         if (tokens[0].type == "FUNCTION") :
           self.function = tokens[0]
           self.nArgs = nArgsFromFunctionName(self.function.id)
-          (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[2:])
+          self.args.append(utils.nest(tokens[2:]))
 
-          # Read: COMMA
-          # Example: "logN(... ,...)"
-          #                    ^
-          # This case is valid if the function accepts more than one argument.
-          if (tokensRecurse[0].type == "COMMA") :
-            print("[ERROR] Macro._consumeArgs(): section is TODO.")
+          # # Read: COMMA
+          # # Example: "logN(... ,...)"
+          # #                    ^
+          # # This case is valid if the function accepts more than one argument.
+          # if (tokensRecurse[0].type == "COMMA") :
+          #   print("[ERROR] Macro._consumeArgs(): section is TODO.")
           
-          # Read: CLOSING PARENTHESIS
-          # Example: "exp(....)"
-          #                   ^
-          # Macro is now complete.
-          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-            self.args.append(tokensFlat)
-            self.remainder = tokensRecurse[1:]
+          # # Read: CLOSING PARENTHESIS
+          # # Example: "exp(....)"
+          # #                   ^
+          # # Macro is now complete.
+          # elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+          #   self.args.append(tokensFlat)
+          #   self.remainder = tokensRecurse[1:]
 
-            # Check the number of arguments
-            if (len(self.args) < self.nArgs) :
-              if not(self.QUIET_MODE) :
-                print(f"[ERROR] Macro._consumeArgs(): not enough arguments for '{self.function.id}'. Expected {self.nArgs}, got {len(self.args)}.")
+          #   # Check the number of arguments
+          #   if (len(self.args) < self.nArgs) :
+          #     if not(self.QUIET_MODE) :
+          #       print(f"[ERROR] Macro._consumeArgs(): not enough arguments for '{self.function.id}'. Expected {self.nArgs}, got {len(self.args)}.")
           
-          # Read: FUNCTION
-          # Example: "sin(....cos(..."
-          #                   ^
-          # This case calls another Macro
-          elif (tokensRecurse[0].type == "FUNCTION") :
-            M = Macro(tokensRecurse)
-            self.args.append(tokensFlat + [M])
+          # # Read: FUNCTION
+          # # Example: "sin(....cos(..."
+          # #                   ^
+          # # This case calls another Macro
+          # elif (tokensRecurse[0].type == "FUNCTION") :
+          #   M = Macro(tokensRecurse)
+          #   self.args.append(tokensFlat + [M])
 
-            # Now carry on with the analysis of 'M.remainder'
-            print("test")
+          #   # Now carry on with the analysis of 'M.remainder'
+          #   print("test")
 
         elif (tokens[0].type == "BRKT_OPEN") :
           self.function = Token("id")
           self.nArgs = 1
-          (tokensFlat, tokensRecurse) = utils.consumeAtomic(tokens[1:])
+          self.args.append(utils.nest(tokens[2:]))
 
-          # Read: COMMA
-          # Example: "(... ,...)"
-          #                ^
-          # This case is an syntax error.
-          if (tokensRecurse[0].type == "COMMA") :
-            if not(self.QUIET_MODE) :
-              print("[ERROR] Macro._consumeArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
+
+        #   # Read: COMMA
+        #   # Example: "(... ,...)"
+        #   #                ^
+        #   # This case is an syntax error.
+        #   if (tokensRecurse[0].type == "COMMA") :
+        #     if not(self.QUIET_MODE) :
+        #       print("[ERROR] Macro._consumeArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
           
-          # Read: CLOSING PARENTHESIS
-          # Example: "(....)"
-          #                ^
-          # Macro is now complete.
-          elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-            self.args.append(tokensFlat)
-            self.remainder = tokensRecurse
+        #   # Read: CLOSING PARENTHESIS
+        #   # Example: "(....)"
+        #   #                ^
+        #   # Macro is now complete.
+        #   elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+        #     self.args.append(tokensFlat)
+        #     self.remainder = tokensRecurse
 
-          # Read: FUNCTION
-          # Example: "(....exp(..."
-          #                ^
-          # This case is TODO.
-          elif (tokensRecurse[0].type == "FUNCTION") :
-            pass
+        #   # Read: FUNCTION
+        #   # Example: "(....exp(..."
+        #   #                ^
+        #   # This case is TODO.
+        #   elif (tokensRecurse[0].type == "FUNCTION") :
+        #     pass
 
         
 
-        else :
-          print("test")
+        # else :
+        #   print("test")
 
         # for n in range(self.nArgs) :
         #   # Last argument flag

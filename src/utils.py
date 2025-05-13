@@ -720,7 +720,7 @@ def consumeAtomic(tokens) :
       return (tokens, [])
 
   else :
-    for i in range(len(tokens)) :
+    for i in range(nTokens) :
       if (tokens[i].type in ["BRKT_OPEN", "FUNCTION", "COMMA"]) :
         return (tokens[0:i], tokens[i:])
 
@@ -728,7 +728,8 @@ def consumeAtomic(tokens) :
         return (tokens[0:i], tokens[i:])
 
       elif (tokens[i].type in ["CONSTANT", "VARIABLE", "NUMBER", "INFIX"]) :
-        pass
+        if (i == (nTokens-1)) :
+          return (tokens, [])
 
       else :
         print(f"[ERROR] Unexpected type of Token: {tokens[i].type}")
@@ -816,6 +817,53 @@ def consumeAtomic(tokens) :
     #   else :
     #     self.remainder = []
     #     return Trues
+
+
+
+# -----------------------------------------------------------------------------
+# FUNCTION: nest()
+# -----------------------------------------------------------------------------
+def nest(tokens, quiet = False, verbose = False, debug = False) :
+  """
+  Consumes a list of tokens, creates a macro where needed
+  """
+  
+  nTokens = len(tokens)
+
+  # List of tokens is empty: nothing to to
+  if (nTokens == 0) :
+    return []
+
+  # List of tokens has 1 element
+  elif (nTokens == 1) :
+    if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
+      if not(quiet) :
+        print("[WARNING] utils.nest(): odd input (single meaningless token)")
+    else :
+      return tokens
+  
+  else :
+    (tokensFlat, tokensRecurse) = consumeAtomic(tokens)
+
+    if (len(tokensRecurse) == 0) :
+      return tokens
+
+    else :
+      if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        M = symbols.Macro(tokensRecurse)
+        return tokensFlat + [M] + nest(M.remainder)
+
+      
+      elif (tokensRecurse[0].type == "COMMA") :  
+        if not(quiet) :
+          print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+
+      if (tokensRecurse[0].type == "BRKT_CLOSE") :
+        return tokensFlat + nest(tokensRecurse[1:])
+
+      else :
+        if not(quiet) :
+          print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
 
 
 

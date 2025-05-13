@@ -141,43 +141,6 @@ class Macro(symbols.Token) :
 
 
 
-        for n in range(self.nArgs) :
-          # Last argument flag
-          lastArg = (n == self.nArgs-1)
-          
-          # Binarise the current buffer.
-          # Binarisation stops automatically when encountering Tokens
-          # meant for the next argument.
-          self.args.append(binary.Binary(buffer, context = "MACRO"))
-          ret = self.args[n].status
-          
-          # Binarisation failed: propagate the status to the upper level.
-          if (ret == binary.BINARISE_FAILURE) :
-            return binary.BINARISE_FAILURE
-          
-          # Binarisation terminated successfully.
-          # But there is no token left to process, and the top function requires another argument.
-          elif (not(lastArg) and (len(self.args[n].remainder) == 0)) :
-            
-            if (ret != binary.BINARISE_SUCCESS_WITH_REMAINDER) :
-              print("[ERROR] Macroleaf._buildArgs(): binarisation returned an incorrect value.")
-            
-            print("[ERROR] Macroleaf._buildArgs(): arguments are expected, but there a no Tokens left to process.")
-            return binary.BINARISE_FAILURE
-          
-          # Binarisation terminated successfully. 
-          # The remainder of the Binary object in the current argument is cleared
-          # and transferred to the next argument.
-          else :
-            buffer = self.args[n].remainder
-            self.args[n].remainder = []
-            
-            if lastArg :
-              self.remainder = buffer
-
-
-
-
 
   # -----------------------------------------------------------------------------
   # METHOD: Macroleaf.sanityCheck()
