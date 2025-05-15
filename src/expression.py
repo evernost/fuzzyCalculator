@@ -571,43 +571,6 @@ class Expression :
     self.tokens = utils.nest(self.tokens)
 
 
-    # nTokens = len(self.tokens)
-
-    # if (nTokens == 0) :
-    #   pass
-
-    # elif (nTokens == 1) :
-    #   if self.tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-    #     if not(self.QUIET_MODE) :
-    #       print("[WARNING] Expression.nest(): odd input (single meaningless token)")
-    #   else :
-    #     pass
-    
-    # else :
-    #   (tokensFlat, tokensRecurse) = utils.consumeAtomic(self.tokens)
-
-    #   if (len(tokensRecurse) == 0) :
-    #     return tokensFlat
-
-    #   else :
-    #     if (tokensRecurse[0].type == "BRKT_OPEN") :
-    #       M = symbols.Macro(tokensRecurse)
-    #       buffer = M.remainder
-
-    #     elif (tokensRecurse[0].type == "FUNCTION") :
-    #       M = symbols.Macro(tokensRecurse)
-    #       buffer = M.remainder
-
-    #     elif (tokensRecurse[0].type == "COMMA") :
-    #       if not(self.QUIET_MODE) :
-    #         print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
-
-    #     else :
-    #       if not(self.QUIET_MODE) :
-    #         print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
-
-
-
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression._nestBalanceMinus()                            [PRIVATE]
@@ -902,7 +865,8 @@ if (__name__ == '__main__') :
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+sin(exp(-9t)))", verbose = True)
-  e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
+  #e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
+  e = Expression("sin(a+b)+2", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

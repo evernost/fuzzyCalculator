@@ -825,28 +825,34 @@ def consumeAtomic(tokens) :
 # -----------------------------------------------------------------------------
 def nest(tokens, quiet = False, verbose = False, debug = False) :
   """
-  Consumes a list of tokens, creates a macro where needed
+  Consumes a list of tokens, returns another list of tokens were functions and 
+  round brackets are replaced with a macro token.
+
+  The function stops when it hits a token that is out of scope for the nesting 
+  (like ')' or ','). So it returns also all the tokens that were not consumed.
   """
   
   nTokens = len(tokens)
 
   # List of tokens is empty: nothing to to
   if (nTokens == 0) :
-    return []
+    return ([], [])
 
   # List of tokens has 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
       if not(quiet) :
         print("[WARNING] utils.nest(): odd input (single meaningless token)")
+        return ([], [])
     else :
-      return tokens
+      return (tokens, [])
   
+  # List of tokens with >1 element
   else :
     (tokensFlat, tokensRecurse) = consumeAtomic(tokens)
 
-    if (len(tokensRecurse) == 0) :
-      return tokens
+    if not(tokensRecurse) :
+      return (tokens, [])
 
     else :
       if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
@@ -859,7 +865,9 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
           print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
 
       if (tokensRecurse[0].type == "BRKT_CLOSE") :
-        return tokensFlat + nest(tokensRecurse[1:])
+        #return tokensFlat + nest(tokensRecurse[1:])
+        (a,b) = nest(tokensRecurse[1:])
+        return (tokensFlat + [a], b)
 
       else :
         if not(quiet) :
