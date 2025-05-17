@@ -864,9 +864,10 @@ if (__name__ == '__main__') :
   assert(Expression("cos(3x+1)*Q(2,,1)" , quiet=True)._firstOrderCheck() == False)
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
-  #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+sin(exp(-9t)))", verbose = True)
-  #e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
-  e = Expression("sin(a+b)+2", verbose = True)
+  #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
+  #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
+  e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
+  #e = Expression("sin(a+b)+2", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

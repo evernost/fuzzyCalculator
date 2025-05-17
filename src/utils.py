@@ -857,7 +857,11 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
     else :
       if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
         M = symbols.Macro(tokensRecurse)
-        return tokensFlat + [M] + nest(M.remainder)
+        
+        # TODO: this might be wrong
+        rem = nest(M.remainder)
+        M.remainder = []
+        return tokensFlat + [M] + rem
 
       elif (tokensRecurse[0].type == "COMMA") :  
         if not(quiet) :
@@ -907,25 +911,25 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
     else :
       if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
         M = symbols.Macro(tokensRecurse)
-        return tokensFlat + [M] + nest(M.remainder)
+        (arg, rem) = nestArg(M.remainder)
+        M.remainder = []
+        return (tokensFlat + [M] + arg, rem)
 
-      
       elif (tokensRecurse[0].type == "COMMA") :  
-        if not(quiet) :
-          print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+        if (len(tokensRecurse) > 1) :
+          return (tokensFlat, tokensRecurse[1:])
+        else :
+          return (tokensFlat, [])
 
-      if (tokensRecurse[0].type == "BRKT_CLOSE") :
-        #return tokensFlat + nest(tokensRecurse[1:])
-        rem = nest(tokensRecurse[1:])
-        return (tokensFlat, rem)
+      elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+        if (len(tokensRecurse) > 1) :
+          return (tokensFlat, tokensRecurse[1:])
+        else :
+          return (tokensFlat, [])
 
       else :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
-
-
-
-
 
 
 
