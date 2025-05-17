@@ -836,6 +836,56 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
 
   # List of tokens is empty: nothing to to
   if (nTokens == 0) :
+    return []
+
+  # List of tokens has 1 element
+  elif (nTokens == 1) :
+    if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
+      if not(quiet) :
+        print("[WARNING] utils.nest(): odd input (single meaningless token)")
+        return tokens
+    else :
+      return tokens
+  
+  # List of tokens with > 1 element
+  else :
+    (tokensFlat, tokensRecurse) = consumeAtomic(tokens)
+
+    if not(tokensRecurse) :
+      return tokens
+
+    else :
+      if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        M = symbols.Macro(tokensRecurse)
+        return tokensFlat + [M] + nest(M.remainder)
+
+      elif (tokensRecurse[0].type == "COMMA") :  
+        if not(quiet) :
+          print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+
+      elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+        print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
+
+      else :
+        if not(quiet) :
+          print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+
+
+
+# -----------------------------------------------------------------------------
+# FUNCTION: nestArg()
+# -----------------------------------------------------------------------------
+def nestArg(tokens, quiet = False, verbose = False, debug = False) :
+  """
+  Weaker version of nest() specific to arguments processing (function or
+  content of a parenthesis)
+  It does the same, except that it halts on ',' and ')' and returns the remainder.
+  """
+  
+  nTokens = len(tokens)
+
+  # List of tokens is empty: nothing to to
+  if (nTokens == 0) :
     return ([], [])
 
   # List of tokens has 1 element
@@ -866,12 +916,16 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
 
       if (tokensRecurse[0].type == "BRKT_CLOSE") :
         #return tokensFlat + nest(tokensRecurse[1:])
-        (a,b) = nest(tokensRecurse[1:])
-        return (tokensFlat + [a], b)
+        rem = nest(tokensRecurse[1:])
+        return (tokensFlat, rem)
 
       else :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+
+
+
+
 
 
 

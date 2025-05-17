@@ -294,117 +294,27 @@ class Macro :
     elif (nTokens >= 1) :
 
       if (tokens[0].type == "FUNCTION") :
+        (arg, rem) = utils.nestArg(tokens[2:])
         self.function = tokens[0]
         self.nArgs = nArgsFromFunctionName(self.function.id)
-        
-        (argNested, rem) = utils.nest(tokens[2:])
-        self.args.append(argNested)
+        self.args.append(arg)
         self.remainder = rem
 
-        # # Read: COMMA
-        # # Example: "logN(... ,...)"
-        # #                    ^
-        # # This case is valid if the function accepts more than one argument.
-        # if (tokensRecurse[0].type == "COMMA") :
-        #   print("[ERROR] Macro._consumeArgs(): section is TODO.")
-        
-        # # Read: CLOSING PARENTHESIS
-        # # Example: "exp(....)"
-        # #                   ^
-        # # Macro is now complete.
-        # elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-        #   self.args.append(tokensFlat)
-        #   self.remainder = tokensRecurse[1:]
-
-        #   # Check the number of arguments
-        #   if (len(self.args) < self.nArgs) :
-        #     if not(self.QUIET_MODE) :
-        #       print(f"[ERROR] Macro._consumeArgs(): not enough arguments for '{self.function.id}'. Expected {self.nArgs}, got {len(self.args)}.")
-        
-        # # Read: FUNCTION
-        # # Example: "sin(....cos(..."
-        # #                   ^
-        # # This case calls another Macro
-        # elif (tokensRecurse[0].type == "FUNCTION") :
-        #   M = Macro(tokensRecurse)
-        #   self.args.append(tokensFlat + [M])
-
-        #   # Now carry on with the analysis of 'M.remainder'
-        #   print("test")
-
       elif (tokens[0].type == "BRKT_OPEN") :
+        (arg, rem) = utils.nestArg(tokens[2:])
         self.function = Token("id")
         self.nArgs = 1
-        self.args.append(utils.nest(tokens[2:]))
-
-        print("Remainder must be caught here")
+        self.args.append(arg)
+        self.remainder = rem
 
       else :
         if not(self.QUIET_MODE) :
           print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
 
 
-        #   # Read: COMMA
-        #   # Example: "(... ,...)"
-        #   #                ^
-        #   # This case is an syntax error.
-        #   if (tokensRecurse[0].type == "COMMA") :
-        #     if not(self.QUIET_MODE) :
-        #       print("[ERROR] Macro._consumeArgs(): syntax error, encountered a comma in a context that is not a multi-argument function")
-          
-        #   # Read: CLOSING PARENTHESIS
-        #   # Example: "(....)"
-        #   #                ^
-        #   # Macro is now complete.
-        #   elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-        #     self.args.append(tokensFlat)
-        #     self.remainder = tokensRecurse
 
-        #   # Read: FUNCTION
-        #   # Example: "(....exp(..."
-        #   #                ^
-        #   # This case is TODO.
-        #   elif (tokensRecurse[0].type == "FUNCTION") :
-        #     pass
+ 
 
-        
-
-        # else :
-        #   print("test")
-
-        # for n in range(self.nArgs) :
-        #   # Last argument flag
-        #   lastArg = (n == self.nArgs-1)
-          
-        #   # Binarise the current buffer.
-        #   # Binarisation stops automatically when encountering Tokens
-        #   # meant for the next argument.
-        #   self.args.append(binary.Binary(buffer, context = "MACRO"))
-        #   ret = self.args[n].status
-          
-        #   # Binarisation failed: propagate the status to the upper level.
-        #   if (ret == binary.BINARISE_FAILURE) :
-        #     return binary.BINARISE_FAILURE
-          
-        #   # Binarisation terminated successfully.
-        #   # But there is no token left to process, and the top function requires another argument.
-        #   elif (not(lastArg) and (len(self.args[n].remainder) == 0)) :
-            
-        #     if (ret != binary.BINARISE_SUCCESS_WITH_REMAINDER) :
-        #       print("[ERROR] Macroleaf._buildArgs(): binarisation returned an incorrect value.")
-            
-        #     print("[ERROR] Macroleaf._buildArgs(): arguments are expected, but there a no Tokens left to process.")
-        #     return binary.BINARISE_FAILURE
-          
-        #   # Binarisation terminated successfully. 
-        #   # The remainder of the Binary object in the current argument is cleared
-        #   # and transferred to the next argument.
-        #   else :
-        #     buffer = self.args[n].remainder
-        #     self.args[n].remainder = []
-            
-        #     if lastArg :
-        #       self.remainder = buffer
 
 
 
