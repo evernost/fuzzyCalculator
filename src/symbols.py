@@ -301,7 +301,7 @@ class Macro :
         self.remainder = rem
 
       elif (tokens[0].type == "BRKT_OPEN") :
-        (arg, rem) = utils.nestArg(tokens[2:])
+        (arg, rem) = utils.nestArg(tokens[1:])
         self.function = Token("id")
         self.nArgs = 1
         self.args.append(arg)

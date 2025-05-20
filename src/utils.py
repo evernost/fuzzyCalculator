@@ -855,6 +855,10 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
       return tokens
 
     else :
+      #if not(tokensFlat) :
+        # Some case missing here...
+        #pass
+      
       if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
         M = symbols.Macro(tokensRecurse)
         
@@ -901,7 +905,7 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
     else :
       return (tokens, [])
   
-  # List of tokens with >1 element
+  # List of tokens with > 1 element
   else :
     (tokensFlat, tokensRecurse) = consumeAtomic(tokens)
 

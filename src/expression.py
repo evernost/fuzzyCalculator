@@ -866,8 +866,9 @@ if (__name__ == '__main__') :
 
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
-  e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
+  #e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
   #e = Expression("sin(a+b)+2", verbose = True)
+  e = Expression("(a)(b)", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()
