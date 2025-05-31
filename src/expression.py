@@ -548,24 +548,24 @@ class Expression :
   def nest(self) :
     """
     The nesting operation consists in isolating expressions between round
-    brackets '(' and ')' and assigning them to their own Token object.
+    brackets - '(' and ')' - and assigning them to their own Token object.
 
-    In that case, since the Token contains an expression, it is a Macro
+    In that case, since the Token contains an expression, it becomes a Macro
     object, which is a sort of "super-Token".
 
-    That process turns the list of Tokens into a recursive structure that makes 
-    the next operations much easier.
+    After this function call, the list of Tokens becomes a recursive structure 
+    that makes the next operations much easier.
     
-    Different scenarios can happen:
-    - Round brackets: the content is nested in an Expression object.
-    EXAMPLE: "R1*(C1+C2)+R2C4" -> "R1*[EXPR_OBJECT]+R2C4" 
-
-    - Round brackets used for functions: the content is isolated in a 
-    Macro object, a sort of super-'Expression' embedding 1 or more expressions
-    with a top-level function applied to the result.
-    Having more than 1 expression is used for functions with multiple arguments
-    (1 expression for each argument)
-    EXAMPLE: "R1C1*exp(-t)" -> "R1C1*[MACRO_OBJECT: 'exp']"
+    A Macro may carry a top level function that applies to the terms betweens 
+    parenthesis. This accounts for the difference between 'simple parenthesis' 
+    (isolating a part of the expression) and parenthesis in the context of a 
+    function call.
+    - For simple parenthesis, the terms are stored in a dedicated internal 
+      expression, the top level function is void ('identity' function)
+    - For function parenthesis, the function is used as the top level 
+      function, the terms in-between are stored in the internal expression.
+    
+    See the examples for more information. 
     """
 
     self.tokens = utils.nest(self.tokens)
@@ -866,9 +866,11 @@ if (__name__ == '__main__') :
 
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
-  #e = Expression("sin( a+b*sin(z)/2)(a-2b", verbose = True)
+  #e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
+  #e = Expression("(a+b)/(((12-z)+tan(x))/z", verbose = True)
   #e = Expression("sin(a+b)+2", verbose = True)
-  e = Expression("(a)(b)", verbose = True)
+  #e = Expression("(a)(b)", verbose = True)
+  e = Expression("logN(10,2)", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

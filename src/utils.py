@@ -691,15 +691,18 @@ def consumeInfix(s: str) :
 # -----------------------------------------------------------------------------
 def consumeAtomic(tokens) :
   """
-  Consumes the tokens in a list until it hits tokens implying recursivity: 
-  - an opening parenthesis "("
-  - or a function.
+  Consumes the tokens in a list until it hits tokens implying either 
+  recursivity or a change in the processing:  
+  - an opening parenthesis  (-> recursivity)
+  - a function              (-> recursivity)
+  - a comma                 (-> processing changes)
+  - a closing parenthesis   (-> processing changes)
 
-  It then stops and returns the atomic part and the recursive part.
+  If so, it stops and returns the 'atomic' part and the remainder.
 
-  The recursive part is not analysed: if there is another function 
-  call or opening parenthesis, it will remain as is in the recursive part.
-  Another call to consumeAtomic() is needed on the remaining part. 
+  The remainder part is not analysed: if there is another function 
+  call or opening parenthesis, it will remain as is in the remainder.
+  Another call to consumeAtomic() is needed. 
 
   EXAMPLES
   > consumeAtomic(...) = ...
@@ -709,9 +712,11 @@ def consumeAtomic(tokens) :
   
   nTokens = len(tokens)
 
+  # List of tokens is empty: nothing to do
   if (nTokens == 0) :
     return ([], [])
   
+  # List of tokens has 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
       print("[WARNING] utils.consumeAtomic(): possible uncaught syntax error.")
@@ -719,12 +724,10 @@ def consumeAtomic(tokens) :
     else :
       return (tokens, [])
 
+  # List of tokens with > 1 element
   else :
     for i in range(nTokens) :
-      if (tokens[i].type in ["BRKT_OPEN", "FUNCTION", "COMMA"]) :
-        return (tokens[0:i], tokens[i:])
-
-      elif (tokens[i].type == "BRKT_CLOSE") :
+      if (tokens[i].type in ["BRKT_OPEN", "BRKT_CLOSE", "FUNCTION", "COMMA"]) :
         return (tokens[0:i], tokens[i:])
 
       elif (tokens[i].type in ["CONSTANT", "VARIABLE", "NUMBER", "INFIX"]) :
@@ -734,90 +737,6 @@ def consumeAtomic(tokens) :
       else :
         print(f"[ERROR] Unexpected type of Token: {tokens[i].type}")
 
-    # while (len(buffer) > 0) :
-    #   nTokens = len(buffer)
-      
-    #   if (nTokens >= 2) :
-    #     (T, tail) = (buffer[0], buffer[1:])
-        
-    #     # (Macro)Leaves/infix are simply pushed to the stack.
-    #     if (T.type in ["CONSTANT", "VAR", "NUMBER", "INFIX", "MACRO"]) :
-    #       output.append(T)
-    #       buffer = tail
-        
-    #     # A function creates a Macro expression and requires another call to <_buildStack> on its argument(s).
-    #     elif (T.type == "FUNCTION") :
-    #       #M = macroleaf.Macroleaf(function = T.name, tokenList = tailNoParenthesis)
-    #       M = macro.Macro(buffer)
-
-    #       self.stack.append(M)
-    #       buffer = M.remainder
-
-    #     # A "(" creates a Macroleaf and requires another call to <_buildStack>.
-    #     elif (T.type == "BRKT_OPEN") :
-    #       #M = macroleaf.Macroleaf(function = "id", tokenList = tail)
-    #       M = macro.Macro(buffer)
-          
-    #       self.stack.append(M)
-    #       buffer = M.remainder
-          
-    #     # A "," occurs when <_buildStack> is called from a Macroleaf.
-    #     # It stops the binarisation.
-    #     # The Macroleaf must now process the next argument.
-    #     elif (T.type == "COMMA") :
-    #       self.remainder = tail
-    #       return True
-
-    #     # A ")" stops the binarisation.
-    #     # The Macroleaf is now complete. 
-    #     elif (T.type == "BRKT_CLOSE") :
-    #       self.remainder = tail
-    #       return True
-        
-    #     # Anything else is invalid.
-    #     else :
-    #       if not(self.QUIET_MODE) :
-    #         print(f"[ERROR] Unexpected token: {T}")
-    #       return False
-
-
-
-    #   elif (nTokens == 1) :
-    #     T = buffer[0]; buffer = []
-
-    #     if (T.type in ["CONSTANT", "VAR", "NUMBER", "MACRO"]) :
-    #       self.stack.append(T)
-    #       self.remainder = []
-    #       return True
-        
-    #     elif (T.type == "BRKT_CLOSE") :
-    #       self.remainder = []
-    #       return True
-
-    #     elif (T.type == "COMMA") :
-    #       if not(self.QUIET_MODE) :
-    #         print("[ERROR] A list of tokens cannot end with a comma.")
-    #       self.remainder = [T]
-    #       return False
-
-    #     elif (T.type == "INFIX") :
-    #       if not(self.QUIET_MODE) :
-    #         print(f"[ERROR] A list of tokens cannot end with an infix operator (here: '{T.name}')")
-    #       self.remainder = [T]
-    #       return False
-
-    #     else :
-    #       if not(self.QUIET_MODE) :
-    #         print(f"[ERROR] Unexpected token: {T}")
-    #       self.remainder = [T]
-    #       return False
-
-      
-    #   # nTokens = 0
-    #   else :
-    #     self.remainder = []
-    #     return Trues
-
 
 
 # -----------------------------------------------------------------------------
@@ -825,16 +744,13 @@ def consumeAtomic(tokens) :
 # -----------------------------------------------------------------------------
 def nest(tokens, quiet = False, verbose = False, debug = False) :
   """
-  Consumes a list of tokens, returns another list of tokens were functions and 
+  Consumes a list of tokens, returns another list of tokens where functions and 
   round brackets are replaced with a macro token.
-
-  The function stops when it hits a token that is out of scope for the nesting 
-  (like ')' or ','). So it returns also all the tokens that were not consumed.
   """
   
   nTokens = len(tokens)
 
-  # List of tokens is empty: nothing to to
+  # List of tokens is empty: nothing to do
   if (nTokens == 0) :
     return []
 
@@ -849,30 +765,25 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   
   # List of tokens with > 1 element
   else :
-    (tokensFlat, tokensRecurse) = consumeAtomic(tokens)
+    (tokensFlat, remainder) = consumeAtomic(tokens)
 
-    if not(tokensRecurse) :
+    if not(remainder) :
       return tokens
 
     else :
-      #if not(tokensFlat) :
-        # Some case missing here...
-        #pass
-      
-      if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
-        M = symbols.Macro(tokensRecurse)
-        
-        # TODO: this might be wrong
+      if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        M = symbols.Macro(remainder)
         rem = nest(M.remainder)
         M.remainder = []
         return tokensFlat + [M] + rem
 
-      elif (tokensRecurse[0].type == "COMMA") :  
+      elif (remainder[0].type == "COMMA") :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
 
-      elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-        print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
+      elif (remainder[0].type == "BRKT_CLOSE") :
+        if not(quiet) :
+          print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
 
       else :
         if not(quiet) :
@@ -887,12 +798,13 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   """
   Weaker version of nest() specific to arguments processing (function or
   content of a parenthesis)
-  It does the same, except that it halts on ',' and ')' and returns the remainder.
+  
+  Unlike 'nest()', this function halts on ',' and ')' and returns the remainder.
   """
   
   nTokens = len(tokens)
 
-  # List of tokens is empty: nothing to to
+  # List of tokens is empty: nothing to do
   if (nTokens == 0) :
     return ([], [])
 
@@ -907,27 +819,27 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   
   # List of tokens with > 1 element
   else :
-    (tokensFlat, tokensRecurse) = consumeAtomic(tokens)
+    (tokensFlat, remainder) = consumeAtomic(tokens)
 
-    if not(tokensRecurse) :
+    if not(remainder) :
       return (tokens, [])
 
     else :
-      if (tokensRecurse[0].type in ("BRKT_OPEN", "FUNCTION")) :
-        M = symbols.Macro(tokensRecurse)
+      if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        M = symbols.Macro(remainder)
         (arg, rem) = nestArg(M.remainder)
         M.remainder = []
         return (tokensFlat + [M] + arg, rem)
 
-      elif (tokensRecurse[0].type == "COMMA") :  
-        if (len(tokensRecurse) > 1) :
-          return (tokensFlat, tokensRecurse[1:])
+      elif (remainder[0].type == "COMMA") :  
+        if (len(remainder) > 1) :
+          return (tokensFlat, remainder[1:])
         else :
           return (tokensFlat, [])
 
-      elif (tokensRecurse[0].type == "BRKT_CLOSE") :
-        if (len(tokensRecurse) > 1) :
-          return (tokensFlat, tokensRecurse[1:])
+      elif (remainder[0].type == "BRKT_CLOSE") :
+        if (len(remainder) > 1) :
+          return (tokensFlat, remainder[1:])
         else :
           return (tokensFlat, [])
 
