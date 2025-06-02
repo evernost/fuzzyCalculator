@@ -763,24 +763,30 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
     else :
       return tokens
   
-  # List of tokens with > 1 element
+  # List of tokens has 2 elements or more
   else :
     (tokensFlat, remainder) = consumeAtomic(tokens)
 
+    # List of tokens is flat (no function or parenthesis)
     if not(remainder) :
       return tokens
-
+    
+    # List of tokens contains nesting
     else :
+      
+      # A function or an opening parenthesis opens a new context
       if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
         M = symbols.Macro(remainder)
         rem = nest(M.remainder)
         M.remainder = []
         return tokensFlat + [M] + rem
 
+      # A comma is not possible in this context
       elif (remainder[0].type == "COMMA") :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
 
+      # A closing parenthesis is not possible in this context
       elif (remainder[0].type == "BRKT_CLOSE") :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
@@ -811,9 +817,8 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   # List of tokens has 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      if not(quiet) :
-        print("[WARNING] utils.nest(): odd input (single meaningless token)")
-        return ([], [])
+      if not(quiet) : print("[WARNING] utils.nestArg(): odd input (single meaningless token)")
+      return ([], [])
     else :
       return (tokens, [])
   
@@ -832,9 +837,10 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
         return (tokensFlat + [M] + arg, rem)
 
       elif (remainder[0].type == "COMMA") :  
-        if (len(remainder) > 1) :
+        if (len(remainder) >= 2) :
           return (tokensFlat, remainder[1:])
         else :
+          if not(quiet) : print("[WARNING] utils.nestArg(): possible missing argument")
           return (tokensFlat, [])
 
       elif (remainder[0].type == "BRKT_CLOSE") :

@@ -282,7 +282,7 @@ class Macro :
   def _consumeArgs(self, tokens) -> None :
     """
     Consumes all the tokens that are part of the arguments of the function.
-    The rest is stored in 'Macro.remainder' for futher processing.
+    The rest is stored in 'Macro.remainder' for further processing.
     """
     
     nTokens = len(tokens)
@@ -292,12 +292,15 @@ class Macro :
         print("[ERROR] Macro._consumeArgs(): void list of tokens (possible internal error)")
 
     elif (nTokens >= 1) :
-
       if (tokens[0].type == "FUNCTION") :
-        (arg, rem) = utils.nestArg(tokens[2:])
         self.function = tokens[0]
         self.nArgs = nArgsFromFunctionName(self.function.id)
-        self.args.append(arg)
+        
+        buff = tokens[2:]
+        for i in range(self.nArgs) :
+          (arg, rem) = utils.nestArg(buff)
+          self.args.append(arg)
+          buff = rem
         self.remainder = rem
 
       elif (tokens[0].type == "BRKT_OPEN") :
@@ -310,11 +313,6 @@ class Macro :
       else :
         if not(self.QUIET_MODE) :
           print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
-
-
-
- 
-
 
 
 

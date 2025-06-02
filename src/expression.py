@@ -870,7 +870,7 @@ if (__name__ == '__main__') :
   #e = Expression("(a+b)/(((12-z)+tan(x))/z", verbose = True)
   #e = Expression("sin(a+b)+2", verbose = True)
   #e = Expression("(a)(b)", verbose = True)
-  e = Expression("logN(10,2)", verbose = True)
+  e = Expression("logN(10,2)/4", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()
