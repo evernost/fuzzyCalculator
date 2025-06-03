@@ -838,7 +838,9 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
 
       elif (remainder[0].type == "COMMA") :  
         if (len(remainder) >= 2) :
-          return (tokensFlat, remainder[1:])
+          # Note: the comma is included in the remainder so that the number of 
+          # arguments can be checked
+          return (tokensFlat, remainder)
         else :
           if not(quiet) : print("[WARNING] utils.nestArg(): possible missing argument")
           return (tokensFlat, [])

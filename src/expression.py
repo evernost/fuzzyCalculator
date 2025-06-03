@@ -575,7 +575,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._nestBalanceMinus()                            [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _balanceMinus(self) :
+  def _nestBalanceMinus(self) :
     """
     Detects the minus signs used as a shortcut for the 'opposite' function.
     Takes as input a Binary object, edits its stack so that it has full expansion
@@ -594,7 +594,7 @@ class Expression :
     macroleaves.
     """
     
-    self._explicitZeros()   # Add zeros when implicit (rule [7.1])
+    self._nestExplicitZeros()   # Add zeros when implicit (rule [7.1])
     self._minusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
 
@@ -645,7 +645,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._nestMinusAsOpp()                              [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _minusAsOpp(self) :
+  def _nestMinusAsOpp(self) :
     """
     Replaces the minus signs '-' with a Macroleaf expansion with function 'opp'.
     e.g. "2^-4" -> "2^Macro"
@@ -653,7 +653,7 @@ class Expression :
     The function operates on the 'stack' property directly.
 
     It is highly recommended to let the constructor "__init__" do the calling 
-    to "_minusAsOpp" instead of calling it manually.
+    to "_nestMinusAsOpp" instead of calling it manually.
     In particular, it does the processing recursively so that it applies properly
     to all the nested stacks (e.g. in Macroleaves)
     
@@ -870,7 +870,9 @@ if (__name__ == '__main__') :
   #e = Expression("(a+b)/(((12-z)+tan(x))/z", verbose = True)
   #e = Expression("sin(a+b)+2", verbose = True)
   #e = Expression("(a)(b)", verbose = True)
-  e = Expression("logN(10,2)/4", verbose = True)
+  #e = Expression("3+logN(10,2)/4", verbose = True)
+  #e = Expression("3+logN(10, (y-2)+1)/4", verbose = True)
+  e = Expression("1-exp(3x,y)", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

@@ -300,7 +300,11 @@ class Macro :
         for i in range(self.nArgs) :
           (arg, rem) = utils.nestArg(buff)
           self.args.append(arg)
-          buff = rem
+          
+          if (i <= (self.nArgs-2)) and (rem[0].type == "COMMA") :
+            buff = rem
+          else :
+            if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): too many arguments!")
         self.remainder = rem
 
       elif (tokens[0].type == "BRKT_OPEN") :
