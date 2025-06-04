@@ -818,7 +818,7 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
       if not(quiet) : print("[WARNING] utils.nestArg(): odd input (single meaningless token)")
-      return ([], [])
+      return (tokens, [])
     else :
       return (tokens, [])
   
@@ -838,8 +838,8 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
 
       elif (remainder[0].type == "COMMA") :  
         if (len(remainder) >= 2) :
-          # Note: the comma is included in the remainder so that the number of 
-          # arguments can be checked
+          # Note: the comma is included in 'remainder' so that it is
+          # easier to detected if there are too many arguments
           return (tokensFlat, remainder)
         else :
           if not(quiet) : print("[WARNING] utils.nestArg(): possible missing argument")
@@ -852,8 +852,8 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
           return (tokensFlat, [])
 
       else :
-        if not(quiet) :
-          print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+        if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+        return (tokens, [])
 
 
 

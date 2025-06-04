@@ -571,6 +571,9 @@ class Expression :
     self.tokens = utils.nest(self.tokens)
 
 
+    # TODO: return a status to let the user know how the nesting went
+
+
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression._nestBalanceMinus()                            [PRIVATE]
@@ -595,7 +598,7 @@ class Expression :
     """
     
     self._nestExplicitZeros()   # Add zeros when implicit (rule [7.1])
-    self._minusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+    self._nestMinusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
 
   
