@@ -272,24 +272,27 @@ class Macro :
     self.VERBOSE_MODE = verbose
     self.DEBUG_MODE   = debug
 
-    self._consumeArgs(tokens)
+    self.status = self._consumeArgs(tokens)
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Macro._consumeArgs()                                      [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _consumeArgs(self, tokens) -> None :
+  def _consumeArgs(self, tokens) -> bool :
     """
     Consumes all the tokens that are part of the arguments of the function.
     The rest is stored in 'Macro.remainder' for further processing.
+
+    The function returns True if the Macro creation is successful, False
+    otherwise.
     """
     
     nTokens = len(tokens)
 
     if (nTokens == 0) :
-      if not(self.QUIET_MODE) :
-        print("[ERROR] Macro._consumeArgs(): void list of tokens (possible internal error)")
+      if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): void list of tokens (possible internal error)")
+      return False
 
     elif (nTokens >= 1) :
       if (tokens[0].type == "FUNCTION") :
@@ -301,10 +304,17 @@ class Macro :
           (arg, rem) = utils.nestArg(buff)
           self.args.append(arg)
           
-          if (i <= (self.nArgs-2)) and (rem[0].type == "COMMA") :
-            buff = rem
-          else :
-            if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): too many arguments!")
+          if (rem[0].type == "COMMA") :
+            if (self.nArgs >= 2) :
+              if (i != (self.nArgs-1)) :
+                buff = rem  
+              else :
+                if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                return False
+            else :
+              if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' only takes 1 argument.")
+              return False
+
         self.remainder = rem
 
       elif (tokens[0].type == "BRKT_OPEN") :
@@ -315,8 +325,10 @@ class Macro :
         self.remainder = rem
 
       else :
-        if not(self.QUIET_MODE) :
-          print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
+        if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
+        return False
+
+      return True
 
 
 

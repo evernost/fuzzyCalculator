@@ -767,11 +767,11 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   else :
     (tokensFlat, remainder) = consumeAtomic(tokens)
 
-    # List of tokens is flat (no function or parenthesis)
+    # The list of tokens is flat (no function or parenthesis)
     if not(remainder) :
       return tokens
     
-    # List of tokens contains nesting
+    # The list of tokens contains hierarchical elements 
     else :
       
       # A function or an opening parenthesis opens a new context
@@ -791,6 +791,7 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
 
+      # Anything else is not possible in this context
       else :
         if not(quiet) :
           print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")

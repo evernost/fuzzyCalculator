@@ -568,11 +568,11 @@ class Expression :
     See the examples for more information. 
     """
 
+    status = True
+
     self.tokens = utils.nest(self.tokens)
 
-
-    # TODO: return a status to let the user know how the nesting went
-
+    return status
 
 
   # ---------------------------------------------------------------------------
