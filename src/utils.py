@@ -754,12 +754,11 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   if (nTokens == 0) :
     return []
 
-  # List of tokens has 1 element
+  # List of tokens has exactly 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      if not(quiet) :
-        print("[WARNING] utils.nest(): odd input (single meaningless token)")
-        return tokens
+      if not(quiet) : print("[WARNING] utils.nest(): odd input (single meaningless token)")
+      return tokens
     else :
       return tokens
   
@@ -776,9 +775,15 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
       
       # A function or an opening parenthesis opens a new context
       if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        
+        # Create a Macro object with the new context as input
         M = symbols.Macro(remainder)
-        rem = nest(M.remainder)
-        M.remainder = []
+        
+        # Nest what is not part of the macro
+        rem = M.getRemainder()
+        rem = nest(rem)
+        
+        # Return the whole set
         return tokensFlat + [M] + rem
 
       # A comma is not possible in this context

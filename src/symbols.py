@@ -263,6 +263,7 @@ class Macro :
     self.function = None
     self.args = []
     self.nArgs = 0
+    self.remainder = []
 
     # Allows Macro object to be treated as a Token
     self.type = "MACRO"
@@ -298,16 +299,18 @@ class Macro :
       if (tokens[0].type == "FUNCTION") :
         self.function = tokens[0]
         self.nArgs = nArgsFromFunctionName(self.function.id)
-        
         buff = tokens[2:]
+
+        # Parse the arguments
         for i in range(self.nArgs) :
           (arg, rem) = utils.nestArg(buff)
           self.args.append(arg)
           
+          # Is there a new argument?
           if (rem[0].type == "COMMA") :
             if (self.nArgs >= 2) :
               if (i != (self.nArgs-1)) :
-                buff = rem  
+                buff = rem[1:]
               else :
                 if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
                 return False
@@ -330,6 +333,22 @@ class Macro :
 
       return True
 
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macro.getRemainder()                                      [PRIVATE]
+  # ---------------------------------------------------------------------------
+  def getRemainder(self) :
+    """
+    Returns the remainder i.e. all tokens that are not part of the macro.
+    'Macro.remainder' is cleared after the call.
+    """
+    
+    rem = self.remainder
+    self.remainder = []
+    
+    return rem
+    
 
 
 # -----------------------------------------------------------------------------
