@@ -548,10 +548,10 @@ class Expression :
   def nest(self) :
     """
     The nesting operation consists in isolating expressions between round
-    brackets - '(' and ')' - and assigning them to their own Token object.
+    brackets - '(' and ')' - and assigning them to a Token object.
 
     In that case, since the Token contains an expression, it becomes a Macro
-    object, which is a sort of "super-Token".
+    object (a sort of "super-Token")
 
     After this function call, the list of Tokens becomes a recursive structure 
     that makes the next operations much easier.
@@ -572,6 +572,7 @@ class Expression :
 
     self.tokens = utils.nest(self.tokens)
 
+    # TODO: update 'status' variable from the 'nest' operation
     return status
 
 
@@ -874,8 +875,9 @@ if (__name__ == '__main__') :
   #e = Expression("sin(a+b)+2", verbose = True)
   #e = Expression("(a)(b)", verbose = True)
   #e = Expression("3+logN(10,2)/4", verbose = True)
-  e = Expression("3+logN(10, (y-2)+1)/4", verbose = True)
+  #e = Expression("3+logN(10, (y-2)+1)/4", verbose = True)
   #e = Expression("1-exp(3x,y)", verbose = True)
+  e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

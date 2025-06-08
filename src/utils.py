@@ -788,18 +788,18 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
 
       # A comma is not possible in this context
       elif (remainder[0].type == "COMMA") :
-        if not(quiet) :
-          print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+        if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+        return []
 
       # A closing parenthesis is not possible in this context
       elif (remainder[0].type == "BRKT_CLOSE") :
-        if not(quiet) :
-          print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
+        if not(quiet) : print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
+        return []
 
       # Anything else is not possible in this context
       else :
-        if not(quiet) :
-          print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+        if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+        return []
 
 
 
@@ -808,10 +808,16 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
 # -----------------------------------------------------------------------------
 def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   """
-  Weaker version of nest() specific to arguments processing (function or
-  content of a parenthesis)
+  Weaker version of nest() specific to arguments processing: 
+  - function content
+  - round parenthesis content
   
-  Unlike 'nest()', this function halts on ',' and ')' and returns the remainder.
+  Like 'nest()' the function returns a nested list of tokens. 
+  
+  Unlike 'nest()', it halts on ',' and ')' and returns the remainder.
+  Therefore, the return objects are:
+  - the nested list of tokens
+  - the remainder
   """
   
   nTokens = len(tokens)
@@ -837,9 +843,15 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
 
     else :
       if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+        
+        # Create a Macro object with the new context as input
         M = symbols.Macro(remainder)
-        (arg, rem) = nestArg(M.remainder)
-        M.remainder = []
+        
+        # Nest what is not part of the macro
+        # TODO: not sure 'nestArg' must be called here
+        rem = M.getRemainder()
+        (arg, rem) = nestArg(rem)
+        
         return (tokensFlat + [M] + arg, rem)
 
       elif (remainder[0].type == "COMMA") :  
