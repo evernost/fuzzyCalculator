@@ -545,7 +545,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression.nest()
   # ---------------------------------------------------------------------------
-  def nest(self) :
+  def nest(self) -> bool :
     """
     The nesting operation consists in isolating expressions between round
     brackets - '(' and ')' - and assigning them to a Token object.
@@ -577,72 +577,31 @@ class Expression :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Expression._nestBalanceMinus()                            [PRIVATE]
+  # METHOD: Expression.balance()                                      [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _nestBalanceMinus(self) :
+  def balance(self) :
     """
     Detects the minus signs used as a shortcut for the 'opposite' function.
-    Takes as input a Binary object, edits its stack so that it has full expansion
-    of the 'minus' infix operators.
-    
-    Returns: None.
-    
+    Takes as input nested list of tokens and returns another list such that it
+    has a full expansion of the 'minus' infix operators.
+        
     The balancing is done by two means:
     - explicit the hidden '0' to balance the infix '-' operator
     - replace the infix operator and its operand with a macroleaf calling the 'opp'
       function.
 
-    Please refer to rules [R7.X] in <parser.py>
+    Please refer to rules [R7.X] in 'doc/parsingRules.md'
 
     The process is done recursively on the Binary objects embedded inside 
     macroleaves.
     """
     
-    self._nestExplicitZeros()   # Add zeros when implicit (rule [7.1])
-    self._nestMinusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+    # self._balanceExplicitZeros()   # Add zeros when implicit (rule [7.1])
+    # self._balanceMinusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
-
+    self.tokens = utils.explicitZeros(self.tokens)
+    #self.tokens = utils.minusAsOpp(self.tokens)
   
-  # ---------------------------------------------------------------------------
-  # METHOD: Expression._nestExplicitZeros()                           [PRIVATE]
-  # ---------------------------------------------------------------------------
-  def _nestExplicitZeros(self) :
-    """
-    Adds a "0" Token to the stack every time the minus sign "-" 
-    is meant as the 'opposite' function in the beginning of an expression 
-    e.g. "-2+3x" -> "0-2+3x"
-
-    The function operates on the "stack" property directly.
-
-    Cases like "2^-4" are treated in "_minusAsOpp".
-
-    It is highly recommended to let the constructor "__init__" do the calling 
-    to "_explicitZeros" instead of calling it manually.
-    In particular, it does the processing recursively so that it applies properly
-    to all the nested stacks (e.g. in Macroleaves)
-    
-    See "_balanceMinus" for more information.
-    """
-    
-    nNodes = len(self.stack)
-    
-    # Detect a "-..." pattern.
-    # STEP 1: detect the pattern in the stack
-    
-    # Using the "-" in the context of rule [7.1] requires at least 2 elements.
-    # Example: "-x"
-    if (nNodes >= 2) : 
-      if (self.stack[0].type == "INFIX") :
-        if (self.stack[0].name == "-") :
-          self.stack = [symbols.Token("0")] + self.stack
-          # print("[DEBUG] Binary._explicitZeros(): added an implicit zero.")
-
-    # STEP 2: detect the pattern recursively in the macroleaves
-    # for node in self.stack :
-    #   if (node.type == "MACRO") :
-    #     node._explicitZeros()
-
-    # return None
 
 
 
@@ -881,5 +840,6 @@ if (__name__ == '__main__') :
   e.syntaxCheck()
   e.tokenise()
   e.nest()
+  e.balance()
 
   print("[INFO] End of unit tests.")

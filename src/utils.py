@@ -22,7 +22,7 @@
 
 
 # =============================================================================
-# External libs
+# EXTERNALS
 # =============================================================================
 import src.symbols as symbols
 
@@ -875,6 +875,33 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
 
 
 
+
+# ---------------------------------------------------------------------------
+# FUNCTION: explicitZeros()
+# ---------------------------------------------------------------------------
+def explicitZeros(tokens) :
+  """
+  Adds a '0' Token to the stack every time the minus sign '-' 
+  is meant as the 'opposite' function in the beginning of an expression 
+  e.g. "-2+3x" -> "0-2+3x"
+
+  The function operates on the "stack" property directly.
+
+  Cases like "2^-4" are treated in "_minusAsOpp".
+  """
+  
+  nTokens = len(tokens)
+  
+  # Detect a "-..." pattern.  
+  # Using the "-" in the context of rule [7.1] requires at least 2 elements.
+  # Example: "-x"
+  if (nTokens >= 2) : 
+    if (tokens[0].type == "INFIX") :
+      if (tokens[0].name == "-") :
+        tokens = [symbols.Token("0")] + tokens
+
+
+
 # -----------------------------------------------------------------------------
 # FUNCTION: isLegalVariableName()
 # -----------------------------------------------------------------------------
@@ -943,7 +970,7 @@ def showInStr(s: str, loc) -> None :
 
 
 # =============================================================================
-# Main (unit tests)
+# UNIT TESTS
 # =============================================================================
 if (__name__ == '__main__') :
   

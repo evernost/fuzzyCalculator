@@ -12,14 +12,7 @@
 # =============================================================================
 
 # =============================================================================
-# Description
-# =============================================================================
-# TODO
-
-
-
-# =============================================================================
-# External libs
+# EXTERNALS
 # =============================================================================
 import src.utils as utils
 
@@ -214,27 +207,6 @@ class Token :
 
 
 
-  # ---------------------------------------------------------------------------
-  # METHOD: Token.__setattr__ (generic attribute setter)
-  # ---------------------------------------------------------------------------
-  # def __setattr__(self, attrName, attrValue):
-  #   """
-  #   Function is called every time an attribute is set.
-  #   For the "number" Token, assigning 'value' automatically changes its name.
-  #   """
-    
-  #   if (attrName == "value") :
-  #     if (self.type == "NUMBER") :
-  #       super().__setattr__("value", attrValue)
-  #       super().__setattr__("name", str(attrValue))
-  #       super().__setattr__("dispStr", f"NUM:'{attrValue}'")
-  #     else :
-  #       super().__setattr__(attrName, attrValue)
-
-  #   else :
-  #     super().__setattr__(attrName, attrValue)
-
-
 
 # =============================================================================
 # CLASS DEFINITION - MACRO
@@ -289,6 +261,8 @@ class Macro :
     otherwise.
     """
     
+    # STEP 1: process and nest the arguments
+
     nTokens = len(tokens)
 
     if (nTokens == 0) :
@@ -331,17 +305,22 @@ class Macro :
         if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
         return False
 
+
+      # STEP 2: process and nest the arguments
+      for arg in self.args :
+        arg = utils.explicitZeros(arg)
+
       return True
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macro.getRemainder()                                      [PRIVATE]
+  # METHOD: Macro.getRemainder()
   # ---------------------------------------------------------------------------
   def getRemainder(self) :
     """
     Returns the remainder i.e. all tokens that are not part of the macro.
-    'Macro.remainder' is cleared after the call.
+    'Macro.remainder' is cleared after the call (remainder is used only once)
     """
     
     rem = self.remainder
@@ -416,6 +395,7 @@ if (__name__ == '__main__') :
   print("[INFO] Library called as main: running unit tests...")
   
   assert(Token("pi"     , quiet=True).type == "CONSTANT")
+  assert(Token("0"      , quiet=True).type == "NUMBER")
   assert(Token(".1"     , quiet=True).type == "NUMBER")
   assert(Token("2.0"    , quiet=True).type == "NUMBER")
   assert(Token("0395"   , quiet=True).type == "NUMBER")
