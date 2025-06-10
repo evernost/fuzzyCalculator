@@ -897,8 +897,10 @@ def explicitZeros(tokens) :
   # Example: "-x"
   if (nTokens >= 2) : 
     if (tokens[0].type == "INFIX") :
-      if (tokens[0].name == "-") :
+      if (tokens[0].id == "-") :
         tokens = [symbols.Token("0")] + tokens
+
+  return tokens
 
 
 

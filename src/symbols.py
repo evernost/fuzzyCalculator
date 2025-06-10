@@ -281,16 +281,17 @@ class Macro :
           self.args.append(arg)
           
           # Is there a new argument?
-          if (rem[0].type == "COMMA") :
-            if (self.nArgs >= 2) :
-              if (i != (self.nArgs-1)) :
-                buff = rem[1:]
+          if rem :
+            if (rem[0].type == "COMMA") :
+              if (self.nArgs >= 2) :
+                if (i != (self.nArgs-1)) :
+                  buff = rem[1:]
+                else :
+                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                  return False
               else :
-                if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' only takes 1 argument.")
                 return False
-            else :
-              if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' only takes 1 argument.")
-              return False
 
         self.remainder = rem
 
