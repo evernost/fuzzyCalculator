@@ -875,19 +875,122 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
 
 
 
-
 # ---------------------------------------------------------------------------
 # FUNCTION: explicitZeros()
 # ---------------------------------------------------------------------------
 def explicitZeros(tokens) :
   """
-  Adds a '0' Token to the stack every time the minus sign '-' 
-  is meant as the 'opposite' function in the beginning of an expression 
-  e.g. "-2+3x" -> "0-2+3x"
+  This function is part of the 'balancing' operation.
+  
+  Adds a '0' Token to the list of tokens every time the minus sign '-' 
+  is meant as the 'opposite' function.
+  
+  This variant of the function adds the implicit zeros when they appear 
+  in a mixed priority context i.e. where it combines operators with different
+  precedence as '-'.
+  Example: "2^-4+3" -> "2^Macro+3"
+  """
+  
+  nTokens = len(tokens)
+  
+  # Using the "-" in the context of rule [7.2]/[7.3] requires at least 4 elements
+  # Example: "2^-4"
+  if (nTokens >= 4) :
+    newStack = []
+    
+    n = 0
+    while (n <= (nTokens-2)) :
+      eltA = tokens[n]; eltB = tokens[n+1]
 
-  The function operates on the "stack" property directly.
+      # ---------------------------
+      # Detect the "^-" combination
+      # ---------------------------
+      if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
+        if ((eltA.name == "^") and (eltB.name == "-")) :
+          
+          # Guard
+          if ((n+2) > (nTokens-1)) :
+            print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
+            exit()
+          
+          M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
+          newStack.append(eltA)
+          newStack.append(M)
+          n += 3
+          print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
 
-  Cases like "2^-4" are treated in "_minusAsOpp".
+      # ------------------------------------------------
+      # Detect any other combination of an infix and "-"
+      # ------------------------------------------------
+      elif ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
+        if (eltB.type == "-") :
+          print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
+
+          # Guard
+          if ((n+2) > (nTokens-1)) :
+            print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
+            exit()
+
+          M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
+          newStack.append(eltA)
+          newStack.append(M)
+          n += 3
+          print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
+
+        else :
+          print("[ERROR] Invalid combination of infixes; it should have been caught before calling 'Binary._minusAsOpp()'")
+          exit()
+
+      # ---------------
+      # Last 2 elements
+      # ---------------
+      elif (n == (nTokens-2)) :
+        newStack.append(eltA)
+        newStack.append(eltB)
+        n += 1
+
+      # ------------------------
+      # Nothing special detected
+      # ------------------------
+      else :
+        newStack.append(eltA)
+        n += 1
+
+    tokens = newStack
+
+  # Less than 4 elements
+  # There is nothing to be expanded in the stack.
+  else :
+    pass
+    # for elt in self.stack :
+      # if (elt.type == "MACRO") :
+        # elt._minusAsOpp()
+    
+  return None
+
+
+
+# ---------------------------------------------------------------------------
+# FUNCTION: explicitZerosWeak()
+# ---------------------------------------------------------------------------
+def explicitZerosWeak(tokens) :
+  """
+  This function is part of the 'balancing' operation.
+  
+  Adds a '0' Token to the list of tokens every time the minus sign '-' 
+  is meant as the 'opposite' function.
+  
+  This variant of the function adds the implicit zeros when they appear 
+  in a low priority context (like additions) i.e. where all operators have
+  the same precedence as '-'.
+  Example: "-2+3x" -> "0-2+3x"
+
+  Incidentally, the only possible location for the '0' token is at the
+  beginning of an expression/context.
+
+  All the other cases (like "2^-4") are more complex because they need to 
+  isolate the context and create a Macro. 
+  For that case, use the function 'explicitZeros' instead.
   """
   
   nTokens = len(tokens)

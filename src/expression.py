@@ -581,11 +581,11 @@ class Expression :
   # ---------------------------------------------------------------------------
   def balance(self) :
     """
-    Detects the minus signs used as a shortcut for the 'opposite' function.
+    Balances the minus signs used as a shortcut for the 'opposite' function.
     Takes as input nested list of tokens and returns another list such that it
     has a full expansion of the 'minus' infix operators.
         
-    The balancing is done by two means:
+    The balancing consists in 2 operations:
     - explicit the hidden '0' to balance the infix '-' operator
     - replace the infix operator and its operand with a macroleaf calling the 'opp'
       function.
@@ -599,106 +599,9 @@ class Expression :
     # self._balanceExplicitZeros()   # Add zeros when implicit (rule [7.1])
     # self._balanceMinusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
+    self.tokens = utils.explicitZerosWeak(self.tokens)
     self.tokens = utils.explicitZeros(self.tokens)
-    #self.tokens = utils.minusAsOpp(self.tokens)
   
-
-
-
-  # ---------------------------------------------------------------------------
-  # METHOD: Expression._nestMinusAsOpp()                              [PRIVATE]
-  # ---------------------------------------------------------------------------
-  def _nestMinusAsOpp(self) :
-    """
-    Replaces the minus signs '-' with a Macroleaf expansion with function 'opp'.
-    e.g. "2^-4" -> "2^Macro"
-    
-    The function operates on the 'stack' property directly.
-
-    It is highly recommended to let the constructor "__init__" do the calling 
-    to "_nestMinusAsOpp" instead of calling it manually.
-    In particular, it does the processing recursively so that it applies properly
-    to all the nested stacks (e.g. in Macroleaves)
-    
-    See "_balanceMinus" for more information.
-    """
-    
-    nElements = len(self.stack)
-    
-    # Using the "-" in the context of rule [7.2]/[7.3] requires at least 4 elements
-    # Example: "2^-4"
-    if (nElements >= 4) :
-      newStack = []
-      
-      n = 0
-      while (n <= (nElements-2)) :
-        eltA = self.stack[n]; eltB = self.stack[n+1]
-
-        # ---------------------------
-        # Detect the "^-" combination
-        # ---------------------------
-        if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
-          if ((eltA.name == "^") and (eltB.name == "-")) :
-            
-            # Guard
-            if ((n+2) > (nElements-1)) :
-              print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
-              exit()
-            
-            M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
-            newStack.append(eltA)
-            newStack.append(M)
-            n += 3
-            print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
-
-        # ------------------------------------------------
-        # Detect any other combination of an infix and "-"
-        # ------------------------------------------------
-        elif ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
-          if (eltB.type == "-") :
-            print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
-
-            # Guard
-            if ((n+2) > (nElements-1)) :
-              print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
-              exit()
-
-            M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
-            newStack.append(eltA)
-            newStack.append(M)
-            n += 3
-            print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
-
-          else :
-            print("[ERROR] Invalid combination of infixes; it should have been caught before calling 'Binary._minusAsOpp()'")
-            exit()
-
-        # ---------------
-        # Last 2 elements
-        # ---------------
-        elif (n == (nElements-2)) :
-          newStack.append(eltA)
-          newStack.append(eltB)
-          n += 1
-
-        # ------------------------
-        # Nothing special detected
-        # ------------------------
-        else :
-          newStack.append(eltA)
-          n += 1
-
-      self.stack = newStack
-
-    # Less than 4 elements
-    # There is nothing to be expanded in the stack.
-    else :
-      pass
-      # for elt in self.stack :
-        # if (elt.type == "MACRO") :
-          # elt._minusAsOpp()
-      
-    return None
 
 
 
