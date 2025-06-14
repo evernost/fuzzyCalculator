@@ -730,7 +730,7 @@ def consumeAtomic(tokens) :
       if (tokens[i].type in ["BRKT_OPEN", "BRKT_CLOSE", "FUNCTION", "COMMA"]) :
         return (tokens[0:i], tokens[i:])
 
-      elif (tokens[i].type in ["CONSTANT", "VARIABLE", "NUMBER", "INFIX"]) :
+      elif (tokens[i].type in ["CONSTANT", "VARIABLE", "NUMBER", "INFIX", "MACRO"]) :
         if (i == (nTokens-1)) :
           return (tokens, [])
 
@@ -896,7 +896,7 @@ def explicitZeros(tokens) :
   # Using the "-" in the context of rule [7.2]/[7.3] requires at least 4 elements
   # Example: "2^-4"
   if (nTokens >= 4) :
-    newStack = []
+    output = []
     
     n = 0
     while (n <= (nTokens-2)) :
@@ -906,16 +906,17 @@ def explicitZeros(tokens) :
       # Detect the "^-" combination
       # ---------------------------
       if ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
-        if ((eltA.name == "^") and (eltB.name == "-")) :
+        if ((eltA.id == "^") and (eltB.id == "-")) :
           
           # Guard
           if ((n+2) > (nTokens-1)) :
-            print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
+            print("[ERROR] Premature end; it should have been caught before the balancing operation.")
             exit()
           
-          M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
-          newStack.append(eltA)
-          newStack.append(M)
+          #M = macroleaf.Macroleaf(function = "opp", tokenList = [tokens[n+2]])
+          M = symbols.Macro([symbols.Token("opp"), symbols.Token("(")] + tokens[(n+2):])
+          output.append(eltA)
+          output.append(M)
           n += 3
           print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
 
@@ -923,7 +924,7 @@ def explicitZeros(tokens) :
       # Detect any other combination of an infix and "-"
       # ------------------------------------------------
       elif ((eltA.type == "INFIX") and (eltB.type == "INFIX")) :
-        if (eltB.type == "-") :
+        if (eltB.id == "-") :
           print("[WARNING] Odd use of '-' with implicit 0. Cross check the result or use parenthesis.")
 
           # Guard
@@ -931,9 +932,9 @@ def explicitZeros(tokens) :
             print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
             exit()
 
-          M = macroleaf.Macroleaf(function = "opp", tokenList = [self.stack[n+2]])
-          newStack.append(eltA)
-          newStack.append(M)
+          M = macroleaf.Macroleaf(function = "opp", tokenList = [tokens[n+2]])
+          output.append(eltA)
+          output.append(M)
           n += 3
           print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
 
@@ -945,29 +946,28 @@ def explicitZeros(tokens) :
       # Last 2 elements
       # ---------------
       elif (n == (nTokens-2)) :
-        newStack.append(eltA)
-        newStack.append(eltB)
+        output.append(eltA)
+        output.append(eltB)
         n += 1
 
       # ------------------------
       # Nothing special detected
       # ------------------------
       else :
-        newStack.append(eltA)
+        output.append(eltA)
         n += 1
 
-    tokens = newStack
+    return output
 
   # Less than 4 elements
-  # There is nothing to be expanded in the stack.
+  # There is nothing to be expanded.
+  # TODO: maybe recursively?
   else :
-    pass
+    return tokens
     # for elt in self.stack :
       # if (elt.type == "MACRO") :
         # elt._minusAsOpp()
     
-  return None
-
 
 
 # ---------------------------------------------------------------------------

@@ -219,9 +219,18 @@ class Macro :
   A Macro object is 'super-Token' that abstracts content between round brackets
   or function calls.
 
-  The constructor takes a list of Token objects as input. 
-  It consumes all the tokens that fit into the macro expression, the rest is
-  left aside in the 'Macro.remainder' attribute for further processing.
+  The constructor takes as input the list of Tokens where the Macro has to 
+  start (the function token for a function, the opening parenthesis token for 
+  an expression within parenthesis)
+  All the tokens that fit into the macro expression will be consumed, the rest 
+  is left aside in 'Macro.remainder' attribute for further processing (e.g. when 
+  the parenthesis closes)
+
+  For functions, all the arguments will be extracted and stored in a list
+  of arguments.
+
+  Macro generation is recursive: nested functions will create Macro containing
+  another Macro etc.
 
   Options: 
   - quiet mode  : turns off all outputs (even errors)
@@ -238,6 +247,7 @@ class Macro :
     self.remainder = []
 
     # Allows Macro object to be treated as a Token
+    # TODO: make the Macro class inherit from the Token class?
     self.type = "MACRO"
 
     # Options
