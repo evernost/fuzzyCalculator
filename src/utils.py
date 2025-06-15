@@ -910,15 +910,14 @@ def explicitZeros(tokens) :
           
           # Guard
           if ((n+2) > (nTokens-1)) :
-            print("[ERROR] Premature end; it should have been caught before the balancing operation.")
+            print("[ERROR] utils.explicitZeros(): premature end; it should have been caught before the balancing operation.")
             exit()
           
-          #M = macroleaf.Macroleaf(function = "opp", tokenList = [tokens[n+2]])
-          M = symbols.Macro([symbols.Token("opp"), symbols.Token("(")] + tokens[(n+2):])
+          M = symbols.Macro([symbols.Token("opp"), symbols.Token("("), tokens[(n+2)]])
           output.append(eltA)
           output.append(M)
           n += 3
-          print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
+          print("[DEBUG] utils.explicitZeros(): added a Token because of implicit call to 'opp'.")
 
       # ------------------------------------------------
       # Detect any other combination of an infix and "-"
@@ -929,17 +928,18 @@ def explicitZeros(tokens) :
 
           # Guard
           if ((n+2) > (nTokens-1)) :
-            print("[ERROR] Premature end; it should have been caught before calling 'Binary._minusAsOpp()'")
+            print("[ERROR] Premature end; it should have been caught before calling 'utils.explicitZeros()'")
             exit()
 
-          M = macroleaf.Macroleaf(function = "opp", tokenList = [tokens[n+2]])
+          M = symbols.Macro([symbols.Token("opp"), symbols.Token("("), tokens[(n+2)]])
+          #M = macroleaf.Macroleaf(function = "opp", tokenList = [tokens[n+2]])
           output.append(eltA)
           output.append(M)
           n += 3
-          print("[DEBUG] Binary._minusAsOpp(): added a Token because of implicit call to 'opp'.")
+          print("[DEBUG] utils.explicitZeros(): added a Token because of implicit call to 'opp'.")
 
         else :
-          print("[ERROR] Invalid combination of infixes; it should have been caught before calling 'Binary._minusAsOpp()'")
+          print("[ERROR] Invalid combination of infixes; it should have been caught before calling 'utils.explicitZeros()'")
           exit()
 
       # ---------------

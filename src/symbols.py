@@ -272,7 +272,6 @@ class Macro :
     """
     
     # STEP 1: process and nest the arguments
-
     nTokens = len(tokens)
 
     if (nTokens == 0) :
@@ -317,9 +316,9 @@ class Macro :
         return False
 
 
-      # STEP 2: process and nest the arguments
+      # STEP 2: explicit the zeros in the 'opposite' operation
       for arg in self.args :
-        arg = utils.explicitZeros(arg)
+        arg = utils.explicitZerosWeak(arg)
 
       return True
 

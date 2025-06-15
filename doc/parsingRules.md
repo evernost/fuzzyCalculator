@@ -172,7 +172,7 @@ Also, be careful when defining the priority of your new operator (see rules [R7.
 
 ## [R7] Omitted operators
 The infix operator `-` (minus sign) is the only operator that allows an implicit left operand.
-In other words, expressions like `(-3x+...` are accepted.
+This is super common, e.g. in expressions like `(-3x+...`.
 
 There are not many cases where the implicit left operand is common and/or makes sense.
 It is mostly used:

@@ -596,13 +596,9 @@ class Expression :
     macroleaves.
     """
     
-    # self._balanceExplicitZeros()   # Add zeros when implicit (rule [7.1])
-    # self._balanceMinusAsOpp()      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+    self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros when implicit (rule [7.1])
+    self.tokens = utils.explicitZeros(self.tokens)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
-    self.tokens = utils.explicitZerosWeak(self.tokens)
-    self.tokens = utils.explicitZeros(self.tokens)
-  
-
 
 
   # # ---------------------------------------------------------------------------
