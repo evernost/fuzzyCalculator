@@ -12,23 +12,15 @@
 # =============================================================================
 
 # =============================================================================
-# Description
+# EXTERNALS
 # =============================================================================
-# TODO
-
-
-
-# =============================================================================
-# External libs
-# =============================================================================
-import src.macro as macro
 import src.symbols as symbols
 import src.utils as utils
 
 
 
 # =============================================================================
-# Class definition
+# CLASS DEFINITION
 # =============================================================================
 class Expression : 
   
@@ -737,7 +729,7 @@ if (__name__ == '__main__') :
   #e = Expression("1-exp(3x,y)", verbose = True)
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   #e = Expression("-3exp(-9t)", verbose = True)
-  e = Expression("2^-3exp(-9t)", verbose = True)
+  e = Expression("2^-3exp(2^-9t)", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.nest()

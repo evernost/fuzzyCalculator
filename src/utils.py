@@ -764,6 +764,8 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   
   # List of tokens has 2 elements or more
   else :
+    
+    # Consume anything that does not require a macro
     (tokensFlat, remainder) = consumeAtomic(tokens)
 
     # The list of tokens is flat (no function or parenthesis)
@@ -779,12 +781,12 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
         # Create a Macro object with the new context as input
         M = symbols.Macro(remainder)
         
-        # Nest what is not part of the macro
+        # Nest whatever the macro did not consume (recursive call)
         rem = M.getRemainder()
-        rem = nest(rem)
+        remNested = nest(rem)
         
         # Return the whole set
-        return tokensFlat + [M] + rem
+        return tokensFlat + [M] + remNested
 
       # A comma is not possible in this context
       elif (remainder[0].type == "COMMA") :
@@ -818,6 +820,9 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   Therefore, the return objects are:
   - the nested list of tokens
   - the remainder
+
+  'nest()' consumes all the tokens, hence it does not return a remainder.
+  'nestArg()' must stop when the argument processing is done.
   """
   
   nTokens = len(tokens)
