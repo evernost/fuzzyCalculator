@@ -46,7 +46,13 @@ class Expression :
     # Populated after calling "tokenise()"
     self.tokens = []
     self.variables = []
-    
+
+    # Status of the compile operations (PASS/FAIL)    
+    self.statusSyntaxCheck = False
+    self.statusTokenise = False
+    self.statusBalance = False
+    self.statusNest = False
+
     # Options
     self.QUIET_MODE = quiet
     self.VERBOSE_MODE = verbose
@@ -265,6 +271,10 @@ class Expression :
 
     Returns True if the operation is successful, False otherwise.
     """
+
+    if not(self.statusSyntaxCheck) :
+      if not(self.QUIET_MODE) : print("[WARNING] Tokenise() skipped due to previous errors.")
+      return False
 
     status = True
 
@@ -535,6 +545,31 @@ class Expression :
 
 
   # ---------------------------------------------------------------------------
+  # METHOD: Expression.balance()                                      [PRIVATE]
+  # ---------------------------------------------------------------------------
+  def balance(self) :
+    """
+    Balances the minus signs used as a shortcut for the 'opposite' function.
+    Takes as input nested list of tokens and returns another list such that it
+    has a full expansion of the 'minus' infix operators.
+        
+    The balancing consists in 2 operations:
+    - explicit the hidden '0' to balance the infix '-' operator
+    - replace the infix operator and its operand with a macroleaf calling the 'opp'
+      function.
+
+    Please refer to rules [R7.X] in 'doc/parsingRules.md'
+
+    The process is done recursively on the Binary objects embedded inside 
+    macroleaves.
+    """
+    
+    self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros when implicit (rule [7.1])
+    self.tokens = utils.explicitZeros(self.tokens)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+  
+
+
+  # ---------------------------------------------------------------------------
   # METHOD: Expression.nest()
   # ---------------------------------------------------------------------------
   def nest(self) -> bool :
@@ -560,37 +595,30 @@ class Expression :
     See the examples for more information. 
     """
 
-    status = True
-
     self.tokens = utils.nest(self.tokens)
+    status = self._nestCheck()
 
-    # TODO: update 'status' variable from the 'nest' operation
     return status
 
 
-  # ---------------------------------------------------------------------------
-  # METHOD: Expression.balance()                                      [PRIVATE]
-  # ---------------------------------------------------------------------------
-  def balance(self) :
-    """
-    Balances the minus signs used as a shortcut for the 'opposite' function.
-    Takes as input nested list of tokens and returns another list such that it
-    has a full expansion of the 'minus' infix operators.
-        
-    The balancing consists in 2 operations:
-    - explicit the hidden '0' to balance the infix '-' operator
-    - replace the infix operator and its operand with a macroleaf calling the 'opp'
-      function.
 
-    Please refer to rules [R7.X] in 'doc/parsingRules.md'
-
-    The process is done recursively on the Binary objects embedded inside 
-    macroleaves.
+  # ---------------------------------------------------------------------------
+  # METHOD: Expression._nestCheck()
+  # ---------------------------------------------------------------------------
+  def _nestCheck(self) -> bool :
     """
+    Checks the outcome of the 'Expression.nest()' operation.
     
-    self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros when implicit (rule [7.1])
-    self.tokens = utils.explicitZeros(self.tokens)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
-  
+    After nesting, the list of tokens should look like 'L op L op ... op L'
+    where 'L' is a leaf (number, variable, constant, macro) and 'op' is an 
+    infix operator.
+    """
+
+    if ((len(self.tokens) % 2) == 0) :
+      print("[DEBUG] Nesting returned an even number of tokens. Something wrong might have happened.")
+
+    return True
+
 
 
   # # ---------------------------------------------------------------------------
@@ -725,14 +753,16 @@ if (__name__ == '__main__') :
   #e = Expression("sin(a+b)+2", verbose = True)
   #e = Expression("(a)(b)", verbose = True)
   #e = Expression("3+logN(10,2)/4", verbose = True)
-  #e = Expression("3+logN(10, (y-2)+1)/4", verbose = True)
+  #e = Expression("3+logN(10, exp(y-2)+1)/4", verbose = True)
   #e = Expression("1-exp(3x,y)", verbose = True)
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   #e = Expression("-3exp(-9t)", verbose = True)
-  e = Expression("2^-3exp(2^-9t)", verbose = True)
+  #e = Expression("2^-3exp(7^-9t)", verbose = True)
+  e = Expression("1+2*3^'", verbose = True)
   e.syntaxCheck()
   e.tokenise()
-  e.nest()
   e.balance()
+  e.nest()
+  
 
   print("[INFO] End of unit tests.")

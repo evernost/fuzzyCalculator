@@ -883,7 +883,7 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
 # ---------------------------------------------------------------------------
 # FUNCTION: explicitZeros()
 # ---------------------------------------------------------------------------
-def explicitZeros(tokens) :
+def explicitZeros(tokens, quiet = False, verbose = False, debug = False) :
   """
   This function is part of the 'balancing' operation.
   
@@ -922,7 +922,7 @@ def explicitZeros(tokens) :
           output.append(eltA)
           output.append(M)
           n += 3
-          print("[DEBUG] utils.explicitZeros(): added a Token because of implicit call to 'opp'.")
+          if debug : print("[DEBUG] utils.explicitZeros(): added a Token because of implicit call to 'opp'.")
 
       # ------------------------------------------------
       # Detect any other combination of an infix and "-"
