@@ -48,10 +48,11 @@ class Expression :
     self.variables = []
 
     # Status of the compile operations (PASS/FAIL)    
-    self.statusSyntaxCheck = False
-    self.statusTokenise = False
-    self.statusBalance = False
-    self.statusNest = False
+    self.statusSyntaxCheck  = False
+    self.statusTokenise     = False
+    self.statusBalance      = False
+    self.statusNest         = False
+    self.statusStage        = False
 
     # Options
     self.QUIET_MODE = quiet
@@ -71,31 +72,31 @@ class Expression :
     Returns True when the check passes, False if errors were found.
     """
     
-    status = True
+    self.statusSyntaxCheck = True
 
     if not(self._validCharCheck()) :
       if not(self.QUIET_MODE) :
         print("[ERROR] Expression check: input contains invalid chars.")
-      status = False
+      self.statusSyntaxCheck = False
       
     if not(self._bracketBalanceCheck()) :
       if not(self.QUIET_MODE) :
         print("[ERROR] Expression check: invalid bracket balance.")
-      status = False
+      self.statusSyntaxCheck = False
       
     if not(self._firstOrderCheck()) :
       if not(self.QUIET_MODE) :
         print("[ERROR] Expression check: invalid character sequence.")
-      status = False
+      self.statusSyntaxCheck = False
 
     if not(self.QUIET_MODE) :
-      if status :
+      if self.statusSyntaxCheck :
         if self.VERBOSE_MODE :
           print("[INFO] Syntax check: SUCCESS")
       else :
         print("[ERROR] Syntax check: FAILED")
-
-    return status
+ 
+    return self.statusSyntaxCheck
 
 
 
@@ -271,12 +272,13 @@ class Expression :
 
     Returns True if the operation is successful, False otherwise.
     """
+    
+    self.statusTokenise = True
 
     if not(self.statusSyntaxCheck) :
-      if not(self.QUIET_MODE) : print("[WARNING] Tokenise() skipped due to previous errors.")
-      return False
-
-    status = True
+      if not(self.QUIET_MODE) : print("[WARNING] Expression.tokenise() skipped due to previous errors.")
+      self.statusTokenise = False
+      return self.statusTokenise
 
     buffer = self.input
     self.tokens = []
@@ -338,7 +340,7 @@ class Expression :
         else :
           if not(self.QUIET_MODE) :
             print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
-          status = False
+          self.statusTokenise = False
 
 
     # Explicit the hidden multiplications
@@ -351,12 +353,12 @@ class Expression :
     self._tokeniseSyntaxCheck()
 
     if self.VERBOSE_MODE :
-      if status :
+      if self.statusTokenise :
         print("[INFO] Tokenise: SUCCESS")
       else :
         print("[ERROR] Tokenise: FAILED")
 
-    return status
+    return self.statusTokenise
 
 
 
@@ -545,9 +547,9 @@ class Expression :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Expression.balance()                                      [PRIVATE]
+  # METHOD: Expression.balance()
   # ---------------------------------------------------------------------------
-  def balance(self) :
+  def balance(self) -> None :
     """
     Balances the minus signs used as a shortcut for the 'opposite' function.
     Takes as input nested list of tokens and returns another list such that it
@@ -564,6 +566,11 @@ class Expression :
     macroleaves.
     """
     
+    if not(self.statusTokenise) :
+      if not(self.QUIET_MODE) : print("[WARNING] Expression.balance() skipped due to previous errors.")
+      self.statusBalance = False
+      return self.statusBalance
+
     self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros when implicit (rule [7.1])
     self.tokens = utils.explicitZeros(self.tokens)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
   
@@ -596,14 +603,14 @@ class Expression :
     """
 
     self.tokens = utils.nest(self.tokens)
-    status = self._nestCheck()
+    self.statusNest = self._nestCheck()
 
-    return status
+    return self.statusNest
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Expression._nestCheck()
+  # METHOD: Expression._nestCheck()                                   [PRIVATE]
   # ---------------------------------------------------------------------------
   def _nestCheck(self) -> bool :
     """
@@ -614,11 +621,214 @@ class Expression :
     infix operator.
     """
 
+    # CHECK 1: number of tokens must be odd.
     if ((len(self.tokens) % 2) == 0) :
-      print("[DEBUG] Nesting returned an even number of tokens. Something wrong might have happened.")
+      if not(self.QUIET_MODE) : 
+        print("[DEBUG] Nesting returned an even number of tokens. Something wrong happened (possible internal error).")
+
+    # CHECK 2: tokens (at top level and in macros) must follow a 'L op L ... op L' pattern.
+    nInfix = 0
+    for (n, element) in enumerate(self.tokens) :        
+      if ((n % 2) == 0) :
+        if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
+          print("[ERROR] Binary.nest(): the expression does not follow the pattern [L op L op ...] (ERR_NOT_A_LEAF)")
+          exit()
+
+      else :
+        if (element.type != "INFIX") :
+          print("[ERROR] Binary.nest(): the expression to nest does not follow the pattern [L op L op ...] (ERR_NOT_AN_INFIX)")
+          exit()
+
+        else :
+          nInfix += 1
+
+
+    # TODO: check the nesting recursively?
+
 
     return True
 
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Expression.stage()
+  # ---------------------------------------------------------------------------
+  def stage(self) :
+    """
+    Isolates (nest) the operators with higher relative precedence so that the 
+    operations are done in the right order.
+
+    Operators and the operands are isolated in a Macro expression, in a 
+    similar principle to 'Expression.nest()'
+
+    The list of Tokens ends up being simplified to an expression involving 
+    operators with lowest priority only.
+
+    The function does not assume commutativity of the infix operators.
+    """
+
+    self.statusStage = False
+
+    if not(self.statusBalance) :
+      if not(self.QUIET_MODE) : print("[WARNING] Expression.stage() skipped due to previous errors.")
+      return self.statusStage
+
+    # Stage the content of the macros
+    for T in self.tokens :
+      if (T.type == "MACRO") :
+        T.nest()
+
+    # Nest the actual stack.
+    # Nesting can be required as soon as there are 2 or more infix: "L op L op L"
+    # i.e. more than 5 nodes.
+    if (nInfix >= 2) :
+      
+      # STEP 1: look for the infix of highest priority in [L op L op L ...]
+      (minPriority, maxPriority) = self._getPriorityRange()
+      # print(f"[DEBUG] Binary.nest(): priority range = ({minPriority}, {maxPriority})")
+      
+      # Call to "nest()" is necessary if there are 2 different levels of priority
+      while (maxPriority != minPriority) :
+
+        # STEP 2: split apart the highest operator and its adjacent leaves
+        # from the rest: [L op L op], [L op L], [op L op L op L op L]
+        (chunks, chunkNeedsMacro) = self._splitOp(maxPriority)
+
+        # STEP 3: create a macro for the highest operators 
+        # Result = [L op L op], M, [op L op L op L op L]
+        # Then merge into a new stack.
+        if (len(chunks) > 1) :
+          newStack = []
+          for i in range(len(chunks)) :
+            if chunkNeedsMacro[i] :
+              M = macroleaf.Macroleaf(function = "id", tokenList = chunks[i])
+              newStack.append(M)
+            
+            else :
+              newStack += chunks[i]
+
+          self.stack = newStack
+
+          # TODO: update the other properties
+          self.nNodes = len(self.stack)
+          # self.nLeaves = ...
+        
+        # STEP 4: repeat until the stack is 'flat' 
+        # (all operators have the same priority)
+        (minPriority, maxPriority) = self._getPriorityRange()
+
+      # END: stacks now looks like [L op L op L], all with identical precedence.
+
+    # Only 1 infix operator: nothing to do, leave the stack as it is.
+    else :
+      pass
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Expression._stagePriorityMinMax()                         [PRIVATE]
+  # ---------------------------------------------------------------------------
+  def _stagePriorityMinMax(self) :
+    """
+    Browses the stack and returns the (min, max) priority encountered while 
+    inspecting the infix operators.
+    
+    The method is used for the nesting operations, the goal being to
+    'flatten' the expression i.e. abstract away infix with higher precedence
+    in a Macroleaf.
+    
+    It does not inspect the content of the Macroleaves (it is done already
+    by the recursive call in the "nest()" method)
+    """
+    
+    minPriority = 100; maxPriority = -1
+    for node in self.stack :
+      if (node.type == "INFIX") :
+        if (node.priority > maxPriority) :
+          maxPriority = node.priority
+
+        if (node.priority < minPriority) :
+          minPriority = node.priority
+
+    return (minPriority, maxPriority)
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Binary._splitOp()
+  # ---------------------------------------------------------------------------
+  def _splitOp(self, priority) :
+    """
+    Breaks apart the stack to isolate the sequences of (macro)leaves and 
+    infix operator(s), keeping only the infix(es) of highest priority.
+    
+    The function operates on the stack.
+    It returns the stack broken apart as output, as a list of lists.
+    
+    If all infix have the same priority, the stack is returned as is.
+
+    EXAMPLES
+    B = Binary()
+    B.stack = [a * b + c / d ^ e + f]
+    B._splitOp = [[a * b + c /] [d ^ e] [+ f]]
+    (representation is simplified for the sake of the example)
+    """
+
+    #self.nNodes = len(self.stack)
+    isTopElement = [False for _ in range(self.nNodes)]
+
+    # STEP 1: create a 'side array' indicating where the split must be done.
+    for (n, element) in enumerate(self.stack) :
+      if (element.type == "INFIX") :
+        if (element.priority > priority) :
+          print("[DEBUG] Error: inconsistency in '_splitOp'. The requested 'break' priority is higher than any infix in the stack.")
+
+        elif (element.priority == priority) :
+          isTopElement[n-1] = True
+          isTopElement[n]   = True
+          isTopElement[n+1] = True
+
+    # STEP 2: do the actual split
+    chunksOut = []; chunkIsTop = []
+    for (n, element) in enumerate(self.stack) :
+      lastNode = (n == (self.nNodes-1))
+      if (n == 0) :
+        subStack = [self.stack[0]]
+
+      else :
+        # CASE 1: priority of the node has changed.
+        # Either:
+        # - the node before was involved in a high priority infix, but now not anymore.
+        # - the node before was not involved in a high priority infix, but now it does.
+        if (isTopElement[n] != isTopElement[n-1]) :
+          if lastNode :
+            chunksOut.append(subStack)
+            chunkIsTop.append(isTopElement[n-1])
+
+            chunksOut.append([self.stack[n]])
+            chunkIsTop.append(isTopElement[n])
+          
+          else :
+            
+            # Push the current "sub stack" to the output list
+            # and mark its status (top priority element or not)
+            chunksOut.append(subStack)
+            chunkIsTop.append(isTopElement[n-1])
+
+            # Start a new sub stack
+            subStack = [self.stack[n]]
+        
+        # CASE 2: priority of the node remains the same.
+        else :
+          if (n == (self.nNodes-1)) :
+            subStack.append(self.stack[n])
+            chunksOut.append(subStack)
+            chunkIsTop.append(isTopElement[n])
+          
+          else :
+            subStack.append(self.stack[n])
+
+    return (chunksOut, chunkIsTop)
 
 
   # # ---------------------------------------------------------------------------
@@ -763,6 +973,7 @@ if (__name__ == '__main__') :
   e.tokenise()
   e.balance()
   e.nest()
+  e.stage()
   
 
   print("[INFO] End of unit tests.")
