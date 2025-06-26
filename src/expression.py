@@ -32,7 +32,8 @@ class Expression :
   and in the end, evaluate it.
 
   Elements listed in 'Expression.variables' need to be linked to an actual 
-  Variable object, so that the evaluator can call their 'Variable.sample()' attribute.
+  Variable object, so that the evaluator can call their 'Variable.sample()' 
+  attribute.
 
   Options: 
   - quiet mode  : turns off all outputs (even errors)
@@ -624,26 +625,28 @@ class Expression :
     # CHECK 1: number of tokens must be odd.
     if ((len(self.tokens) % 2) == 0) :
       if not(self.QUIET_MODE) : 
-        print("[DEBUG] Nesting returned an even number of tokens. Something wrong happened (possible internal error).")
+        print("[ERROR] Nesting returned an even number of tokens. Something wrong happened (possible internal error).")
+        return False
 
     # CHECK 2: tokens (at top level and in macros) must follow a 'L op L ... op L' pattern.
     nInfix = 0
     for (n, element) in enumerate(self.tokens) :        
       if ((n % 2) == 0) :
         if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
-          print("[ERROR] Binary.nest(): the expression does not follow the pattern [L op L op ...] (ERR_NOT_A_LEAF)")
-          exit()
+          print("[ERROR] The nested expression does not follow the pattern 'L op L op ... L' (unexpected leaf)")
+          return False
 
       else :
         if (element.type != "INFIX") :
-          print("[ERROR] Binary.nest(): the expression to nest does not follow the pattern [L op L op ...] (ERR_NOT_AN_INFIX)")
-          exit()
+          print("[ERROR] The nested expression does not follow the pattern [L op L op ...] (unexpected infix)")
+          return False
 
         else :
           nInfix += 1
 
 
-    # TODO: check the nesting recursively?
+    # TODO: check the nesting recursively
+    # ...
 
 
     return True
@@ -655,7 +658,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   def stage(self) :
     """
-    Isolates (nest) the operators with higher relative precedence so that the 
+    Isolates (nests) the operators with higher relative precedence so that the 
     operations are done in the right order.
 
     Operators and the operands are isolated in a Macro expression, in a 
@@ -958,7 +961,7 @@ if (__name__ == '__main__') :
 
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
-  #e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
+  e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
   #e = Expression("(a+b)/(((12-z)+tan(x))/z", verbose = True)
   #e = Expression("sin(a+b)+2", verbose = True)
   #e = Expression("(a)(b)", verbose = True)
@@ -968,7 +971,7 @@ if (__name__ == '__main__') :
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   #e = Expression("-3exp(-9t)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
-  e = Expression("1+2*3^'", verbose = True)
+  #e = Expression("1+2*3^'", verbose = True)
   e.syntaxCheck()
   e.tokenise()
   e.balance()
