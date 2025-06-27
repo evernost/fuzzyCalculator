@@ -733,25 +733,30 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _stagePriorityMinMax(self) :
     """
-    Browses the stack and returns the (min, max) priority encountered while 
-    inspecting the infix operators.
+    Inspects the list of tokens and returns the (min, max) priority of the
+    infix operators encountered.
     
-    The method is used for the nesting operations, the goal being to
-    'flatten' the expression i.e. abstract away infix with higher precedence
-    in a Macroleaf.
-    
-    It does not inspect the content of the Macroleaves (it is done already
-    by the recursive call in the "nest()" method)
+    The function is not recursive: content of the macros is not inspected.
+
+    Returns (-1, -1) when there is no infix in the list.
     """
     
-    minPriority = 100; maxPriority = -1
-    for node in self.stack :
-      if (node.type == "INFIX") :
-        if (node.priority > maxPriority) :
-          maxPriority = node.priority
+    firstInfix = True
+    minPriority = -1
+    maxPriority = -1
 
-        if (node.priority < minPriority) :
-          minPriority = node.priority
+    for T in self.tokens :
+      if (T.type == "INFIX") :
+        if firstInfix :
+          minPriority = T.priority
+          maxPriority = T.priority
+          firstInfix = False
+        else :
+          if (T.priority > maxPriority) :
+            maxPriority = T.priority
+
+          if (T.priority < minPriority) :
+            minPriority = T.priority
 
     return (minPriority, maxPriority)
 
