@@ -110,7 +110,7 @@ class Token :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Token._initLists()
+  # METHOD: Token._initLists()                                        [PRIVATE]
   # ---------------------------------------------------------------------------
   def _initLists(self) -> None :
     """
@@ -124,11 +124,11 @@ class Token :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Token._readType()
+  # METHOD: Token._readType()                                         [PRIVATE]
   # ---------------------------------------------------------------------------
   def _readType(self, s: str) -> None :
     """
-    TODO
+    Guesses the type of token from the string input.
     """
 
     if (s in self.listConstants) :
@@ -264,14 +264,14 @@ class Macro :
   # ---------------------------------------------------------------------------
   def _consumeArgs(self, tokens) -> bool :
     """
-    Consumes all the tokens that are part of the arguments of the function.
+    Consumes all the tokens that are part of the argument(s) of the function.
     The rest is stored in 'Macro.remainder' for further processing.
 
     The function returns True if the Macro creation is successful, False
     otherwise.
     """
     
-    # STEP 1: process and nest the arguments
+    # STEP 1: guess the Macro type and nest the arguments
     nTokens = len(tokens)
 
     if (nTokens == 0) :
@@ -355,7 +355,7 @@ def nArgsFromFunctionName(s: str) :
     if (s == f["name"]) :
       return f["nArgs"]
   
-  print(f"[WARNING] The function {s} could not be found.")
+  print(f"[WARNING] Impossible to get 'nArgs': the function {s} could not be found.")
   return -1
 
 

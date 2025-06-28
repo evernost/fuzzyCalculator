@@ -745,16 +745,16 @@ def consumeAtomic(tokens) :
 def nest(tokens, quiet = False, verbose = False, debug = False) :
   """
   Consumes a list of tokens, returns another list of tokens where functions and 
-  round brackets are replaced with a macro token.
+  round brackets are replaced with a Macro token.
   """
   
   nTokens = len(tokens)
 
-  # List of tokens is empty: nothing to do
+  # The list of tokens is empty: nothing to do
   if (nTokens == 0) :
     return []
 
-  # List of tokens has exactly 1 element
+  # The list of tokens has exactly 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
       if not(quiet) : print("[WARNING] utils.nest(): odd input (single meaningless token)")
@@ -762,7 +762,7 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
     else :
       return tokens
   
-  # List of tokens has 2 elements or more
+  # The list of tokens has 2 elements or more
   else :
     
     # Consume anything that does not require a macro
@@ -877,6 +877,51 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
       else :
         if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
         return (tokens, [])
+
+
+
+
+# ---------------------------------------------------------------------------
+# FUNCTION: nestCheck()
+# ---------------------------------------------------------------------------
+def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
+  """
+  Checks the outcome of the 'nest()' operation.
+  
+  After nesting, the list of tokens should look like 'L op L op ... op L'
+  where 'L' is a leaf (number, variable, constant, macro) and 'op' is an 
+  infix operator.
+  """
+
+  # CHECK 1: number of tokens must be odd.
+  if ((len(tokens) % 2) == 0) :
+    if not(quiet) : 
+      print("[ERROR] Nesting returned an even number of tokens. Something wrong happened (possible internal error).")
+      return False
+
+  # CHECK 2: tokens (at top level and in macros) must follow a 'L op L ... op L' pattern.
+  nInfix = 0
+  for (n, element) in enumerate(tokens) :        
+    if ((n % 2) == 0) :
+      if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
+        print("[ERROR] The nested expression does not follow the pattern 'L op L op ... L' (unexpected leaf)")
+        return False
+
+    else :
+      if (element.type != "INFIX") :
+        print("[ERROR] The nested expression does not follow the pattern [L op L op ...] (unexpected infix)")
+        return False
+
+      else :
+        nInfix += 1
+
+  # TODO: check the nesting recursively
+  for T in tokens :
+    if (T.type == "MACRO") :
+      pass
+
+
+  return True
 
 
 

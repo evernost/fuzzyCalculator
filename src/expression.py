@@ -4,7 +4,7 @@
 # Module name     : expression
 # File name       : expression.py
 # File type       : Python script (Python 3.10 or greater)
-# Purpose         : 'Expression' object definition
+# Purpose         : abstraction object for mathematical expressions
 # Author          : QuBi (nitrogenium@outlook.fr)
 # Creation date   : April 11th, 2025
 # -----------------------------------------------------------------------------
@@ -28,8 +28,8 @@ class Expression :
   EXPRESSION class definition
 
   An Expression object is a container for a mathematical expression given
-  as a simple string. Then, it provides all the methods to parse this string
-  and in the end, evaluate it.
+  as a string. 
+  The object provides all the methods to parse and evaluate this string.
 
   Elements listed in 'Expression.variables' need to be linked to an actual 
   Variable object, so that the evaluator can call their 'Variable.sample()' 
@@ -48,7 +48,7 @@ class Expression :
     self.tokens = []
     self.variables = []
 
-    # Status of the compile operations (PASS/FAIL)    
+    # Status of the compilation steps (PASS/FAIL)
     self.statusSyntaxCheck  = False
     self.statusTokenise     = False
     self.statusBalance      = False
@@ -56,9 +56,9 @@ class Expression :
     self.statusStage        = False
 
     # Options
-    self.QUIET_MODE = quiet
+    self.QUIET_MODE   = quiet
     self.VERBOSE_MODE = verbose
-    self.DEBUG_MODE = debug
+    self.DEBUG_MODE   = debug
     
 
 
@@ -67,10 +67,12 @@ class Expression :
   # ---------------------------------------------------------------------------
   def syntaxCheck(self) -> bool :
     """
-    Performs basic validation to ensure the expression is well-formed and 
-    suitable for parsing.
+    Runs basic tests on the input string to ensure the expression is 
+    well-formed and suitable for parsing.
 
     Returns True when the check passes, False if errors were found.
+
+    Result is also available in 'Expression.statusSyntaxCheck'.
     """
     
     self.statusSyntaxCheck = True
@@ -106,7 +108,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _validCharCheck(self) -> bool :
     """
-    Checks if the expression contains valid characters only.
+    Checks if the expression string is made of valid characters only.
     Valid characters are:
     - letters: "a" to "z" and "A" to "Z"
     - space: " "
@@ -260,7 +262,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   def tokenise(self) -> bool :
     """
-    Generates a list of tokens from the input.
+    Generates a list of tokens from the input string.
 
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
@@ -557,14 +559,13 @@ class Expression :
     has a full expansion of the 'minus' infix operators.
         
     The balancing consists in 2 operations:
-    - explicit the hidden '0' to balance the infix '-' operator
+    - explicit the hidden '0' to balance the infix '-' operator (e.g. "-2+x")
     - replace the infix operator and its operand with a macroleaf calling the 'opp'
       function.
 
     Please refer to rules [R7.X] in 'doc/parsingRules.md'
 
-    The process is done recursively on the Binary objects embedded inside 
-    macroleaves.
+    The process is done recursively (content of the Macro)
     """
     
     if not(self.statusTokenise) :
@@ -572,8 +573,8 @@ class Expression :
       self.statusBalance = False
       return self.statusBalance
 
-    self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros when implicit (rule [7.1])
-    self.tokens = utils.explicitZeros(self.tokens)      # Replace '-' with 'opp' (opposite) according to rule [7.2] and [7.3]
+    self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros in low priority context (rule [7.1])
+    self.tokens = utils.explicitZeros(self.tokens)      # Add zeros in high priority context (rules [7.2] and [7.3])
   
 
 
@@ -603,53 +604,13 @@ class Expression :
     See the examples for more information. 
     """
 
+    # Note: nest() and nestCheck() are externalised because they are shared
+    # with the Macro object.
+    
     self.tokens = utils.nest(self.tokens)
-    self.statusNest = self._nestCheck()
+    self.statusNest = utils.nestCheck()
 
     return self.statusNest
-
-
-
-  # ---------------------------------------------------------------------------
-  # METHOD: Expression._nestCheck()                                   [PRIVATE]
-  # ---------------------------------------------------------------------------
-  def _nestCheck(self) -> bool :
-    """
-    Checks the outcome of the 'Expression.nest()' operation.
-    
-    After nesting, the list of tokens should look like 'L op L op ... op L'
-    where 'L' is a leaf (number, variable, constant, macro) and 'op' is an 
-    infix operator.
-    """
-
-    # CHECK 1: number of tokens must be odd.
-    if ((len(self.tokens) % 2) == 0) :
-      if not(self.QUIET_MODE) : 
-        print("[ERROR] Nesting returned an even number of tokens. Something wrong happened (possible internal error).")
-        return False
-
-    # CHECK 2: tokens (at top level and in macros) must follow a 'L op L ... op L' pattern.
-    nInfix = 0
-    for (n, element) in enumerate(self.tokens) :        
-      if ((n % 2) == 0) :
-        if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
-          print("[ERROR] The nested expression does not follow the pattern 'L op L op ... L' (unexpected leaf)")
-          return False
-
-      else :
-        if (element.type != "INFIX") :
-          print("[ERROR] The nested expression does not follow the pattern [L op L op ...] (unexpected infix)")
-          return False
-
-        else :
-          nInfix += 1
-
-
-    # TODO: check the nesting recursively
-    # ...
-
-
-    return True
 
 
 
@@ -718,7 +679,7 @@ class Expression :
         
         # STEP 4: repeat until the stack is 'flat' 
         # (all operators have the same priority)
-        (minPriority, maxPriority) = self._getPriorityRange()
+        (minPriority, maxPriority) = self._stagePriorityMinMax()
 
       # END: stacks now looks like [L op L op L], all with identical precedence.
 
