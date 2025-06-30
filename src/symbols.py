@@ -255,7 +255,9 @@ class Macro :
     self.VERBOSE_MODE = verbose
     self.DEBUG_MODE   = debug
 
-    self.status = self._consumeArgs(tokens)
+    # Populate the attributes
+    self.statusArgs = self._consumeArgs(tokens)
+    self.statusNest = False
 
 
 
@@ -338,6 +340,27 @@ class Macro :
     
     return rem
     
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macro.nest()
+  # ---------------------------------------------------------------------------
+  def nest(self) -> bool :
+    """
+    Nests the list of tokens.
+
+    Similar to Expression.nest(), but applied to the specific case of a 
+    Macro.
+    """
+
+    # Note: nest() and nestCheck() are externalised because they are shared
+    # with the Macro object.
+    
+    self.tokens = utils.nest(self.tokens)
+    self.statusNest = utils.nestCheck()
+
+    return self.statusNest
+
 
 
 # -----------------------------------------------------------------------------

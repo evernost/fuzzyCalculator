@@ -918,7 +918,7 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
   # TODO: check the nesting recursively
   for T in tokens :
     if (T.type == "MACRO") :
-      pass
+      status = T.nest()
 
 
   return True
@@ -1054,6 +1054,29 @@ def explicitZerosWeak(tokens) :
         tokens = [symbols.Token("0")] + tokens
 
   return tokens
+
+
+
+# ---------------------------------------------------------------------------
+# FUNCTION: countTokens()
+# ---------------------------------------------------------------------------
+def countTokens(tokens) :
+  """
+  Inspects the list of tokens and returns:
+  - the number of tokens
+  - the number of infix operators
+  - the number of leaves
+  The function is not recursive (macros will not be inspected)
+  """
+  
+  nTokens = len(tokens)
+  nInfix = 0
+  nLeaves = 0
+  for T in tokens :
+    if T.type in ["NUMBER", "VARIABLE", "CONSTANT", "MACRO"] : nLeaves += 1
+    if (T.type == "INFIX") : nInfix += 1
+
+  return (nTokens, nLeaves, nInfix)
 
 
 

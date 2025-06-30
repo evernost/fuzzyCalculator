@@ -47,6 +47,8 @@ class Expression :
     # Populated after calling "tokenise()"
     self.tokens = []
     self.variables = []
+    self.nInfix = 0
+    self.nOp = 0
 
     # Status of the compilation steps (PASS/FAIL)
     self.statusSyntaxCheck  = False
@@ -583,6 +585,8 @@ class Expression :
   # ---------------------------------------------------------------------------
   def nest(self) -> bool :
     """
+    Nests the list of tokens.
+    
     The nesting operation consists in isolating expressions between round
     brackets - '(' and ')' - and assigning them to a Token object.
 
@@ -606,9 +610,11 @@ class Expression :
 
     # Note: nest() and nestCheck() are externalised because they are shared
     # with the Macro object.
-    
+
     self.tokens = utils.nest(self.tokens)
-    self.statusNest = utils.nestCheck()
+    (self.nInfix, self.nOp) = utils.nestCountTypes(self.tokens)
+
+    self.statusNest = utils.nestCheck()  
 
     return self.statusNest
 
@@ -619,7 +625,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   def stage(self) :
     """
-    Isolates (nests) the operators with higher relative precedence so that the 
+    Isolates (stages) the operators with higher relative precedence so that the 
     operations are done in the right order.
 
     Operators and the operands are isolated in a Macro expression, in a 
@@ -637,14 +643,9 @@ class Expression :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.stage() skipped due to previous errors.")
       return self.statusStage
 
-    # Stage the content of the macros
-    for T in self.tokens :
-      if (T.type == "MACRO") :
-        T.nest()
+    (nTokens, nLeaves, nInfix) = utils.countTokens(self.tokens)
 
-    # Nest the actual stack.
-    # Nesting can be required as soon as there are 2 or more infix: "L op L op L"
-    # i.e. more than 5 nodes.
+    # Staging is required as soon as there are 2 or more infix: "L op L op L"
     if (nInfix >= 2) :
       
       # STEP 1: look for the infix of highest priority in [L op L op L ...]
@@ -679,7 +680,7 @@ class Expression :
         
         # STEP 4: repeat until the stack is 'flat' 
         # (all operators have the same priority)
-        (minPriority, maxPriority) = self._stagePriorityMinMax()
+        (minPriority, maxPriority) = self._stagePriorityRange()
 
       # END: stacks now looks like [L op L op L], all with identical precedence.
 
@@ -689,10 +690,17 @@ class Expression :
 
 
 
+    # Stage the content of the macros
+    for T in self.tokens :
+      if (T.type == "MACRO") :
+        T.stage()
+
+
+
   # ---------------------------------------------------------------------------
-  # METHOD: Expression._stagePriorityMinMax()                         [PRIVATE]
+  # METHOD: Expression._stagePriorityRange()                          [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _stagePriorityMinMax(self) :
+  def _stagePriorityRange(self) :
     """
     Inspects the list of tokens and returns the (min, max) priority of the
     infix operators encountered.
