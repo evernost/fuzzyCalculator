@@ -6,7 +6,7 @@
 # File type       : Python script (Python 3.10 or greater)
 # Purpose         : abstraction object for mathematical expressions
 # Author          : QuBi (nitrogenium@outlook.fr)
-# Creation date   : April 11th, 2025
+# Creation date   : Friday, April 11 2025
 # -----------------------------------------------------------------------------
 # Best viewed with space indentation (2 spaces)
 # =============================================================================
@@ -14,8 +14,12 @@
 # =============================================================================
 # EXTERNALS
 # =============================================================================
+# Project libraries
 import src.symbols as symbols
 import src.utils as utils
+
+# Standard libraries
+# -> None.
 
 
 
@@ -27,8 +31,9 @@ class Expression :
   """
   EXPRESSION class definition
 
-  An Expression object is a container for a mathematical expression given
-  as a string. 
+  An Expression object is a container for a mathematical expression.
+  The expression is provided as a simple string. 
+  
   The object provides all the methods to parse and evaluate this string.
 
   Elements listed in 'Expression.variables' need to be linked to an actual 
@@ -42,13 +47,15 @@ class Expression :
   """
   
   def __init__(self, input, quiet = False, verbose = False, debug = False) :
+    
+    # Input expression
     self.input = input
     
     # Populated after calling "tokenise()"
-    self.tokens = []
-    self.variables = []
-    self.nInfix = 0
-    self.nOp = 0
+    self.tokens     = []    # Same as 'input', but expressed as a list of tokens
+    self.variables  = []    # Variables found in the expression
+    self.nInfix     = 0     # Number of infix operators found
+    self.nOp        = 0     # Number of operands found (TODO: is it recursive?)
 
     # Status of the compilation steps (PASS/FAIL)
     self.statusSyntaxCheck  = False
@@ -111,6 +118,7 @@ class Expression :
   def _validCharCheck(self) -> bool :
     """
     Checks if the expression string is made of valid characters only.
+    
     Valid characters are:
     - letters: "a" to "z" and "A" to "Z"
     - space: " "
@@ -126,7 +134,7 @@ class Expression :
 
     NOTE
     In case you want to add custom infix operators, you need to add to the 
-    'white list' any special character you might be using.
+    'white list' any special character you want to use.
 
     EXAMPLES
     (See unit tests in "main")
@@ -264,16 +272,20 @@ class Expression :
   # ---------------------------------------------------------------------------
   def tokenise(self) -> bool :
     """
-    Generates a list of tokens from the input string.
+    Converts the input string to a list of tokens.
 
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
     
-    This function assumes that syntax checks have been run prior to the call
-    (Expression.check() method)
-    Otherwise, some syntax errors might not be caught.
+    Implicit multiplications will be detected and explicited with an 'infix'
+    token.
 
     Outcome is generated in the attribute 'Expression.tokens'.
+
+    This function assumes that syntax checks have been run prior to the call
+    (Expression.check() method)
+    Otherwise, some syntax errors might not be caught and could yield odd 
+    results.
 
     Returns True if the operation is successful, False otherwise.
     """
@@ -298,7 +310,7 @@ class Expression :
 
       # Try to interpret the leading characters as a 
       # number, constant, variable, function or infix.
-      # TODO: check if there can be conflicts.
+      # TODO: detect and handle conflicts.
       (number, tailNumber)      = utils.consumeNumber(buffer)
       (constant, tailConstant)  = utils.consumeConst(buffer)
       (function, tailFunction)  = utils.consumeFunc(buffer)
@@ -472,8 +484,8 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _tokeniseListVars(self) :
     """
-    Inspects the list of Tokens and returns the list of variables that were 
-    found in 'Expression.variables'.
+    Inspects the expression (as a list of Tokens), detects and returns the list 
+    of all the variables found.
     """
 
     self.variables = []
@@ -557,13 +569,13 @@ class Expression :
   def balance(self) -> None :
     """
     Balances the minus signs used as a shortcut for the 'opposite' function.
-    Takes as input nested list of tokens and returns another list such that it
-    has a full expansion of the 'minus' infix operators.
+    Takes as input the expression as list of tokens and adds (in place) the 
+    'minus' infix operators fully expanded.
         
-    The balancing consists in 2 operations:
-    - explicit the hidden '0' to balance the infix '-' operator (e.g. "-2+x")
-    - replace the infix operator and its operand with a macroleaf calling the 'opp'
-      function.
+    Expression 'balancing' has 2 different scenarios that require different
+    processing:
+    - Low precedence context: "-2+x" -> "0-2+x"
+    - High precedence context: "1+2^-x/4"
 
     Please refer to rules [R7.X] in 'doc/parsingRules.md'
 
