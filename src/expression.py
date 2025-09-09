@@ -471,9 +471,9 @@ class Expression :
     if (self.VERBOSE_MODE) :
       nAdded = len(output) - nTokens
       if (nAdded == 1) :
-        print("[INFO] Tokenise: added 1 implicit multiplication")
+        print("[INFO] Tokenise: 1 implicit multiplication was added")
       elif (nAdded > 1) :
-        print(f"[INFO] Tokenise: added {nAdded} implicit multiplications")
+        print(f"[INFO] Tokenise: {nAdded} implicit multiplications were added")
 
     self.tokens = output
 

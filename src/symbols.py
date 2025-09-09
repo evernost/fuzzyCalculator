@@ -217,7 +217,7 @@ class Macro :
   MACRO class definition
 
   A Macro object is 'super-Token' that abstracts content between round brackets
-  or function calls.
+  (for precedence enforcement or as part of a function call).
 
   The constructor takes as input the list of Tokens where the Macro has to 
   start (the function token for a function, the opening parenthesis token for 
@@ -241,10 +241,10 @@ class Macro :
   def __init__(self, tokens, quiet = False, verbose = False, debug = False) :
 
     # Populated after calling "_consumeArgs()"
-    self.function = None
-    self.args = []
-    self.nArgs = 0
-    self.remainder = []
+    self.function   = None    # Top-level function of the macro
+    self.args       = []      # List of arguments
+    self.nArgs      = 0       # Number of arguments
+    self.remainder  = []      # Trailing tokens outside the scope of the function
 
     # Allows Macro object to be treated as a Token
     # TODO: make the Macro class inherit from the Token class?

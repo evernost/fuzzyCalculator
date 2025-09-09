@@ -45,15 +45,15 @@ def pop(s: str) :
   See unit tests in 'main()' for more examples.
   """
 
-  # 0-length string
+  # Empty string
   if not s :
     return ("", "")
   
-  # 1-length string
+  # Single char string
   elif (len(s) == 1) :
     return (s, "")
   
-  # Any length > 1
+  # Any other string
   else :
     return (s[0], s[1:])
 
@@ -691,18 +691,22 @@ def consumeInfix(s: str) :
 # -----------------------------------------------------------------------------
 def consumeAtomic(tokens) :
   """
-  Consumes the tokens in a list until it hits tokens implying either 
-  recursivity or a change in the processing:  
+  Consumes the tokens in a list until it hits a token that implies either 
+  recursivity or a change in the processing:
   - an opening parenthesis  (-> recursivity)
   - a function              (-> recursivity)
   - a comma                 (-> processing changes)
   - a closing parenthesis   (-> processing changes)
 
-  If so, it stops and returns the 'atomic' part and the remainder.
+  In either case, it stops and returns the 'atomic' part and the remainder.
+
+  TODO: is the 'breaking' token included in the atomic part or the remainder part?
 
   The remainder part is not analysed: if there is another function 
-  call or opening parenthesis, it will remain as is in the remainder.
+  call or opening parenthesis, it will remain 'as is' in the remainder.
   Another call to consumeAtomic() is needed. 
+
+  This function is used extensively for the nesting process.
 
   EXAMPLES
   > consumeAtomic(...) = ...
@@ -1153,7 +1157,6 @@ def showInStr(s: str, loc) -> None :
 if (__name__ == '__main__') :
   
   print("[INFO] Library called as main: running unit tests...")
-
 
   assert(isNumber("1") == True)
   assert(isNumber("23") == True)
