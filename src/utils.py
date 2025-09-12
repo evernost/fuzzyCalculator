@@ -25,6 +25,7 @@
 # EXTERNALS
 # =============================================================================
 import src.symbols as symbols
+import src.expression as expression
 
 from enum import Enum
 
@@ -693,10 +694,10 @@ def consumeAtomic(tokens) :
   """
   Consumes the tokens in a list until it hits a token that implies either 
   recursivity or a change in the processing:
-  - an opening parenthesis  (-> recursivity)
-  - a function              (-> recursivity)
-  - a comma                 (-> processing changes)
-  - a closing parenthesis   (-> processing changes)
+  - an opening parenthesis  (recursivity)
+  - a function              (recursivity)
+  - a comma                 (processing changes)
+  - a closing parenthesis   (processing changes)
 
   In either case, it stops and returns the 'atomic' part and the remainder.
 
@@ -707,11 +708,8 @@ def consumeAtomic(tokens) :
   Another call to consumeAtomic() is needed. 
 
   This function is used extensively for the nesting process.
-
-  EXAMPLES
-  > consumeAtomic(...) = ...
   
-  See unit tests in 'main()' for more examples.
+  See unit tests in 'main()' for examples.
   """
   
   nTokens = len(tokens)
@@ -743,6 +741,30 @@ def consumeAtomic(tokens) :
 
 
 
+
+# -----------------------------------------------------------------------------
+# FUNCTION: _consumeAtomicTest()
+# -----------------------------------------------------------------------------
+def _consumeAtomicTest(input, output) :
+  """
+  Unit test function for the 'consumeAtomic()' function.
+  """
+  
+  eIn = expression.Expression(input)
+  eIn.syntaxCheck()
+  eIn.tokenise()
+  
+  eOut = expression.Expression(output)
+  eOut.syntaxCheck()
+  eOut.tokenise()
+
+  eOut_test = consumeAtomic(eIn.tokens)
+
+  print("Test is TODO.")
+
+
+
+
 # -----------------------------------------------------------------------------
 # FUNCTION: nest()
 # -----------------------------------------------------------------------------
@@ -761,7 +783,7 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   # The list of tokens has exactly 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      if not(quiet) : print("[WARNING] utils.nest(): odd input (single meaningless token)")
+      if not(quiet) : print("[WARNING] utils.nest(): input is not nestable (possible incomplete input)")
       return tokens
     else :
       return tokens
@@ -1317,7 +1339,7 @@ if (__name__ == '__main__') :
   assert(consumeInfix("^-3") == ("^", "-3"))
   print("- Unit test passed: 'utils.consumeInfix()'")
 
-  #consumeAtomic([symbols.Token("("), symbols.Token("(")])
+  assert(_consumeAtomicTest("3x*4", "3x+4"))
   print("- Unit test TODO: 'utils.consumeAtomic()'")
 
   assert(isLegalVariableName("x") == True)

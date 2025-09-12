@@ -19,7 +19,17 @@ import src.symbols as symbols
 import src.utils as utils
 
 # Standard libraries
-# -> None.
+from enum import Enum
+
+
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+class ExprStatus(Enum) :
+  NOT_RUN = -1
+  PASS = 0
+  FAIL = 1
 
 
 
@@ -578,8 +588,6 @@ class Expression :
     - High precedence context: "1+2^-x/4"
 
     Please refer to rules [R7.X] in 'doc/parsingRules.md'
-
-    The process is done recursively (content of the Macro)
     """
     
     if not(self.statusTokenise) :
