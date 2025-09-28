@@ -26,10 +26,7 @@ from enum import Enum
 # =============================================================================
 # CONSTANTS
 # =============================================================================
-class ExprStatus(Enum) :
-  NOT_RUN = -1
-  PASS = 0
-  FAIL = 1
+# None.
 
 
 
@@ -56,6 +53,13 @@ class Expression :
   - debug mode  : prints extra info for investigation
   """
   
+  class Status(Enum) :
+    NOT_RUN = -1
+    OK = 0
+    FAIL = 1
+
+
+
   def __init__(self, input, quiet = False, verbose = False, debug = False) :
     
     # Input expression
@@ -67,12 +71,12 @@ class Expression :
     self.nInfix     = 0     # Number of infix operators found
     self.nOp        = 0     # Number of operands found (TODO: is it recursive?)
 
-    # Status of the compilation steps (PASS/FAIL)
-    self.statusSyntaxCheck  = False
-    self.statusTokenise     = False
-    self.statusBalance      = False
-    self.statusNest         = False
-    self.statusStage        = False
+    # Status of the compilation steps
+    self.statusSyntaxCheck  = self.Status.NOT_RUN
+    self.statusTokenise     = self.Status.NOT_RUN
+    self.statusBalance      = self.Status.NOT_RUN
+    self.statusNest         = self.Status.NOT_RUN
+    self.statusStage        = self.Status.NOT_RUN
 
     # Options
     self.QUIET_MODE   = quiet
@@ -84,35 +88,33 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression.syntaxCheck()
   # ---------------------------------------------------------------------------
-  def syntaxCheck(self) -> bool :
+  def syntaxCheck(self) -> "Expression.Status" :
     """
     Runs basic tests on the input string to ensure the expression is 
     well-formed and suitable for parsing.
 
-    Returns True when the check passes, False if errors were found.
-
     Result is also available in 'Expression.statusSyntaxCheck'.
     """
     
-    self.statusSyntaxCheck = True
+    self.statusSyntaxCheck = self.Status.OK
 
     if not(self._validCharCheck()) :
       if not(self.QUIET_MODE) :
         print("[ERROR] Expression check: input contains invalid chars.")
-      self.statusSyntaxCheck = False
+      self.statusSyntaxCheck = self.Status.FAIL
       
     if not(self._bracketBalanceCheck()) :
       if not(self.QUIET_MODE) :
         print("[ERROR] Expression check: invalid bracket balance.")
-      self.statusSyntaxCheck = False
+      self.statusSyntaxCheck = self.Status.FAIL
       
     if not(self._firstOrderCheck()) :
       if not(self.QUIET_MODE) :
         print("[ERROR] Expression check: invalid character sequence.")
-      self.statusSyntaxCheck = False
+      self.statusSyntaxCheck = self.Status.FAIL
 
     if not(self.QUIET_MODE) :
-      if self.statusSyntaxCheck :
+      if (self.statusSyntaxCheck == self.Status.OK) :
         if self.VERBOSE_MODE :
           print("[INFO] Syntax check: SUCCESS")
       else :
@@ -125,7 +127,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._validCharCheck()                              [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _validCharCheck(self) -> bool :
+  def _validCharCheck(self) -> "Expression.Status" :
     """
     Checks if the expression string is made of valid characters only.
     
@@ -165,16 +167,16 @@ class Expression :
         if not(self.QUIET_MODE) :
           utils.showInStr(self.input, loc)
           print("[ERROR] This character is not supported by the parser.")
-        return False
+        return self.Status.FAIL
 
-    return True
+    return self.Status.OK
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression._bracketBalanceCheck()                         [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _bracketBalanceCheck(self) -> bool :
+  def _bracketBalanceCheck(self) -> "Expression.Status" :
     """
     Checks if the parentheses in the input expression are valid.
     "lazy parenthesis" are allowed: matching closing parenthesis 
@@ -197,16 +199,16 @@ class Expression :
         if not(self.QUIET_MODE) :
           utils.showInStr(self.input, loc)
           print("[ERROR] Closing parenthesis in excess.")
-        return False
+        return self.Status.FAIL
 
-    return True
+    return self.Status.OK
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression._firstOrderCheck()                             [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _firstOrderCheck(self) -> bool :
+  def _firstOrderCheck(self) -> "Expression.Status" :
     """
     Takes the chars 2 by 2 and detects any invalid combination.
     Detailed list of the valid/invalid combinations can be found in 
@@ -226,25 +228,25 @@ class Expression :
         if not(self.QUIET_MODE) :
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: a valid expression cannot have 2 consecutive dots. Is it a typo?")
-        return False
+        return self.Status.FAIL
         
       elif ((char1, char2) == (",", ",")) :
         if not(self.QUIET_MODE) :
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: a valid expression cannot have 2 consecutive commas. Is it a typo?")
-        return False
+        return self.Status.FAIL
 
       elif ((char1, char2) == (",", ")")) :
         if not(self.QUIET_MODE) :     
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: possible missing argument?")
-        return False
+        return self.Status.FAIL
       
       elif ((char1, char2) == (",", "+")) :
         if not(self.QUIET_MODE) :     
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: '+' cannot follow ','. Please refer to the parsing rules.")
-        return False
+        return self.Status.FAIL
       
       # TODO: same holds for any infix operator the user might have declared
 
@@ -252,19 +254,19 @@ class Expression :
         if not(self.QUIET_MODE) :    
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: content between parethesis cannot be left empty.")
-        return False
+        return self.Status.FAIL
       
       elif ((char1, char2) == ("(", "+")) :
         if not(self.QUIET_MODE) :     
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: '+' cannot follow '('. Please refer to the parsing rules.")
-        return False
+        return self.Status.FAIL
       
       elif ((char1, char2) == ("+", ",")) :
         if not(self.QUIET_MODE) :     
           utils.showInStr(self.input, i+1)
           print("[ERROR] Syntax: ',' cannot follow '+'. Please refer to the parsing rules.")
-        return False
+        return self.Status.FAIL
 
       # 
       # TODO: this section needs to be completed.
@@ -273,14 +275,14 @@ class Expression :
       else :
         pass
 
-    return True
+    return self.Status.OK
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression.tokenise()
   # ---------------------------------------------------------------------------
-  def tokenise(self) -> bool :
+  def tokenise(self) -> "Expression.Status" :
     """
     Converts the input string to a list of tokens.
 
@@ -290,7 +292,9 @@ class Expression :
     Implicit multiplications will be detected and explicited with an 'infix'
     token.
 
-    Outcome is generated in the attribute 'Expression.tokens'.
+    Output product is generated in 'Expression.tokens'.
+    Conversion status is returned by the function and also available in 
+    'Expression.statusTokenise'
 
     This function assumes that syntax checks have been run prior to the call
     (Expression.check() method)
@@ -300,11 +304,15 @@ class Expression :
     Returns True if the operation is successful, False otherwise.
     """
     
-    self.statusTokenise = True
+    self.statusTokenise = self.Status.OK
 
-    if not(self.statusSyntaxCheck) :
+    if (self.statusSyntaxCheck == self.Status.FAIL) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.tokenise() skipped due to previous errors.")
-      self.statusTokenise = False
+      self.statusTokenise = self.Status.FAIL
+      return self.statusTokenise
+    elif (self.statusSyntaxCheck == self.Status.NOT_RUN) :
+      if not(self.QUIET_MODE) : print("[WARNING] Expression.syntaxCheck() must be run before Expression.tokenise()")
+      self.statusTokenise = self.Status.FAIL
       return self.statusTokenise
 
     buffer = self.input
@@ -930,27 +938,27 @@ if (__name__ == '__main__') :
   
   print("[INFO] Library called as main: running unit tests...\n")
 
-  assert(Expression("oni_giri*cos(2x+pi"  , quiet=True)._validCharCheck() == True)
-  assert(Expression("input Str"           , quiet=True)._validCharCheck() == True)
-  assert(Expression("input Str2.1(a+b)|x|", quiet=True)._validCharCheck() == False)
-  assert(Expression("$inputStr"           , quiet=True)._validCharCheck() == False)
-  assert(Expression("µinputStr"           , quiet=True)._validCharCheck() == False)
-  assert(Expression("in#putStr"           , quiet=True)._validCharCheck() == False)
-  assert(Expression("inputStr%"           , quiet=True)._validCharCheck() == False)
-  assert(Expression("inpuétStr"           , quiet=True)._validCharCheck() == False)
-  assert(Expression("inpuàtStr"           , quiet=True)._validCharCheck() == False)
+  assert(Expression("oni_giri*cos(2x+pi"  , quiet=True)._validCharCheck() == Expression.Status.OK)
+  assert(Expression("input Str"           , quiet=True)._validCharCheck() == Expression.Status.OK)
+  assert(Expression("input Str2.1(a+b)|x|", quiet=True)._validCharCheck() == Expression.Status.FAIL)
+  assert(Expression("$inputStr"           , quiet=True)._validCharCheck() == Expression.Status.FAIL)
+  assert(Expression("µinputStr"           , quiet=True)._validCharCheck() == Expression.Status.FAIL)
+  assert(Expression("in#putStr"           , quiet=True)._validCharCheck() == Expression.Status.FAIL)
+  assert(Expression("inputStr%"           , quiet=True)._validCharCheck() == Expression.Status.FAIL)
+  assert(Expression("inpuétStr"           , quiet=True)._validCharCheck() == Expression.Status.FAIL)
+  assert(Expression("inpuàtStr"           , quiet=True)._validCharCheck() == Expression.Status.FAIL)
   print("- Unit test passed: 'Expression._sanityCheck()'")
 
-  assert(Expression("oni_giri*cos(2x+pi"      , quiet=True)._bracketBalanceCheck() == True)
-  assert(Expression("oni_giri*cos(2x+pi("     , quiet=True)._bracketBalanceCheck() == True)
-  assert(Expression("|3x+6|.2x"               , quiet=True)._bracketBalanceCheck() == True)
-  assert(Expression("oni_giri*cos(2x+pi()))"  , quiet=True)._bracketBalanceCheck() == False)
+  assert(Expression("oni_giri*cos(2x+pi"      , quiet=True)._bracketBalanceCheck() == Expression.Status.OK)
+  assert(Expression("oni_giri*cos(2x+pi("     , quiet=True)._bracketBalanceCheck() == Expression.Status.OK)
+  assert(Expression("|3x+6|.2x"               , quiet=True)._bracketBalanceCheck() == Expression.Status.OK)
+  assert(Expression("oni_giri*cos(2x+pi()))"  , quiet=True)._bracketBalanceCheck() == Expression.Status.FAIL)
   print("- Unit test passed: 'Expression._bracketBalanceCheck()'")
 
-  assert(Expression("1+2x//4cos(exp(-t" , quiet=True)._firstOrderCheck() == True)
-  assert(Expression("sin(2..1x)"        , quiet=True)._firstOrderCheck() == False)
-  assert(Expression("1+Q(2,)"           , quiet=True)._firstOrderCheck() == False)
-  assert(Expression("cos(3x+1)*Q(2,,1)" , quiet=True)._firstOrderCheck() == False)
+  assert(Expression("1+2x//4cos(exp(-t" , quiet=True)._firstOrderCheck() == Expression.Status.OK)
+  assert(Expression("sin(2..1x)"        , quiet=True)._firstOrderCheck() == Expression.Status.FAIL)
+  assert(Expression("1+Q(2,)"           , quiet=True)._firstOrderCheck() == Expression.Status.FAIL)
+  assert(Expression("cos(3x+1)*Q(2,,1)" , quiet=True)._firstOrderCheck() == Expression.Status.FAIL)
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
