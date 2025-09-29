@@ -308,11 +308,11 @@ class Expression :
 
     if (self.statusSyntaxCheck == self.Status.FAIL) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.tokenise() skipped due to previous errors.")
-      self.statusTokenise = self.Status.FAIL
+      self.statusTokenise = self.Status.NOT_RUN
       return self.statusTokenise
     elif (self.statusSyntaxCheck == self.Status.NOT_RUN) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.syntaxCheck() must be run before Expression.tokenise()")
-      self.statusTokenise = self.Status.FAIL
+      self.statusTokenise = self.Status.NOT_RUN
       return self.statusTokenise
 
     buffer = self.input
@@ -411,7 +411,7 @@ class Expression :
     
     nTokens = len(self.tokens)
 
-    # Hidden multiplication involves at least 2 tokens.
+    # A hidden multiplication involves at least 2 tokens.
     if (nTokens <= 1) :
       pass
 
@@ -598,9 +598,13 @@ class Expression :
     Please refer to rules [R7.X] in 'doc/parsingRules.md'
     """
     
-    if not(self.statusTokenise) :
+    if (self.statusTokenise == self.Status.FAIL) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.balance() skipped due to previous errors.")
-      self.statusBalance = False
+      self.statusBalance = self.Status.NOT_RUN
+      return self.statusBalance
+    elif (self.statusSyntaxCheck == self.Status.NOT_RUN) :
+      if not(self.QUIET_MODE) : print("[WARNING] Expression.tokenise() must be run before Expression.balance()")
+      self.statusBalance = self.Status.NOT_RUN
       return self.statusBalance
 
     self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros in low priority context (rule [7.1])
