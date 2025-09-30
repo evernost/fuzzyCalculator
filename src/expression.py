@@ -52,13 +52,6 @@ class Expression :
   - verbose mode: prints additional info relative to the parsing
   - debug mode  : prints extra info for investigation
   """
-  
-  class Status(Enum) :
-    NOT_RUN = -1
-    OK = 0
-    FAIL = 1
-
-
 
   def __init__(self, input, quiet = False, verbose = False, debug = False) :
     
@@ -82,7 +75,12 @@ class Expression :
     self.QUIET_MODE   = quiet
     self.VERBOSE_MODE = verbose
     self.DEBUG_MODE   = debug
-    
+
+  class Status(Enum) :
+    NOT_RUN = -1
+    OK = 0
+    FAIL = 1
+
 
 
   # ---------------------------------------------------------------------------
@@ -289,7 +287,7 @@ class Expression :
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
     
-    Implicit multiplications will be detected and explicited with an 'infix'
+    Implicit multiplications are detected and explicited with an 'infix'
     token.
 
     Output product is generated in 'Expression.tokens'.
@@ -315,6 +313,36 @@ class Expression :
       self.statusTokenise = self.Status.NOT_RUN
       return self.statusTokenise
 
+    # Call the tokeniser
+    self._tokeniseReader()
+
+    # Explicit the hidden multiplications
+    self._tokeniseExplicitMult()
+
+    # List the variables
+    self._tokeniseListVars()
+
+    # Run syntax check on the token sequence
+    self._tokeniseSyntaxCheck()
+
+    if self.VERBOSE_MODE :
+      if (self.statusTokenise == self.Status.OK) :
+        print("[INFO] Tokenise: SUCCESS")
+      else :
+        print("[ERROR] Tokenise: FAILED")
+
+    return self.statusTokenise
+
+
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Expression._tokeniseReader()                              [PRIVATE]
+  # ---------------------------------------------------------------------------
+  def _tokeniseReader(self) -> "Expression.Status" :
+    """
+    Does the main processing in the tokenise operation.
+    """
+    
     buffer = self.input
     self.tokens = []
 
@@ -329,11 +357,11 @@ class Expression :
       # Try to interpret the leading characters as a 
       # number, constant, variable, function or infix.
       # TODO: detect and handle conflicts.
-      (number, tailNumber)      = utils.consumeNumber(buffer)
-      (constant, tailConstant)  = utils.consumeConst(buffer)
-      (function, tailFunction)  = utils.consumeFunc(buffer)
-      (variable, tailVariable)  = utils.consumeVar(buffer)
-      (infix, tailInfix)        = utils.consumeInfix(buffer)
+      (number,    tailNumber)     = utils.consumeNumber(buffer)
+      (constant,  tailConstant)   = utils.consumeConst(buffer)
+      (function,  tailFunction)   = utils.consumeFunc(buffer)
+      (variable,  tailVariable)   = utils.consumeVar(buffer)
+      (infix,     tailInfix)      = utils.consumeInfix(buffer)
 
       if (number != "") :
         self.tokens.append(symbols.Token(number))
@@ -375,25 +403,10 @@ class Expression :
         else :
           if not(self.QUIET_MODE) :
             print(f"[ERROR] Internal error: the input char '{head}' could not be assigned to any Token.")
-          self.statusTokenise = False
+          self.statusTokenise = self.Status.FAIL
+          return self.Status.FAIL
 
-
-    # Explicit the hidden multiplications
-    self._tokeniseExplicitMult()
-
-    # List the variables
-    self._tokeniseListVars()
-
-    # Run syntax check on the token sequence
-    self._tokeniseSyntaxCheck()
-
-    if self.VERBOSE_MODE :
-      if self.statusTokenise :
-        print("[INFO] Tokenise: SUCCESS")
-      else :
-        print("[ERROR] Tokenise: FAILED")
-
-    return self.statusTokenise
+    return self.Status.OK
 
 
 
@@ -411,7 +424,7 @@ class Expression :
     
     nTokens = len(self.tokens)
 
-    # A hidden multiplication involves at least 2 tokens.
+    # A hidden multiplication needs at least 2 tokens.
     if (nTokens <= 1) :
       pass
 
@@ -485,13 +498,12 @@ class Expression :
       if (n == (nTokens-2)) :
         output.append(T2)
 
-
     if (self.VERBOSE_MODE) :
       nAdded = len(output) - nTokens
       if (nAdded == 1) :
-        print("[INFO] Tokenise: 1 implicit multiplication was added")
+        print("[INFO] Tokenise: added 1 implicit multiplication")
       elif (nAdded > 1) :
-        print(f"[INFO] Tokenise: {nAdded} implicit multiplications were added")
+        print(f"[INFO] Tokenise: added {nAdded} implicit multiplications")
 
     self.tokens = output
 
@@ -556,7 +568,7 @@ class Expression :
       
       
       # 
-      # TODO: this section needs to be completed.
+      # TODO: this section needs to be completed with all the possible pairs of tokens.
       # 
 
     # STEP 2: check how the sequence of tokens ends
@@ -607,8 +619,11 @@ class Expression :
       self.statusBalance = self.Status.NOT_RUN
       return self.statusBalance
 
-    self.tokens = utils.explicitZerosWeak(self.tokens)  # Add zeros in low priority context (rule [7.1])
-    self.tokens = utils.explicitZeros(self.tokens)      # Add zeros in high priority context (rules [7.2] and [7.3])
+    # Add zeros in low priority context (rule [7.1])
+    self.tokens = utils.explicitZerosWeak(self.tokens)
+    
+    # Add zeros in high priority context (rules [7.2] and [7.3])
+    self.tokens = utils.explicitZeros(self.tokens)
   
 
 
@@ -932,16 +947,12 @@ class Expression :
 
 
 
-
-
-
 # =============================================================================
-# Main (unit tests)
+# UNIT TESTS
 # =============================================================================
 if (__name__ == '__main__') :
   
-  print("[INFO] Library called as main: running unit tests...\n")
-
+  print("[INFO] Library called as main: running unit tests...")
   assert(Expression("oni_giri*cos(2x+pi"  , quiet=True)._validCharCheck() == Expression.Status.OK)
   assert(Expression("input Str"           , quiet=True)._validCharCheck() == Expression.Status.OK)
   assert(Expression("input Str2.1(a+b)|x|", quiet=True)._validCharCheck() == Expression.Status.FAIL)
@@ -965,6 +976,10 @@ if (__name__ == '__main__') :
   assert(Expression("cos(3x+1)*Q(2,,1)" , quiet=True)._firstOrderCheck() == Expression.Status.FAIL)
   print("- Unit test passed: 'Expression._firstOrderCheck()'")
 
+  
+  print("[INFO] End of unit tests.\n")
+
+
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
   e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
@@ -978,6 +993,7 @@ if (__name__ == '__main__') :
   #e = Expression("-3exp(-9t)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
+  print(f"[INFO] Processing expression: '{e.input}'")
   e.syntaxCheck()
   e.tokenise()
   e.balance()
