@@ -25,7 +25,7 @@
 # EXTERNALS
 # =============================================================================
 import src.symbols as symbols
-import src.expression as expression
+import src.parser as parser
 
 from enum import Enum
 

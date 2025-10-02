@@ -14,14 +14,17 @@
 # =============================================================================
 # EXTERNALS
 # =============================================================================
+# Project libraries
 import src.utils as utils
+import src.parser as parser
 
+# Standard libraries
 import math
 
 
 
 # =============================================================================
-# Constant pool
+# CONSTANTS
 # =============================================================================
 CONSTANTS = [
   {"name": "pi" , "value": math.pi},
@@ -288,7 +291,7 @@ class Macro :
 
         # Parse the arguments
         for i in range(self.nArgs) :
-          (arg, rem) = utils.nestArg(buff)
+          (arg, rem) = parser.nestArg(buff)
           self.args.append(arg)
           
           # Is there a new argument?
@@ -307,7 +310,7 @@ class Macro :
         self.remainder = rem
 
       elif (tokens[0].type == "BRKT_OPEN") :
-        (arg, rem) = utils.nestArg(tokens[1:])
+        (arg, rem) = parser.nestArg(tokens[1:])
         self.function = Token("id")
         self.nArgs = 1
         self.args.append(arg)
@@ -320,7 +323,7 @@ class Macro :
 
       # STEP 2: explicit the zeros in the 'opposite' operation
       for arg in self.args :
-        arg = utils.explicitZerosWeak(arg)
+        arg = parser.explicitZerosWeak(arg)
 
       return True
 

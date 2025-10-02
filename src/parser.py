@@ -598,7 +598,8 @@ class Expression :
   # ---------------------------------------------------------------------------
   def balance(self) -> None :
     """
-    Balances the minus signs used as a shortcut for the 'opposite' function.
+    Balances the minus signs used as a shortcut for the 'opposite' function by
+    adding the implicit zero.
     Takes as input the expression as list of tokens and adds (in place) the 
     'minus' infix operators fully expanded.
         
@@ -620,10 +621,10 @@ class Expression :
       return self.statusBalance
 
     # Add zeros in low priority context (rule [7.1])
-    self.tokens = utils.explicitZerosWeak(self.tokens)
+    self.tokens = explicitZerosWeak(self.tokens)
     
     # Add zeros in high priority context (rules [7.2] and [7.3])
-    self.tokens = utils.explicitZeros(self.tokens)
+    self.tokens = explicitZeros(self.tokens)
   
 
 
@@ -659,10 +660,10 @@ class Expression :
     # Note: nest() and nestCheck() are externalised because they are shared
     # with the Macro object.
 
-    self.tokens = utils.nest(self.tokens)
-    (self.nInfix, self.nOp) = utils.nestCountTypes(self.tokens)
+    self.tokens = nest(self.tokens)
+    #(self.nInfix, self.nOp) = utils.nestCountTypes(self.tokens)
 
-    self.statusNest = utils.nestCheck()  
+    self.statusNest = nestCheck()  
 
     return self.statusNest
 
@@ -980,7 +981,7 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   else :
     
     # Consume anything that does not require a macro
-    (tokensFlat, remainder) = consumeAtomic(tokens)
+    (tokensFlat, remainder) = utils.consumeAtomic(tokens)
 
     # The list of tokens is flat (no function or parenthesis)
     if not(remainder) :
@@ -1055,7 +1056,7 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   
   # List of tokens with > 1 element
   else :
-    (tokensFlat, remainder) = consumeAtomic(tokens)
+    (tokensFlat, remainder) = utils.consumeAtomic(tokens)
 
     if not(remainder) :
       return (tokens, [])

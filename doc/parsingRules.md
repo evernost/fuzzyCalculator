@@ -17,11 +17,11 @@ Therefore, future releases could potentially handle advanced types, like matrice
 
 
 ## Requirements
-The parser is purely based on native Python and does not require any specific library:
+The parser uses native Python only and does not require any specific library:
 - No regex
 - No complex string manipulation functions
 
-However, if migrating the parser code to another programming language is needed, 
+However, if migrating the parser's code to another programming language is considered, 
 the following features would be nice to have:
 - Object Oriented Programming structures 
 - String to float conversion routines
@@ -33,10 +33,8 @@ the following features would be nice to have:
 The parser supports adding your custom functions and infix operators.
 The procedure will be documented soon.
 
-
 ## Support for SI units (kg, meters, seconds, amps, mol, ...)
 Current version of the parser does not support units, it is planned for future releases.<br>
-Stay tuned! 
 
 # Parsing rules
 
