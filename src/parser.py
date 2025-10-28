@@ -340,7 +340,8 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _tokeniseReader(self) -> "Expression.Status" :
     """
-    Does the main processing in the tokenise operation.
+    Core function of the tokenising process.
+    Returns a status to indicate if the process was successful or not.
     """
     
     buffer = self.input
@@ -413,11 +414,13 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._tokeniseExplicitMult()                        [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _tokeniseExplicitMult(self) :
+  def _tokeniseExplicitMult(self) -> "Expression.Status" :
     """
     Detects and expands implicit multiplications in a list of tokens.
-    Updates the internal list of tokens with the multiplication tokens 
+    Updates the internal list of tokens with the multiplication tokens
     explicited at the right place.
+
+    Returns a status OK (this function can't fail)
 
     This function is usually called from 'Expression.tokenise()'
     """
@@ -426,7 +429,7 @@ class Expression :
 
     # A hidden multiplication needs at least 2 tokens.
     if (nTokens <= 1) :
-      pass
+      return self.Status.OK
 
     else :
       output = []
@@ -506,16 +509,21 @@ class Expression :
         print(f"[INFO] Tokenise: added {nAdded} implicit multiplications")
 
     self.tokens = output
+    return self.Status.OK
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression._tokeniseListVars()                            [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _tokeniseListVars(self) :
+  def _tokeniseListVars(self) -> "Expression.Status" :
     """
-    Inspects the expression (as a list of Tokens), detects and returns the list 
-    of all the variables found.
+    Inspects the expression in tokenised form and returns the list of all the 
+    variables found.
+
+    In verbose mode, the function logs the variables found.
+
+    Returns a status OK when done (the function can't fail)
     """
 
     self.variables = []
@@ -527,6 +535,8 @@ class Expression :
 
           if self.VERBOSE_MODE :
             print(f"[INFO] Tokenise: new variable found: '{T.name}'")
+
+    return self.Status.OK
 
 
 
@@ -541,7 +551,7 @@ class Expression :
     'resources/secondOrderCheck.xslx'
     
     It is a complement to 'Expression.syntaxCheck()'.
-    Some checks are easier to do on the list of tokens rather than the raw 
+    Some checks are easier to do on a list of tokens rather than the raw 
     input expression.
     
     Returns True if the check passed, False otherwise.
