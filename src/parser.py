@@ -31,7 +31,7 @@ from enum import Enum
 
 
 # =============================================================================
-# CLASS DEFINITION
+# EXPRESSION()
 # =============================================================================
 class Expression : 
   
@@ -46,6 +46,14 @@ class Expression :
   Elements listed in 'Expression.variables' need to be linked to an actual 
   Variable object, so that the evaluator can call their 'Variable.sample()' 
   attribute.
+
+  Examples:
+  > Expression("sin(x + y)")
+  > Expression("(a-b)(a+3b)")
+  > Expression("1/(2pi*(R1//R2)C)")
+  > Expression("12+logN(10,2)/4")
+  > Expression("3+logN(10, exp(y-2)+1)/4")
+  > Expression("-3exp(-9t)")
 
   Options: 
   - quiet mode  : turns off all outputs (even errors)
@@ -208,7 +216,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _firstOrderCheck(self) -> "Expression.Status" :
     """
-    Takes the chars 2 by 2 and detects any invalid combination.
+    Takes the chars 2 by 2 in the expression and detects invalid combinations.
     Detailed list of the valid/invalid combinations can be found in 
     "resources/firstOrderCheck.xslx"
     
@@ -287,23 +295,21 @@ class Expression :
     The input characters are read, grouped and classified to an abstract type
     (Token objects) while preserving their information.
     
-    Implicit multiplications are detected and explicited with an 'infix'
-    token.
+    Implicit multiplications like in '3cos(-2t)' are detected and explicited.
 
-    Output product is generated in 'Expression.tokens'.
     Conversion status is returned by the function and also available in 
     'Expression.statusTokenise'
 
-    This function assumes that syntax checks have been run prior to the call
-    (Expression.check() method)
+    If successful, the output product is generated in 'Expression.tokens'.
+
+    This function assumes that syntax checks have been run before.
     Otherwise, some syntax errors might not be caught and could yield odd 
     results.
-
-    Returns True if the operation is successful, False otherwise.
     """
     
     self.statusTokenise = self.Status.OK
 
+    # Make sure the previous steps were successful
     if (self.statusSyntaxCheck == self.Status.FAIL) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.tokenise() skipped due to previous errors.")
       self.statusTokenise = self.Status.NOT_RUN
@@ -314,16 +320,18 @@ class Expression :
       return self.statusTokenise
 
     # Call the tokeniser
-    self._tokeniseReader()
+    ret = self._tokeniseReader()
+    
+    if (ret == self.Status.OK) :
 
-    # Explicit the hidden multiplications
-    self._tokeniseExplicitMult()
+      # Explicit the hidden multiplications
+      self._tokeniseExplicitMult()
 
-    # List the variables
-    self._tokeniseListVars()
+      # List the variables
+      self._tokeniseListVars()
 
-    # Run syntax check on the token sequence
-    self._tokeniseSyntaxCheck()
+      # Run syntax check on the token sequence
+      self._tokeniseSyntaxCheck()
 
     if self.VERBOSE_MODE :
       if (self.statusTokenise == self.Status.OK) :
@@ -340,8 +348,10 @@ class Expression :
   # ---------------------------------------------------------------------------
   def _tokeniseReader(self) -> "Expression.Status" :
     """
-    Core function of the tokenising process.
-    Returns a status to indicate if the process was successful or not.
+    Core processing function of the tokenise operation.
+
+    Processes the input 'Expression.input'
+    Result is available in 'Expression.tokens'
     """
     
     buffer = self.input
@@ -420,9 +430,9 @@ class Expression :
     Updates the internal list of tokens with the multiplication tokens
     explicited at the right place.
 
-    Returns a status OK (this function can't fail)
-
     This function is usually called from 'Expression.tokenise()'
+
+    The function does not return any status.
     """
     
     nTokens = len(self.tokens)
@@ -575,7 +585,6 @@ class Expression :
           return False      
         else :
           pass
-      
       
       # 
       # TODO: this section needs to be completed with all the possible pairs of tokens.
@@ -1351,6 +1360,10 @@ if (__name__ == '__main__') :
   print("[INFO] End of unit tests.\n")
 
 
+
+  # --------
+  # EXAMPLES
+  # --------
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
   e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
@@ -1364,10 +1377,13 @@ if (__name__ == '__main__') :
   #e = Expression("-3exp(-9t)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
+
   print(f"[INFO] Processing expression: '{e.input}'")
   e.syntaxCheck()
   e.tokenise()
   e.balance()
+
+  # TODO:
   e.nest()
   e.stage()
   
