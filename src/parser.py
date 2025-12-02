@@ -654,17 +654,17 @@ class Expression :
     """
     Nests the list of tokens.
     
-    The nesting operation consists in isolating expressions between round
-    brackets - '(' and ')' - and assigning them to a Token object.
+    The nesting operation consists in isolating tokens between round
+    brackets - '(' and ')' - and storing them in a bigger Token object.
 
-    In that case, since the Token contains an expression, it becomes a Macro
+    In that case, since the 'big' Token contains an expression, it becomes a Macro
     object (a sort of "super-Token")
 
     After this function call, the list of Tokens becomes a recursive structure 
-    that makes the next operations much easier.
+    that makes the next operations (staging, evaluation) much easier.
     
-    In some cases, a 'Macro' object may even carry a top level function 
-    that applies to the terms betweens parenthesis. 
+    In some cases, a 'Macro' object carries a top level function that applies 
+    to the terms betweens parenthesis. 
     This accounts for the difference between 'simple parenthesis' 
     (isolating a part of the expression) and parenthesis in the context of a 
     function call:
@@ -984,11 +984,11 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   
   nTokens = len(tokens)
 
-  # The list of tokens is empty: nothing to do
+  # CASE 1: empty list
   if (nTokens == 0) :
     return []
 
-  # The list of tokens has exactly 1 element
+  # CASE 2: singleton token
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
       if not(quiet) : print("[WARNING] utils.nest(): input is not nestable (possible incomplete input)")
@@ -996,19 +996,16 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
     else :
       return tokens
   
-  # The list of tokens has 2 elements or more
+  # CASE 3: most general case
   else :
-    
-    # Consume anything that does not require a macro
-    (tokensFlat, remainder) = utils.consumeAtomic(tokens)
+    (tokensFlat, remainder) = utils.consumeFlat(tokens)
 
-    # The list of tokens is flat (no function or parenthesis)
+    # The input has no recursive part
     if not(remainder) :
       return tokens
     
-    # The list of tokens contains hierarchical elements 
+    # The input has recursive elements
     else :
-      
       # A function or an opening parenthesis opens a new context
       if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
         
@@ -1075,7 +1072,7 @@ def nestArg(tokens, quiet = False, verbose = False, debug = False) :
   
   # List of tokens with > 1 element
   else :
-    (tokensFlat, remainder) = utils.consumeAtomic(tokens)
+    (tokensFlat, remainder) = utils.consumeFlat(tokens)
 
     if not(remainder) :
       return (tokens, [])

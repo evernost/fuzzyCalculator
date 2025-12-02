@@ -688,9 +688,9 @@ def consumeInfix(s: str) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: consumeAtomic()
+# FUNCTION: consumeFlat()
 # -----------------------------------------------------------------------------
-def consumeAtomic(tokens) :
+def consumeFlat(tokens) :
   """
   Consumes the tokens in a list until it hits a token that implies either 
   recursivity or a change in the processing:
@@ -705,7 +705,7 @@ def consumeAtomic(tokens) :
 
   The remainder part is not analysed: if there is another function 
   call or opening parenthesis, it will remain 'as is' in the remainder.
-  Another call to consumeAtomic() is needed. 
+  Another call to consumeFlat() is needed. 
 
   This function is used extensively for the nesting process.
   
@@ -721,7 +721,7 @@ def consumeAtomic(tokens) :
   # List of tokens has 1 element
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      print("[WARNING] utils.consumeAtomic(): possible uncaught syntax error.")
+      print("[WARNING] utils.consumeFlat(): possible uncaught syntax error.")
       return ([], tokens)
     else :
       return (tokens, [])
@@ -743,11 +743,11 @@ def consumeAtomic(tokens) :
 
 
 # -----------------------------------------------------------------------------
-# FUNCTION: _consumeAtomicTest()
+# FUNCTION: _consumeFlatTest()
 # -----------------------------------------------------------------------------
-def _consumeAtomicTest(input, output) :
+def _consumeFlatTest(input, output) :
   """
-  Unit test function for the 'consumeAtomic()' function.
+  Unit test function for the 'consumeFlat()' function.
   """
   
   eIn = expression.Expression(input)
@@ -758,7 +758,7 @@ def _consumeAtomicTest(input, output) :
   eOut.syntaxCheck()
   eOut.tokenise()
 
-  eOut_test = consumeAtomic(eIn.tokens)
+  eOut_test = consumeFlat(eIn.tokens)
 
   print("Test is TODO.")
 
@@ -1000,8 +1000,8 @@ if (__name__ == '__main__') :
   assert(consumeInfix("^-3") == ("^", "-3"))
   print("- Unit test passed: 'utils.consumeInfix()'")
 
-  assert(_consumeAtomicTest("3x*4", "3x+4"))
-  print("- Unit test TODO: 'utils.consumeAtomic()'")
+  assert(_consumeFlatTest("3x*4", "3x+4"))
+  print("- Unit test TODO: 'utils.consumeFlat()'")
 
   assert(isLegalVariableName("x") == True)
   assert(isLegalVariableName("xyz") == True)
