@@ -676,13 +676,11 @@ class Expression :
     See the examples for more information. 
     """
 
-    # Note: nest() and nestCheck() are externalised because they are shared
+    # Note: nestProcessor() and nestCheck() are externalised because they are shared
     # with the Macro object.
-
-    self.tokens = nest(self.tokens)
+    self.tokens     = nestProcessor(self.tokens)
+    self.statusNest = nestCheck(self.tokens)  
     #(self.nInfix, self.nOp) = utils.nestCountTypes(self.tokens)
-
-    self.statusNest = nestCheck()  
 
     return self.statusNest
 
@@ -971,15 +969,15 @@ class Expression :
 
 
 
-
-
 # -----------------------------------------------------------------------------
-# FUNCTION: nest()
+# FUNCTION: nestProcessor()                                         [RECURSIVE]
 # -----------------------------------------------------------------------------
-def nest(tokens, quiet = False, verbose = False, debug = False) :
+def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
   """
   Consumes a list of tokens, returns another list of tokens where functions and 
   round brackets are replaced with a Macro token.
+
+  Note: this function is recursive.
   """
   
   nTokens = len(tokens)
@@ -991,7 +989,7 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
   # CASE 2: singleton token
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      if not(quiet) : print("[WARNING] utils.nest(): input is not nestable (possible incomplete input)")
+      if not(quiet) : print("[WARNING] nestProcessor(): input is not nestable (possible incomplete input)")
       return tokens
     else :
       return tokens
@@ -1006,15 +1004,14 @@ def nest(tokens, quiet = False, verbose = False, debug = False) :
     
     # The input has recursive elements
     else :
-      # A function or an opening parenthesis opens a new context
-      if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+      if ((remainder[0].type == "BRKT_OPEN") or (remainder[0].type == "FUNCTION")) :
         
-        # Create a Macro object with the new context as input
+        # Create a Macro object with the recursive part
         M = symbols.Macro(remainder)
         
         # Nest whatever the macro did not consume (recursive call)
         rem = M.getRemainder()
-        remNested = nest(rem)
+        remNested = nestProcessor(rem)
         
         # Return the whole set
         return tokensFlat + [M] + remNested
@@ -1363,7 +1360,7 @@ if (__name__ == '__main__') :
   # --------
   #e = Expression("1+sin(2+exp(-9t)+1)", verbose = True)
   #e = Expression("1+2*pi*R1C1cos(x/7.1//y*Z+exp(-9t)+1)", verbose = True)
-  e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
+  #e = Expression("sin( a+b*sin(z)/2)(a-2b/tan(x^2 )", verbose = True)
   #e = Expression("(a+b)/(((12-z)+tan(x))/z", verbose = True)
   #e = Expression("sin(a+b)+2", verbose = True)
   #e = Expression("(a)(b)", verbose = True)
@@ -1371,7 +1368,7 @@ if (__name__ == '__main__') :
   #e = Expression("3+logN(10, exp(y-2)+1)/4", verbose = True)
   #e = Expression("1-exp(3x,y)", verbose = True)
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
-  #e = Expression("-3exp(-9t)", verbose = True)
+  e = Expression("-3exp(-9t)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
 

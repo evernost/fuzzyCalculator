@@ -223,8 +223,11 @@ class Macro :
   (for precedence enforcement or as part of a function call).
 
   The constructor takes as input the list of Tokens where the Macro has to 
-  start (the function token for a function, the opening parenthesis token for 
-  an expression within parenthesis)
+  start:
+  - the function token + the opening parenthesis token for a function 
+  - the opening parenthesis token for an expression between round brackets.
+
+  The list of tokens must contain the entire the macro has to encapsulate. 
   All the tokens that fit into the macro expression will be consumed, the rest 
   is left aside in 'Macro.remainder' attribute for further processing (e.g. when 
   the parenthesis closes)
@@ -232,8 +235,8 @@ class Macro :
   For functions, all the arguments will be extracted and stored in a list
   of arguments.
 
-  Macro generation is recursive: nested functions will create Macro containing
-  another Macro etc.
+  Macro generation is recursive: nested functions within the macro will create 
+  their own macro etc. 
 
   Options: 
   - quiet mode  : turns off all outputs (even errors)
@@ -276,13 +279,14 @@ class Macro :
     otherwise.
     """
     
-    # STEP 1: guess the Macro type and nest the arguments
     nTokens = len(tokens)
 
+    # CASE 1: empty input
     if (nTokens == 0) :
       if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): void list of tokens (possible internal error)")
       return False
 
+    # CASE 2: general case
     elif (nTokens >= 1) :
       if (tokens[0].type == "FUNCTION") :
         self.function = tokens[0]
@@ -358,8 +362,7 @@ class Macro :
 
     # Note: nest() and nestCheck() are externalised because they are shared
     # with the Macro object.
-    
-    self.tokens = utils.nest(self.tokens)
+    self.tokens     = utils.nest(self.tokens)
     self.statusNest = utils.nestCheck()
 
     return self.statusNest
