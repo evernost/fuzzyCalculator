@@ -100,7 +100,7 @@ class Token :
   def __init__(self, s: str, quiet = False, verbose = False, debug = False) :
 
     # Constants
-    self._initLists()
+    self._initRefs()
 
     # Options
     self.QUIET_MODE   = quiet
@@ -108,16 +108,17 @@ class Token :
     self.DEBUG_MODE   = debug
 
     # Determine the type of token based on the input string
-    self._readType(s)
+    self._readInputType(s)
     
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Token._initLists()                                        [PRIVATE]
+  # METHOD: Token._initRefs()                                         [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _initLists(self) -> None :
+  def _initRefs(self) -> None :
     """
-    Initialises the internal references from the lists of constants.
+    Initialises the internal references from the lists of constants / functions
+    and infix operators.
     """
 
     self.listConstants  = [x["name"] for x in CONSTANTS]
@@ -127,9 +128,9 @@ class Token :
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Token._readType()                                         [PRIVATE]
+  # METHOD: Token._readInputType()                                    [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _readType(self, s: str) -> None :
+  def _readInputType(self, s: str) -> None :
     """
     Guesses the type of token from the string input.
     """

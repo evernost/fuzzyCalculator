@@ -86,8 +86,8 @@ class Expression :
 
   class Status(Enum) :
     NOT_RUN = -1
-    OK = 0
-    FAIL = 1
+    OK      = 0
+    FAIL    = 1
 
 
 
@@ -553,7 +553,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression._tokeniseSyntaxCheck()                         [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _tokeniseSyntaxCheck(self) :
+  def _tokeniseSyntaxCheck(self) -> "Expression.Status" :
     """
     Takes the tokens 2 by 2 from the list of Tokens and detects any invalid 
     combination.
@@ -567,7 +567,7 @@ class Expression :
     Returns True if the check passed, False otherwise.
 
     EXAMPLES
-    > _tokeniseSyntaxCheck(...) -> False (TODO)
+    > _tokeniseSyntaxCheck(...) -> self.Status.FALSE (TODO)
     
     See unit tests in 'main()' for more examples.
     """
@@ -582,7 +582,7 @@ class Expression :
         if not(T2.type == "BRKT_OPEN") :
           if not(self.QUIET_MODE) :
             print(f"[ERROR] A function must be followed with a parenthesis (Rule R3).")
-          return False      
+          return self.Status.FAIL      
         else :
           pass
       
@@ -595,27 +595,27 @@ class Expression :
     if (T.type == "FUNCTION") :
       if not(self.QUIET_MODE) :
         print(f"[ERROR] An expression cannot end with a function.")
-      return False
+      return self.Status.FAIL
 
     elif (T.type == "BRKT_OPEN") :
       if not(self.QUIET_MODE) :
         print(f"[ERROR] An expression cannot end with an opening parenthesis.")
-      return False
+      return self.Status.FAIL
     
     elif (T.type == "INFIX") :
       if not(self.QUIET_MODE) :
         print(f"[ERROR] An expression cannot end with an infix operator.")
-      return False
+      return self.Status.FAIL
 
     # STEP 3: return status
-    return True
+    return self.Status.OK
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression.balance()
   # ---------------------------------------------------------------------------
-  def balance(self) -> None :
+  def balance(self) -> "Expression.Status" :
     """
     Balances the minus signs used as a shortcut for the 'opposite' function by
     adding the implicit zero.
@@ -644,13 +644,15 @@ class Expression :
     
     # Add zeros in high priority context (rules [7.2] and [7.3])
     self.tokens = explicitZeros(self.tokens)
+
+    return self.Status.OK
   
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression.nest()
   # ---------------------------------------------------------------------------
-  def nest(self) -> bool :
+  def nest(self) -> "Expression.Status" :
     """
     Nests the list of tokens.
     
@@ -996,39 +998,41 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
   
   # CASE 3: most general case
   else :
-    (tokensFlat, remainder) = utils.consumeFlat(tokens)
+    (tokensFlat, tokensRecurse) = utils.consumeFlat(tokens)
 
     # The input has no recursive part
-    if not(remainder) :
+    if not(tokensRecurse) :
       return tokens
     
-    # The input has recursive elements
+    # The input has at least one recursive element
     else :
-      if ((remainder[0].type == "BRKT_OPEN") or (remainder[0].type == "FUNCTION")) :
+      
+      # CASE 1: function or opening bracket
+      if ((tokensRecurse[0].type == "BRKT_OPEN") or (tokensRecurse[0].type == "FUNCTION")) :
         
-        # Create a Macro object with the recursive part
-        M = symbols.Macro(remainder)
-        
-        # Nest whatever the macro did not consume (recursive call)
+        # Create a Macro object from the recursive part
+        M = symbols.Macro(tokensRecurse)
         rem = M.getRemainder()
+        
+        # Nest the macro's remainder (recursive call to 'nestProcessor')
         remNested = nestProcessor(rem)
         
-        # Return the whole set
+        # Concatenate and return the result
         return tokensFlat + [M] + remNested
 
-      # A comma is not possible in this context
-      elif (remainder[0].type == "COMMA") :
-        if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (comma at top level)")
+      # CASE 2: comma (not possible in this context -> syntax error)
+      elif (tokensRecurse[0].type == "COMMA") :
+        if not(quiet) : print("[WARNING] nestProcessor(): possible uncaught syntax error (comma at top level)")
         return []
 
-      # A closing parenthesis is not possible in this context
-      elif (remainder[0].type == "BRKT_CLOSE") :
-        if not(quiet) : print("[WARNING] Expression.nest(): possible closing parenthesis in excess")
+      # CASE 3: closing parenthesis (not possible in this context -> syntax error)
+      elif (tokensRecurse[0].type == "BRKT_CLOSE") :
+        if not(quiet) : print("[WARNING] nestProcessor(): possible closing parenthesis in excess")
         return []
 
-      # Anything else is not possible in this context
+      # CASE 4: anything else (-> syntax error)
       else :
-        if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+        if not(quiet) : print("[WARNING] nestProcessor(): possible uncaught syntax error (unexpected token)")
         return []
 
 
@@ -1368,7 +1372,8 @@ if (__name__ == '__main__') :
   #e = Expression("3+logN(10, exp(y-2)+1)/4", verbose = True)
   #e = Expression("1-exp(3x,y)", verbose = True)
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
-  e = Expression("-3exp(-9t)", verbose = True)
+  #e = Expression("-3exp(-9t)", verbose = True)
+  e = Expression("exp(x-y)exp(x+y)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
 
