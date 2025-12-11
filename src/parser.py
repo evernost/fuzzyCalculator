@@ -17,6 +17,7 @@
 # Project libraries
 import src.symbols as symbols
 import src.utils as utils
+from src.commons import Status
 
 # Standard libraries
 from enum import Enum
@@ -630,10 +631,13 @@ class Expression :
     Please refer to rules [R7.X] in 'doc/parsingRules.md'
     """
     
+    # The previous steps failed
     if (self.statusTokenise == self.Status.FAIL) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.balance() skipped due to previous errors.")
       self.statusBalance = self.Status.NOT_RUN
       return self.statusBalance
+    
+    # The previous steps were skipped
     elif (self.statusSyntaxCheck == self.Status.NOT_RUN) :
       if not(self.QUIET_MODE) : print("[WARNING] Expression.tokenise() must be run before Expression.balance()")
       self.statusBalance = self.Status.NOT_RUN
@@ -652,7 +656,7 @@ class Expression :
   # ---------------------------------------------------------------------------
   # METHOD: Expression.nest()
   # ---------------------------------------------------------------------------
-  def nest(self) -> "Expression.Status" :
+  def nest(self) -> Status :
     """
     Nests the list of tokens.
     
@@ -680,13 +684,13 @@ class Expression :
 
     # Note: nestProcessor() and nestCheck() are externalised because they are shared
     # with the Macro object.
-    self.tokens     = nestProcessor(self.tokens)
-    self.statusNest = nestCheck(self.tokens)  
-    #(self.nInfix, self.nOp) = utils.nestCountTypes(self.tokens)
-
-    return self.statusNest
-
-
+    (self.tokens, status) = nestProcessor(self.tokens)
+    if (status == Status.FAIL) :
+      return status  
+    
+    self.statusNest = nestCheck(self.tokens) 
+    
+    
 
   # ---------------------------------------------------------------------------
   # METHOD: Expression.stage()
@@ -986,15 +990,15 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
 
   # CASE 1: empty list
   if (nTokens == 0) :
-    return []
+    return ([], Status.OK)
 
   # CASE 2: singleton token
   elif (nTokens == 1) :
     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      if not(quiet) : print("[WARNING] nestProcessor(): input is not nestable (possible incomplete input)")
-      return tokens
+      if not(quiet) : print("[WARNING] nestProcessor(): input is not nestable (singleton meaningless token)")
+      return (tokens, Status.FAIL)
     else :
-      return tokens
+      return (tokens, Status.OK)
   
   # CASE 3: most general case
   else :
@@ -1002,7 +1006,7 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
 
     # The input has no recursive part
     if not(tokensRecurse) :
-      return tokens
+      return (tokens, Status.OK)
     
     # The input has at least one recursive element
     else :
@@ -1015,25 +1019,28 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
         rem = M.getRemainder()
         
         # Nest the macro's remainder (recursive call to 'nestProcessor')
-        remNested = nestProcessor(rem)
+        (remNested, status) = nestProcessor(rem)
+        if (status != Status.OK) :
+          print("[ERROR] nestProcessor(): premature exit after error in Macro nesting.")
+          return ([], Status.FAIL)
         
         # Concatenate and return the result
-        return tokensFlat + [M] + remNested
+        return (tokensFlat + [M] + remNested, Status.OK)
 
       # CASE 2: comma (not possible in this context -> syntax error)
       elif (tokensRecurse[0].type == "COMMA") :
         if not(quiet) : print("[WARNING] nestProcessor(): possible uncaught syntax error (comma at top level)")
-        return []
+        return ([], Status.FAIL)
 
       # CASE 3: closing parenthesis (not possible in this context -> syntax error)
       elif (tokensRecurse[0].type == "BRKT_CLOSE") :
         if not(quiet) : print("[WARNING] nestProcessor(): possible closing parenthesis in excess")
-        return []
+        return ([], Status.FAIL)
 
       # CASE 4: anything else (-> syntax error)
       else :
         if not(quiet) : print("[WARNING] nestProcessor(): possible uncaught syntax error (unexpected token)")
-        return []
+        return ([], Status.FAIL)
 
 
 
@@ -1129,7 +1136,7 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
   if ((len(tokens) % 2) == 0) :
     if not(quiet) : 
       print("[ERROR] Nesting returned an even number of tokens. Something wrong happened (possible internal error).")
-      return False
+      return Status.FAIL
 
   # CHECK 2: tokens (at top level and in macros) must follow a 'L op L ... op L' pattern.
   nInfix = 0
@@ -1137,12 +1144,12 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
     if ((n % 2) == 0) :
       if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
         print("[ERROR] The nested expression does not follow the pattern 'L op L op ... L' (unexpected leaf)")
-        return False
+        return Status.FAIL
 
     else :
       if (element.type != "INFIX") :
         print("[ERROR] The nested expression does not follow the pattern [L op L op ...] (unexpected infix)")
-        return False
+        return Status.FAIL
 
       else :
         nInfix += 1
@@ -1153,7 +1160,7 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
       status = T.nest()
 
 
-  return True
+  return Status.OK
 
 
 
