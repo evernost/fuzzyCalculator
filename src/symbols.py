@@ -363,8 +363,10 @@ class Macro :
 
     # Note: nest() and nestCheck() are externalised because they are shared
     # with the Macro object.
-    self.tokens     = utils.nest(self.tokens)
-    self.statusNest = utils.nestCheck()
+    #self.tokens     = utils.nest(self.tokens)
+    for arg in self.args :
+      self.tokens = parser.nestProcessor(self.tokens)
+      self.statusNest = parser.nestCheck(self.tokens)
 
     return self.statusNest
 
