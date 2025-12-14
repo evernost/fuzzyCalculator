@@ -1011,6 +1011,10 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
         
         # Create a Macro object from the recursive part
         M = symbols.Macro(tokensRecurse)
+        if (M.statusArgs != Status.OK) :
+          print("[ERROR] nestProcessor(): Macro generation failed.")
+          return ([], Status.FAIL)
+
         rem = M.getRemainder()
         
         # Nest the macro's remainder (recursive call to 'nestProcessor')
@@ -1148,11 +1152,13 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
       else :
         nInfix += 1
 
-  # TODO: check the nesting recursively
+  # CHECK 3: check recursively inside the Macro
   for T in tokens :
     if (T.type == "MACRO") :
-      status = T.nest()
+      status = T.nestCheck()
 
+      if (status == Status.FAIL) :
+        return Status.FAIL
 
   return Status.OK
 
@@ -1374,7 +1380,7 @@ if (__name__ == '__main__') :
   #e = Expression("1-exp(3x,y)", verbose = True)
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   #e = Expression("-3exp(-9t)", verbose = True)
-  e = Expression("exp(x-y)exp(x+y)", verbose = True)
+  e = Expression("exp(ln(x^y)-z)exp(x+y)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
 

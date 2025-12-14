@@ -17,6 +17,7 @@
 # Project libraries
 import src.utils as utils
 import src.parser as parser
+from src.commons import Status
 
 # Standard libraries
 import math
@@ -264,20 +265,20 @@ class Macro :
 
     # Populate the attributes
     self.statusArgs = self._consumeArgs(tokens)
-    self.statusNest = False
+    self.statusNest = Status.NOT_RUN
 
 
 
   # ---------------------------------------------------------------------------
   # METHOD: Macro._consumeArgs()                                      [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _consumeArgs(self, tokens) -> bool :
+  def _consumeArgs(self, tokens) -> Status :
     """
     Consumes all the tokens that are part of the argument(s) of the function.
     The rest is stored in 'Macro.remainder' for further processing.
 
-    The function returns True if the Macro creation is successful, False
-    otherwise.
+    The function returns 'Status.OK' if the Macro creation is successful, 
+    'Status.FAIL' otherwise.
     """
     
     nTokens = len(tokens)
@@ -285,14 +286,14 @@ class Macro :
     # CASE 1: empty input
     if (nTokens == 0) :
       if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): void list of tokens (possible internal error)")
-      return False
+      return Status.FAIL
 
     # CASE 2: general case
     elif (nTokens >= 1) :
       if (tokens[0].type == "FUNCTION") :
         self.function = tokens[0]
-        self.nArgs = nArgsFromFunctionName(self.function.id)
-        buff = tokens[2:]
+        self.nArgs    = nArgsFromFunctionName(self.function.id)
+        buff          = tokens[2:]
 
         # Parse the arguments
         for i in range(self.nArgs) :
@@ -307,10 +308,10 @@ class Macro :
                   buff = rem[1:]
                 else :
                   if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
-                  return False
+                  Status.FAIL
               else :
                 if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' only takes 1 argument.")
-                return False
+                Status.FAIL
 
         self.remainder = rem
 
@@ -323,14 +324,14 @@ class Macro :
 
       else :
         if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
-        return False
+        Status.FAIL
 
 
       # STEP 2: explicit the zeros in the 'opposite' operation
       for arg in self.args :
         arg = parser.explicitZerosWeak(arg)
 
-      return True
+      return Status.OK
 
 
 
@@ -361,12 +362,14 @@ class Macro :
     Macro.
     """
 
-    # Note: nest() and nestCheck() are externalised because they are shared
-    # with the Macro object.
-    #self.tokens     = utils.nest(self.tokens)
-    for arg in self.args :
-      self.tokens = parser.nestProcessor(self.tokens)
-      self.statusNest = parser.nestCheck(self.tokens)
+    self.statusNest = Status.OK
+
+    for (i, _) in enumerate(self.args) :
+      (self.args[i], status) = parser.nestProcessor(self.args[i])
+      #status = parser.nestCheck(self.args[i])
+
+      if (status != Status.OK) :
+        self.statusNest = status
 
     return self.statusNest
 
