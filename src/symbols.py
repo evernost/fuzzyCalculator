@@ -248,7 +248,7 @@ class Macro :
 
   def __init__(self, tokens, quiet = False, verbose = False, debug = False) :
 
-    # Populated after calling "_consumeArgs()"
+    # Populated after calling "_read()"
     self.function   = None    # Top-level function of the macro
     self.args       = []      # List of arguments
     self.nArgs      = 0       # Number of arguments
@@ -264,40 +264,48 @@ class Macro :
     self.DEBUG_MODE   = debug
 
     # Populate the attributes
-    self.statusArgs = self._consumeArgs(tokens)
+    self.statusArgs = self._read(tokens)
     self.statusNest = Status.NOT_RUN
 
 
 
   # ---------------------------------------------------------------------------
-  # METHOD: Macro._consumeArgs()                                      [PRIVATE]
+  # METHOD: Macro._read()                                             [PRIVATE]
   # ---------------------------------------------------------------------------
-  def _consumeArgs(self, tokens) -> Status :
+  def _read(self, tokens) -> Status :
     """
     Consumes all the tokens that are part of the argument(s) of the function.
     The rest is stored in 'Macro.remainder' for further processing.
 
     The function returns 'Status.OK' if the Macro creation is successful, 
     'Status.FAIL' otherwise.
+
+    NOTE: A macro does not have a 'nest' method.
+    The function's arguments / parenthesis' content are automatically nested. 
     """
     
     nTokens = len(tokens)
 
     # CASE 1: empty input
     if (nTokens == 0) :
-      if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): void list of tokens (possible internal error)")
+      if not(self.QUIET_MODE) : print("[ERROR] Macro._read(): void list of tokens (possible internal error)")
       return Status.FAIL
 
     # CASE 2: general case
     elif (nTokens >= 1) :
       if (tokens[0].type == "FUNCTION") :
-        self.function = tokens[0]
-        self.nArgs    = nArgsFromFunctionName(self.function.id)
-        buff          = tokens[2:]
+        self.function     = tokens[0]
+        self.nArgs        = nArgsFromFunctionName(self.function.id)
+        tokensWithoutFunc = tokens[2:]
 
         # Parse the arguments
         for i in range(self.nArgs) :
-          (arg, rem) = parser.nestArg(buff)
+          
+          # TODO: create a custom function for argument extraction
+          # Is nesting really necessary here?
+          (arg, rem) = parser.nestArg(tokensWithoutFunc)
+
+          # Push to the list of arguments
           self.args.append(arg)
           
           # Is there a new argument?
@@ -305,12 +313,12 @@ class Macro :
             if (rem[0].type == "COMMA") :
               if (self.nArgs >= 2) :
                 if (i != (self.nArgs-1)) :
-                  buff = rem[1:]
+                  tokensWithoutFunc = rem[1:]
                 else :
-                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
                   Status.FAIL
               else :
-                if not(self.QUIET_MODE) : print(f"[ERROR] Macro._consumeArgs(): '{self.function.id}' only takes 1 argument.")
+                if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' only takes 1 argument.")
                 Status.FAIL
 
         self.remainder = rem
@@ -323,7 +331,7 @@ class Macro :
         self.remainder = rem
 
       else :
-        if not(self.QUIET_MODE) : print("[ERROR] Macro._consumeArgs(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
+        if not(self.QUIET_MODE) : print("[ERROR] Macro._read(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
         Status.FAIL
 
 
@@ -332,6 +340,70 @@ class Macro :
         arg = parser.explicitZerosWeak(arg)
 
       return Status.OK
+
+
+
+
+  # -----------------------------------------------------------------------------
+  # METHOD: Macro._consumeArgs()                                        [PRIVATE]
+  # -----------------------------------------------------------------------------
+  def _consumeArgs(self) :
+    """
+    Description is TODO.
+    """
+    
+    nTokens = len(tokens)
+
+    # List of tokens is empty: nothing to do
+    if (nTokens == 0) :
+      return ([], [])
+
+    # List of tokens has 1 element
+    elif (nTokens == 1) :
+      if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
+        if not(quiet) : print("[WARNING] utils.nestArg(): odd input (single meaningless token)")
+        return (tokens, [])
+      else :
+        return (tokens, [])
+    
+    # List of tokens with > 1 element
+    else :
+      (tokensFlat, remainder) = utils.consumeFlat(tokens)
+
+      if not(remainder) :
+        return (tokens, [])
+
+      else :
+        if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+          
+          # Create a Macro object with the new context as input
+          M = symbols.Macro(remainder)
+          
+          # Nest what is not part of the macro
+          # TODO: not sure 'nestArg' must be called here
+          rem = M.getRemainder()
+          (arg, rem) = nestArg(rem)
+          
+          return (tokensFlat + [M] + arg, rem)
+
+        elif (remainder[0].type == "COMMA") :  
+          if (len(remainder) >= 2) :
+            # Note: the comma is included in 'remainder' so that it is
+            # easier to detected if there are too many arguments
+            return (tokensFlat, remainder)
+          else :
+            if not(quiet) : print("[WARNING] utils.nestArg(): possible missing argument")
+            return (tokensFlat, [])
+
+        elif (remainder[0].type == "BRKT_CLOSE") :
+          if (len(remainder) > 1) :
+            return (tokensFlat, remainder[1:])
+          else :
+            return (tokensFlat, [])
+
+        else :
+          if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+          return (tokens, [])
 
 
 
@@ -354,7 +426,7 @@ class Macro :
   # ---------------------------------------------------------------------------
   # METHOD: Macro.nest()
   # ---------------------------------------------------------------------------
-  def nest(self) -> bool :
+  def nest(self) -> Status :
     """
     Nests the list of tokens.
 
@@ -372,6 +444,8 @@ class Macro :
         self.statusNest = status
 
     return self.statusNest
+
+
 
 
 
@@ -400,7 +474,7 @@ def nArgsFromFunctionName(s: str) :
 # -----------------------------------------------------------------------------
 def _selfCheck() :
   """
-  Checks all user-customisable declarations
+  Checks all user-customisable declarations (constants, infixes, functions)
   """
   
   # Look for duplicate definitions in 'CONSTANTS'

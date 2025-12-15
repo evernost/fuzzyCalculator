@@ -20,7 +20,7 @@ import src.utils as utils
 from src.commons import Status
 
 # Standard libraries
-from enum import Enum
+# None.
 
 
 
@@ -68,7 +68,7 @@ class Expression :
     self.input = input
     
     # Populated after calling "tokenise()"
-    self.tokens     = []    # Same as 'input', but expressed as a list of tokens
+    self.tokens     = []    # The user input expressed as a list of tokens (populated after 'tokenise')
     self.variables  = []    # Variables found in the expression
     self.nInfix     = 0     # Number of infix operators found
     self.nOp        = 0     # Number of operands found (TODO: is it recursive?)
