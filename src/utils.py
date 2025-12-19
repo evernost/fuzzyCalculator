@@ -750,11 +750,11 @@ def _consumeFlatTest(input, output) :
   Unit test function for the 'consumeFlat()' function.
   """
   
-  eIn = expression.Expression(input)
+  eIn = parser.Expression(input)
   eIn.syntaxCheck()
   eIn.tokenise()
   
-  eOut = expression.Expression(output)
+  eOut = parser.Expression(output)
   eOut.syntaxCheck()
   eOut.tokenise()
 

@@ -1046,75 +1046,75 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
 # -----------------------------------------------------------------------------
 # FUNCTION: nestArg()
 # -----------------------------------------------------------------------------
-def nestArg(tokens, quiet = False, verbose = False, debug = False) :
-  """
-  Weaker version of nest() specific to arguments processing: 
-  - function content
-  - round parenthesis content
+# def nestArg(tokens, quiet = False, verbose = False, debug = False) :
+#   """
+#   Weaker version of nest() specific to arguments processing: 
+#   - function content
+#   - round parenthesis content
   
-  Like 'nest()' the function returns a nested list of tokens. 
+#   Like 'nest()' the function returns a nested list of tokens. 
   
-  Unlike 'nest()', it halts on ',' and ')' and returns the remainder.
-  Therefore, the return objects are:
-  - the nested list of tokens
-  - the remainder
+#   Unlike 'nest()', it halts on ',' and ')' and returns the remainder.
+#   Therefore, the return objects are:
+#   - the nested list of tokens
+#   - the remainder
 
-  'nest()' consumes all the tokens, hence it does not return a remainder.
-  'nestArg()' must stop when the argument processing is done.
-  """
+#   'nest()' consumes all the tokens, hence it does not return a remainder.
+#   'nestArg()' must stop when the argument processing is done.
+#   """
   
-  nTokens = len(tokens)
+#   nTokens = len(tokens)
 
-  # List of tokens is empty: nothing to do
-  if (nTokens == 0) :
-    return ([], [])
+#   # CASE 1: empty list of tokens
+#   if (nTokens == 0) :
+#     return ([], [])
 
-  # List of tokens has 1 element
-  elif (nTokens == 1) :
-    if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
-      if not(quiet) : print("[WARNING] utils.nestArg(): odd input (single meaningless token)")
-      return (tokens, [])
-    else :
-      return (tokens, [])
+#   # CASE 2: list of tokens has 1 element
+#   elif (nTokens == 1) :
+#     if tokens[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
+#       if not(quiet) : print("[WARNING] utils.nestArg(): odd input (single meaningless token)")
+#       return (tokens, [])
+#     else :
+#       return (tokens, [])
   
-  # List of tokens with > 1 element
-  else :
-    (tokensFlat, remainder) = utils.consumeFlat(tokens)
+#   # List of tokens with > 1 element
+#   else :
+#     (tokensFlat, remainder) = utils.consumeFlat(tokens)
 
-    if not(remainder) :
-      return (tokens, [])
+#     if not(remainder) :
+#       return (tokens, [])
 
-    else :
-      if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
+#     else :
+#       if (remainder[0].type in ("BRKT_OPEN", "FUNCTION")) :
         
-        # Create a Macro object with the new context as input
-        M = symbols.Macro(remainder)
+#         # Create a Macro object with the new context as input
+#         M = symbols.Macro(remainder)
         
-        # Nest what is not part of the macro
-        # TODO: not sure 'nestArg' must be called here
-        rem = M.getRemainder()
-        (arg, rem) = nestArg(rem)
+#         # Nest what is not part of the macro
+#         # TODO: not sure 'nestArg' must be called here
+#         rem = M.getRemainder()
+#         (arg, rem) = nestArg(rem)
         
-        return (tokensFlat + [M] + arg, rem)
+#         return (tokensFlat + [M] + arg, rem)
 
-      elif (remainder[0].type == "COMMA") :  
-        if (len(remainder) >= 2) :
-          # Note: the comma is included in 'remainder' so that it is
-          # easier to detected if there are too many arguments
-          return (tokensFlat, remainder)
-        else :
-          if not(quiet) : print("[WARNING] utils.nestArg(): possible missing argument")
-          return (tokensFlat, [])
+#       elif (remainder[0].type == "COMMA") :  
+#         if (len(remainder) >= 2) :
+#           # Note: the comma is included in 'remainder' so that it is
+#           # easier to detected if there are too many arguments
+#           return (tokensFlat, remainder)
+#         else :
+#           if not(quiet) : print("[WARNING] utils.nestArg(): possible missing argument")
+#           return (tokensFlat, [])
 
-      elif (remainder[0].type == "BRKT_CLOSE") :
-        if (len(remainder) > 1) :
-          return (tokensFlat, remainder[1:])
-        else :
-          return (tokensFlat, [])
+#       elif (remainder[0].type == "BRKT_CLOSE") :
+#         if (len(remainder) > 1) :
+#           return (tokensFlat, remainder[1:])
+#         else :
+#           return (tokensFlat, [])
 
-      else :
-        if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
-        return (tokens, [])
+#       else :
+#         if not(quiet) : print("[WARNING] Expression.nest(): possible uncaught syntax error (unexpected token)")
+#         return (tokens, [])
 
 
 
@@ -1380,9 +1380,10 @@ if (__name__ == '__main__') :
   #e = Expression("1-exp(3x,y)", verbose = True)
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   #e = Expression("-3exp(-9t)", verbose = True)
-  e = Expression("exp(ln(x^y)-z)exp(x+y)", verbose = True)
+  #e = Expression("exp(ln(x^y)-z)exp(x+y)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
+  e = Expression("3*fct3(a,b+c,d^r2)", verbose = True)
 
   print(f"[INFO] Processing expression: '{e.input}'")
   e.syntaxCheck()
