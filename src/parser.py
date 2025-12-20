@@ -1121,7 +1121,7 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
 # ---------------------------------------------------------------------------
 # FUNCTION: nestCheck()
 # ---------------------------------------------------------------------------
-def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
+def nestCheck(tokens, quiet = False, verbose = False, debug = False) -> Status :
   """
   Checks the outcome of the 'nest()' operation.
   
@@ -1153,12 +1153,12 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) :
         nInfix += 1
 
   # CHECK 3: check recursively inside the Macro
-  for T in tokens :
-    if (T.type == "MACRO") :
-      status = T.nestCheck()
+  # for T in tokens :
+  #   if (T.type == "MACRO") :
+  #     status = T.nestCheck()
 
-      if (status == Status.FAIL) :
-        return Status.FAIL
+  #     if (status == Status.FAIL) :
+  #       return Status.FAIL
 
   return Status.OK
 
@@ -1322,16 +1322,6 @@ def countTokens(tokens) :
 
 
 
-
-
-
-
-
-
-
-
-
-
 # =============================================================================
 # UNIT TESTS
 # =============================================================================
@@ -1383,7 +1373,8 @@ if (__name__ == '__main__') :
   #e = Expression("exp(ln(x^y)-z)exp(x+y)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
-  e = Expression("3*fct3(a,b+c,d^r2)", verbose = True)
+  e = Expression("3*fct3(a,b+sin(pi),d^r2)", verbose = True)
+  #e = Expression("a + sin(b + sin(c + sin(d", verbose = True)
 
   print(f"[INFO] Processing expression: '{e.input}'")
   e.syntaxCheck()

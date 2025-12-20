@@ -297,6 +297,8 @@ class Macro :
 
     # CASE 2: general case
     elif (nTokens >= 1) :
+      
+      # CASE 2.1: Function Macro
       if (tokens[0].type == "FUNCTION") :
         self.function     = tokens[0]
         self.nArgs        = nArgsFromFunctionName(self.function.id)
@@ -326,6 +328,7 @@ class Macro :
 
         self.remainder = rem
 
+      # CASE 2.2: Parenthesis Macro
       elif (tokens[0].type == "BRKT_OPEN") :
         (arg, rem) = parser.nestArg(tokens[1:])
         self.function = Token("id")
@@ -333,17 +336,25 @@ class Macro :
         self.args.append(arg)
         self.remainder = rem
 
+      # CASE 2.3: Anything else (-> error)
       else :
         if not(self.QUIET_MODE) : print("[ERROR] Macro._read(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
         Status.FAIL
 
 
-      # STEP 2: explicit the zeros in the 'opposite' operation
-      for arg in self.args :
-        arg = parser.explicitZerosWeak(arg)
+    # STEP 2: explicit the zeros in the 'opposite' operation
+    for arg in self.args :
+      arg = parser.explicitZerosWeak(arg)
 
-      return Status.OK
+    # STEP 3: check the nesting
+    for arg in self.args :
+      ret = parser.nestCheck(arg)
+      
+      # TODO: set as status the worst status encountered
+      if (ret != Status.OK) :
+        self.statusNest = Status.FAIL
 
+    return Status.OK
 
 
 
@@ -418,15 +429,19 @@ class Macro :
             print("[WARNING] Macro._consumeArg(): possible missing argument")
             return (tokensFlat, [])
 
+        # CASE 3.3: Closing parenthesis in argument
+        # End of the processing, go up one level
         elif (remainder[0].type == "BRKT_CLOSE") :
           if (len(remainder) > 1) :
             return (tokensFlat, remainder[1:])
           else :
             return (tokensFlat, [])
 
+        # CASE 3.4: Anything else
+        # Any other token is an error.
         else :
-          if not(quiet) : print("[WARNING] Macro._consumeArg(): possible uncaught syntax error (unexpected token)")
-          return (tokens, [])
+          print("[WARNING] Macro._consumeArg(): possible uncaught syntax error (unexpected token)")
+          return (tokensFlat, [])
 
 
 
