@@ -168,7 +168,7 @@ class Token :
     elif (s == ",") :
       self.type     = "COMMA"
       self.id       = ","
-      self.dispStr  = f"SEP:','"
+      self.dispStr  = f"COMMA:','"
 
     elif utils.isNumber(s) :
       self.type     = "NUMBER"
@@ -290,12 +290,12 @@ class Macro :
     
     nTokens = len(tokens)
 
-    # CASE 1: empty input
+    # CASE 1: process an empty input
     if (nTokens == 0) :
       if not(self.QUIET_MODE) : print("[ERROR] Macro._read(): void list of tokens (possible internal error)")
       return Status.FAIL
 
-    # CASE 2: general case
+    # CASE 2: process N > 1 tokens
     elif (nTokens >= 1) :
       
       # CASE 2.1: Function Macro
@@ -307,13 +307,11 @@ class Macro :
         # Parse the arguments
         for i in range(self.nArgs) :
           
-          # Consume the all the tokens for this argument
+          # Consume and append all the tokens for this argument
           (arg, rem) = self._consumeArg(tokensWithoutFunc)
-
-          # Append the tokens found
           self.args.append(arg)
           
-          # Is there a new argument?
+          # Is there something left?
           if rem :
             if (rem[0].type == "COMMA") :
               if (self.nArgs >= 2) :
@@ -380,11 +378,11 @@ class Macro :
     
     nTokens = len(tokenList)
 
-    # CASE 1: empty list of tokens
+    # CASE 1: consume args in an empty list of tokens
     if (nTokens == 0) :
       return ([], [])
 
-    # CASE 2: singleton token
+    # CASE 2: consume args in a single token
     elif (nTokens == 1) :
       if tokenList[0].type in ("BRKT_OPEN", "BRKT_CLOSE", "FUNCTION") :
         print("[WARNING] Macro._consumeArg(): odd input (single meaningless token)")
@@ -392,7 +390,7 @@ class Macro :
       else :
         return (tokenList, [])
     
-    # CASE 3: most general case
+    # CASE 3: consume args in the most general case
     else :
       (tokensFlat, remainder) = utils.consumeFlat(tokenList)
 
@@ -431,12 +429,12 @@ class Macro :
 
         # CASE 3.3: Closing parenthesis in argument
         # End of the processing, go up one level
+        # NOTE: the closing parenthesis must be returned in the remainder,
+        # otherwise it wouldn't be possible to distinguish 
+        # '2x+3),...' and '2x+3),'
         elif (remainder[0].type == "BRKT_CLOSE") :
-          if (len(remainder) > 1) :
-            return (tokensFlat, remainder[1:])
-          else :
-            return (tokensFlat, [])
-
+          return (tokensFlat, remainder)
+        
         # CASE 3.4: Anything else
         # Any other token is an error.
         else :

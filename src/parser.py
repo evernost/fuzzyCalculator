@@ -683,6 +683,7 @@ class Expression :
     if (status == Status.FAIL) :
       return status  
     
+    # Check the output
     self.statusNest = nestCheck(self.tokens) 
     
     
@@ -1140,7 +1141,7 @@ def nestCheck(tokens, quiet = False, verbose = False, debug = False) -> Status :
   nInfix = 0
   for (n, element) in enumerate(tokens) :        
     if ((n % 2) == 0) :
-      if (not(element.type in ["NUMBER", "VAR", "CONSTANT", "MACRO"])) :
+      if (not(element.type in ["NUMBER", "VARIABLE", "CONSTANT", "MACRO"])) :
         print("[ERROR] The nested expression does not follow the pattern 'L op L op ... L' (unexpected leaf)")
         return Status.FAIL
 
