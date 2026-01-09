@@ -701,7 +701,11 @@ def consumeFlat(tokens) :
 
   In either case, it stops and returns the 'atomic' part and the remainder.
 
-  TODO: is the 'breaking' token included in the atomic part or the remainder part?
+  TODO: the token that 'breaks' the atomic sequence, should it belong to the 
+  atomic part or the remainder part?
+  - if it is a comma, it belongs to the remainder because it is an information
+    required for the rest of the processing
+  - if is it a closing parenthesis, it ...???
 
   The remainder part is not analysed: if there is another function 
   call or opening parenthesis, it will remain 'as is' in the remainder.
@@ -729,9 +733,14 @@ def consumeFlat(tokens) :
   # List of tokens with > 1 element
   else :
     for i in range(nTokens) :
+      
+      # Any of these token interrupts an atomic sequence
       if (tokens[i].type in ["BRKT_OPEN", "BRKT_CLOSE", "FUNCTION", "COMMA"]) :
         return (tokens[0:i], tokens[i:])
 
+      # All these tokens constitute an atomic sequence
+      # TODO: are 'INFIX' and 'MACRO' legitimate cases? does it ever happen?
+      # Should an error be returned if they occur?
       elif (tokens[i].type in ["CONSTANT", "VARIABLE", "NUMBER", "INFIX", "MACRO"]) :
         if (i == (nTokens-1)) :
           return (tokens, [])

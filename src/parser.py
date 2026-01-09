@@ -680,6 +680,7 @@ class Expression :
     # Note: nestProcessor() and nestCheck() are externalised because they are shared
     # with the Macro object.
     (self.tokens, status) = nestProcessor(self.tokens)
+    
     if (status == Status.FAIL) :
       return status  
     

@@ -311,10 +311,21 @@ class Macro :
           (arg, rem) = self._consumeArg(tokensWithoutFunc)
           self.args.append(arg)
           
-          # Is there something left?
+          # TODO!!
+          # At this point, 'rem' might contain a leftover closing parenthesis
+          # This case needs to be handled
+          # ...
+
+          # Is there anything left?
           if rem :
+            
+            # Comma: another argument comes next
             if (rem[0].type == "COMMA") :
+              
+              # Does the function accept more than one argument?
               if (self.nArgs >= 2) :
+                
+                # Trim the leading comma, and start the argument processing again
                 if (i != (self.nArgs-1)) :
                   tokensWithoutFunc = rem[1:]
                 else :
@@ -361,16 +372,21 @@ class Macro :
   # -----------------------------------------------------------------------------
   def _consumeArg(self, tokenList) :
     """
-    Weaker version of parser.nest(), specific to arguments processing: 
+    Weaker version of parser.nest() that processes the content (or arguments) of
+    specific elements:
     - function content
-    - round parenthesis content
-    
-    Like 'nest()' the function returns a nested list of tokens. 
-    
+    - parenthesis content
+    You must get rid of the opening parenthesis (and the function name in case 
+    of a function) before calling this function.
+
+    In a nutshell, this function extracts the content of a function/parenthesis.
+        
+    Like 'nest()', the function returns a nested list of tokens.
+
     Unlike 'nest()', it halts on ',' and ')' and returns the remainder.
-    Therefore, the return objects are:
-    - the nested list of tokens
-    - the remainder
+    Therefore, the returned objects is the tuple (T, rem) with:
+    - T: the content of the parenthesis/function (as list of tokens)
+    - rem: the remainder (as list of tokens)
 
     'nest()' consumes all the tokens, hence it does not return a remainder.
     'nestArg()' must stop when the argument processing is done.
@@ -407,8 +423,7 @@ class Macro :
           M = Macro(remainder)
           rem = M.getRemainder()
 
-          # Consume the remainder as if it
-          # were a regular argument
+          # Consume the remainder as if it were a regular argument
           (arg, rem) = self._consumeArg(rem)
           
           # Concatenate everything, return the outcome.
