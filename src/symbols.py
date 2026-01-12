@@ -314,26 +314,45 @@ class Macro :
           # TODO!!
           # At this point, 'rem' might contain a leftover closing parenthesis
           # This case needs to be handled
-          # ...
 
           # Is there anything left?
           if rem :
-            
-            # Comma: another argument comes next
-            if (rem[0].type == "COMMA") :
-              
-              # Does the function accept more than one argument?
-              if (self.nArgs >= 2) :
+
+            # REMAINDER HAS 1 TOKEN LEFT
+            # - Case 1: closing parenthesis
+            #   The function/bracket is terminated in the most natural way.
+            #   Check if this is compatible with the number of arguments the function expects!
+            # - Case 2: anything else
+            #   That's probably an error considering what lead to exiting the arg consumption
+            if (len(rem) == 1) :
+              if (rem[0].type != "BRKT_CLOSE") :
+                print("Possible error case")
+
+            # REMAINDER HAS 2 OR MORE TOKENS LEFT
+            # - Case 1: closing parenthesis, then NOT a comma
+            #   TODO!
+            # - Case 2: closing parenthesis, then a comma
+            #   New argument incoming. Is it compatible with the number of arguments the function can take?
+            # - Case 3: comma, then anything else
+            else :
+
+
+
+              # Comma: another argument comes next
+              if (rem[0].type == "COMMA") :
                 
-                # Trim the leading comma, and start the argument processing again
-                if (i != (self.nArgs-1)) :
-                  tokensWithoutFunc = rem[1:]
+                # Does the function accept more than one argument?
+                if (self.nArgs >= 2) :
+                  
+                  # Trim the leading comma, and start the argument processing again
+                  if (i != (self.nArgs-1)) :
+                    tokensWithoutFunc = rem[1:]
+                  else :
+                    if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                    Status.FAIL
                 else :
-                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' only takes 1 argument.")
                   Status.FAIL
-              else :
-                if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' only takes 1 argument.")
-                Status.FAIL
 
         self.remainder = rem
 

@@ -682,7 +682,7 @@ class Expression :
     (self.tokens, status) = nestProcessor(self.tokens)
     
     if (status == Status.FAIL) :
-      return status  
+      return status
     
     # Check the output
     self.statusNest = nestCheck(self.tokens) 
