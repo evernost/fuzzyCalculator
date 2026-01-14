@@ -318,7 +318,7 @@ class Macro :
           # Is there anything left?
           if rem :
 
-            # REMAINDER HAS 1 TOKEN LEFT
+            # 1 TOKEN LEFT IN REMAINDER
             # - Case 1: closing parenthesis
             #   The function/bracket is terminated in the most natural way.
             #   Check if this is compatible with the number of arguments the function expects!
@@ -326,35 +326,50 @@ class Macro :
             #   That's probably an error considering what lead to exiting the arg consumption
             if (len(rem) == 1) :
               if (rem[0].type != "BRKT_CLOSE") :
-                print("Possible error case")
+                self.remainder = []
+              else :
+                print("[ERROR] Macro._read(): possible error case")
 
-            # REMAINDER HAS 2 OR MORE TOKENS LEFT
-            # - Case 1: closing parenthesis, then NOT a comma
+            # 2 OR MORE TOKENS LEFT IN REMAINDER
+            # - Case 1: ')' + ','
+            #   The parenthesis closes the current context
+            #   (it's the only possibility actually)
+            # - Case 2: ')' + '...' (not a comma)
             #   TODO!
-            # - Case 2: closing parenthesis, then a comma
-            #   New argument incoming. Is it compatible with the number of arguments the function can take?
-            # - Case 3: comma, then anything else
+            # - Case 3: ',' + ...
+            #   TODO!
             else :
 
-
-
-              # Comma: another argument comes next
-              if (rem[0].type == "COMMA") :
-                
-                # Does the function accept more than one argument?
-                if (self.nArgs >= 2) :
-                  
-                  # Trim the leading comma, and start the argument processing again
-                  if (i != (self.nArgs-1)) :
+              if (rem[0].type == "BRKT_CLOSE") :
+                if (rem[1].type == "COMMA") :
+                  if ((i+2) <= self.nArgs) :
                     tokensWithoutFunc = rem[1:]
                   else :
                     if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
-                    Status.FAIL
+                    return Status.FAIL
                 else :
-                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' only takes 1 argument.")
-                  Status.FAIL
+                  print("TODO")
 
-        self.remainder = rem
+              elif (rem[0].type == "COMMA") :
+                print("TODO")
+
+              # # Comma: another argument comes next
+              # if (rem[0].type == "COMMA") :
+                
+              #   # Does the function accept more than one argument?
+              #   if (self.nArgs >= 2) :
+                  
+              #     # Trim the leading comma, and start the argument processing again
+              #     if (i != (self.nArgs-1)) :
+              #       tokensWithoutFunc = rem[1:]
+              #     else :
+              #       if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+              #       Status.FAIL
+              #   else :
+              #     if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' only takes 1 argument.")
+              #     Status.FAIL
+
+        #self.remainder = rem
 
       # CASE 2.2: Parenthesis Macro
       elif (tokens[0].type == "BRKT_OPEN") :
@@ -367,7 +382,7 @@ class Macro :
       # CASE 2.3: Anything else (-> error)
       else :
         if not(self.QUIET_MODE) : print("[ERROR] Macro._read(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
-        Status.FAIL
+        return Status.FAIL
 
 
     # STEP 2: explicit the zeros in the 'opposite' operation
