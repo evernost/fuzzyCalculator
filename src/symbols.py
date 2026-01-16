@@ -328,30 +328,36 @@ class Macro :
               if (rem[0].type != "BRKT_CLOSE") :
                 self.remainder = []
               else :
-                print("[ERROR] Macro._read(): possible error case")
+                print("[ERROR] Macro._read(): possible error, please check")
+                self.remainder = []
 
             # 2 OR MORE TOKENS LEFT IN REMAINDER
-            # - Case 1: ')' + ','
-            #   The parenthesis closes the current context
-            #   (it's the only possibility actually)
-            # - Case 2: ')' + '...' (not a comma)
-            #   TODO!
-            # - Case 3: ',' + ...
-            #   TODO!
             else :
-
               if (rem[0].type == "BRKT_CLOSE") :
+                
+                # - Case 1: ')' + ','
+                #   The parenthesis closes the current context
+                #   (it's the only possibility actually)
+                #   Therefore, what remains is part of the upper context.
                 if (rem[1].type == "COMMA") :
-                  if ((i+2) <= self.nArgs) :
-                    tokensWithoutFunc = rem[1:]
-                  else :
-                    if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
-                    return Status.FAIL
-                else :
-                  print("TODO")
+                  self.remainder = rem[1:]
+                  return Status.OK
 
+                # - Case 2: ')' + '...' (not a comma)
+                #   TODO!  
+                else :
+                  self.remainder = rem[1:]
+                  return Status.OK
+
+              # - Case 3: ',' + ...
+              #   Request for a new argument
+              #   -> make sure the function can take one more argument
               elif (rem[0].type == "COMMA") :
-                print("TODO")
+                if ((i+2) <= self.nArgs) :
+                  tokensWithoutFunc = rem[1:]
+                else :
+                  if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
+                  return Status.FAIL
 
               # # Comma: another argument comes next
               # if (rem[0].type == "COMMA") :
