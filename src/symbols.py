@@ -310,10 +310,6 @@ class Macro :
           # Consume and append all the tokens for this argument
           (arg, rem) = self._consumeArg(tokensWithoutFunc)
           self.args.append(arg)
-          
-          # TODO!!
-          # At this point, 'rem' might contain a leftover closing parenthesis
-          # This case needs to be handled
 
           # Is there anything left?
           if rem :
@@ -325,8 +321,9 @@ class Macro :
             # - Case 2: anything else
             #   That's probably an error considering what lead to exiting the arg consumption
             if (len(rem) == 1) :
-              if (rem[0].type != "BRKT_CLOSE") :
+              if (rem[0].type == "BRKT_CLOSE") :
                 self.remainder = []
+                return Status.OK
               else :
                 print("[ERROR] Macro._read(): possible error, please check")
                 self.remainder = []
@@ -359,36 +356,34 @@ class Macro :
                   if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
                   return Status.FAIL
 
-              # # Comma: another argument comes next
-              # if (rem[0].type == "COMMA") :
-                
-              #   # Does the function accept more than one argument?
-              #   if (self.nArgs >= 2) :
-                  
-              #     # Trim the leading comma, and start the argument processing again
-              #     if (i != (self.nArgs-1)) :
-              #       tokensWithoutFunc = rem[1:]
-              #     else :
-              #       if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' got too many arguments (expected: {self.nArgs})")
-              #       Status.FAIL
-              #   else :
-              #     if not(self.QUIET_MODE) : print(f"[ERROR] Macro._read(): '{self.function.id}' only takes 1 argument.")
-              #     Status.FAIL
-
-        #self.remainder = rem
-
       # CASE 2.2: Parenthesis Macro
       elif (tokens[0].type == "BRKT_OPEN") :
-        (arg, rem) = parser.nestArg(tokens[1:])
         self.function = Token("id")
         self.nArgs = 1
+        (arg, rem) = self._consumeArg(tokens[1:])
+        
         self.args.append(arg)
-        self.remainder = rem
+        
+        if (len(rem) == 1) :
+          if (rem[0].type == "BRKT_CLOSE") :
+            self.remainder = []
+            return Status.OK
+          
+        else :
+          print("this section is TODO.")
+
+
+        
 
       # CASE 2.3: Anything else (-> error)
       else :
         if not(self.QUIET_MODE) : print("[ERROR] Macro._read(): the list of tokens must begin with a parenthesis or a function (possible internal error)")
         return Status.FAIL
+
+
+    # TODO: FIX THIS, THIS SECTION CAN'T BE REACHED WITH THE CURRENT DEFINITION
+    print("[CAUTION] Macro._read(): reaching a section of code that hasn't been checked!")
+    return Status.FAIL
 
 
     # STEP 2: explicit the zeros in the 'opposite' operation
@@ -537,6 +532,27 @@ class Macro :
   #   return self.statusNest
 
 
+
+  # ---------------------------------------------------------------------------
+  # METHOD: Macro.__repr__()                                  [BUILT-IN METHOD]
+  # ---------------------------------------------------------------------------
+  def __repr__(self) -> Status :
+    """
+    Defines how a Macro object is represented in debug view.
+    """
+
+    if (self.function.id == "id") :
+      return f"Macro(...)"
+    else :
+      if (self.nArgs == 1) :
+        return f"Macro('{self.function.id}', ...)"
+      elif (self.nArgs == 2) :
+        return f"Macro('{self.function.id}', ..., ...)"
+      elif (self.nArgs == 3) :
+        return f"Macro('{self.function.id}', ..., ..., ...)"
+      else :
+        return f"Macro('{self.function.id}', ...)"
+      
 
 
 

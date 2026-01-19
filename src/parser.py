@@ -1369,13 +1369,14 @@ if (__name__ == '__main__') :
   #e = Expression("(a)(b)", verbose = True)
   #e = Expression("3+logN(10,2)/4", verbose = True)
   #e = Expression("3+logN(10, exp(y-2)+1)/4", verbose = True)
-  #e = Expression("1-exp(3x,y)", verbose = True)
+  #e = Expression("1-exp(3x,y)", verbose = True)f
   #e = Expression("3+logN(10, Q(10,0.1/2))/4", verbose = True)
   #e = Expression("-3exp(-9t)", verbose = True)
   #e = Expression("exp(ln(x^y)-z)exp(x+y)", verbose = True)
   #e = Expression("2^-3exp(7^-9t)", verbose = True)
   #e = Expression("1+2*3^'", verbose = True)
-  e = Expression("3*fct3(a,b+sin(pi),d^r2)", verbose = True)
+  #e = Expression("3*fct3(a,b+sin(pi),d^r2", verbose = True)
+  e = Expression("3*fct3(a,b+sin(pi),(d^r2)", verbose = True)
   #e = Expression("a + sin(b + sin(c + sin(d", verbose = True)
 
   print(f"[INFO] Processing expression: '{e.input}'")
