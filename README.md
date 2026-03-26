@@ -97,7 +97,7 @@ Future releases could handle fixed point numbers, integers, matrices, etc.
 It is worth mentionning that the built-in parser preserves the order of the input, therefore it does not assume commutativity of infix like ```'+'```, ```'*'```, ... which makes it possible to extend it to matrices, quaternions, etc.
 
 > [!NOTE]
-> Pipe char "|" has been considered as a shortcut for ```abs()```, but it turns out it leads to ambiguity. </br>
+> The pipe char "|" was considered at some point as a shortcut for ```abs()```, but it turns out it leads to ambiguity. </br>
 > **Example:** ```|a + b|cos(x)|c + d|```</br>
 > It would be great to find a solution for that.
 
@@ -110,7 +110,7 @@ Sorted by increasing effort:
 - add support for scientific notation
 - add support for thousands delimitation using "_": ```"3_141_592"``` vs ```"3141592"```
 - add support for special characters (```π```?)
-- add support for 'dot-prefixed' operators like ```".+"```? Current parser does not accept it.
+- add support for 'dot-prefixed' operators like ```".+"```? Right now there's no application for such notation, but maybe one day. In any case, the current parser does not accept it.
 - add support for complex numbers
 - add an interactive mode where: 
   - a command prompt appears
