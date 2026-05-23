@@ -276,8 +276,9 @@ class Macro :
   # ---------------------------------------------------------------------------
   def _read(self, tokens) -> Status :
     """
-    Consumes all the tokens, assigns them to the list of argument(s) if the 
+    Reads the input tokens and assigns them to the list of argument(s) if the 
     Macro is a function.
+    The function consumes all the tokens that fit in the macro.
     The rest is stored in 'Macro.remainder' for further processing.
 
     The function returns 'Status.OK' if the Macro creation is successful, 
@@ -314,7 +315,7 @@ class Macro :
           # Is there anything left?
           if rem :
 
-            # 1 TOKEN LEFT IN REMAINDER
+            # ONE TOKEN LEFT IN REMAINDER
             # - Case 1: closing parenthesis
             #   The function/bracket is terminated in the most natural way.
             #   Check if this is compatible with the number of arguments the function expects!
@@ -328,7 +329,7 @@ class Macro :
                 print("[ERROR] Macro._read(): possible error, please check")
                 self.remainder = []
 
-            # 2 OR MORE TOKENS LEFT IN REMAINDER
+            # TWO OR MORE TOKENS LEFT IN REMAINDER
             else :
               if (rem[0].type == "BRKT_CLOSE") :
                 

@@ -694,8 +694,8 @@ class Expression :
   # ---------------------------------------------------------------------------
   def stage(self) :
     """
-    Isolates (stages) the operators with higher relative precedence so that the 
-    operations are done in the right order.
+    Isolates and separates (stages) the operators with higher relative precedence 
+    so that the operations are done in the right order.
 
     Operators and the operands are isolated in a Macro expression, in a 
     similar principle to 'Expression.nest()'
@@ -985,7 +985,7 @@ def nestProcessor(tokens, quiet = False, verbose = False, debug = False) :
   
   nTokens = len(tokens)
 
-  # CASE 1: empty list
+  # CASE 1: empty list of tokens
   if (nTokens == 0) :
     return ([], Status.OK)
 
